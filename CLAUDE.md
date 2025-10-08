@@ -62,8 +62,9 @@ src/
 ├── components/
 │   ├── Auth/              # Authentication (Supabase)
 │   ├── Processing/
-│   │   ├── CardProcessor.tsx      # Main processing logic
-│   │   └── GridCalibrator.tsx     # Interactive calibration UI
+│   │   ├── CardProcessor.tsx       # Main processing logic
+│   │   ├── GridCalibrator.tsx      # Interactive grid calibration
+│   │   └── QuantityCalibrator.tsx  # Interactive quantity calibration
 │   ├── Results/           # Results display and export
 │   └── Upload/            # Image upload interface
 ├── services/
@@ -111,10 +112,24 @@ VITE_SUPABASE_ANON_KEY=your_supabase_key
 - `ocrWidth`: 0.80 (80% of card width)
 - `ocrHeight`: 0.075 (7.5% of card height)
 
+### Quantity Detection Parameters (saved to localStorage)
+- `offsetX`: 0.0 (0% - uses full card width)
+- `offsetY`: 0.08 (8% above card)
+- `width`: 1.0 (100% of card width)
+- `height`: 0.06 (6% of card height)
+- `brightnessThreshold`: 100 (max brightness for dark pixels)
+- `saturationThreshold`: 50 (max saturation for grey/neutral pixels)
+- `fillRatioThreshold`: 0.15 (15% - minimum % of zone pixels to count as filled)
+
+**Algorithm**: Splits diamond region into 4 horizontal zones. For each zone, counts pixels that are BOTH dark (brightness < 100) AND grey (saturation < 50). If zone has >15% dark-grey pixels, it's counted as filled. Filled diamonds have near-black filling; empty diamonds are transparent showing background color.
+
 ## Usage Workflow
 
 1. Upload MTG Arena collection screenshot
-2. (Optional) Enable Debug Mode and calibrate grid/OCR regions
+2. (Optional) Enable Debug Mode and calibrate:
+   - **Section 1**: Grid positioning and card spacing
+   - **Section 2**: OCR name region positioning
+   - **Section 3**: Quantity detection calibration with real-time preview
 3. Click "Process" to extract card data
 4. Review and manually edit results if needed
 5. (Optional) Load test data to check accuracy
@@ -123,5 +138,6 @@ VITE_SUPABASE_ANON_KEY=your_supabase_key
 ## Known Issues
 
 - Authentication is currently disabled (line 154-156 in App.tsx)
-- Quantity detection needs refinement for better accuracy
+- Quantity detection accuracy depends on calibration - use Section 3 in Debug Mode to fine-tune
 - OCR works best with high-resolution screenshots
+- localStorage migration may require manual clearing if old parameters persist

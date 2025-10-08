@@ -5,6 +5,7 @@ import { detectCardGrid, detectCardQuantity } from '../../services/imageProcessi
 import { correctCardNamesBatch } from '../../services/anthropic';
 import { searchCardsBatch } from '../../services/scryfall';
 import { GridCalibrator } from './GridCalibrator';
+import { QuantityCalibrator } from './QuantityCalibrator';
 
 interface CardProcessorProps {
   images: UploadedImage[];
@@ -41,6 +42,55 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       cardGapY: 0.036,
     })
   );
+
+  // Quantity calibration parameters
+  const [quantityParams, setQuantityParams] = useState(() => {
+    // Force clear old quantity params - migration to new algorithm
+    const saved = localStorage.getItem('quantityParams');
+    let parsedSaved = null;
+
+    if (saved) {
+      try {
+        parsedSaved = JSON.parse(saved);
+        console.log('🔍 Found saved quantity params:', parsedSaved);
+      } catch (e) {
+        console.error('Failed to parse saved quantity params:', e);
+      }
+    } else {
+      console.log('🔍 No saved quantity params found in localStorage');
+    }
+
+    // Check if saved params have new structure (saturationThreshold)
+    // Old structure had: ratio2, ratio3, ratio4
+    // New structure has: saturationThreshold, fillRatioThreshold
+    // ALSO check if they're using wrong calibration values (offsetX != 0, width != 1.0)
+    if (parsedSaved && 'saturationThreshold' in parsedSaved && 'fillRatioThreshold' in parsedSaved) {
+      // Check if using outdated calibration (narrow region instead of full card width)
+      const hasWrongRegion = parsedSaved.offsetX !== 0.0 || parsedSaved.width !== 1.0;
+      if (hasWrongRegion) {
+        console.log('⚠️ Detected old calibration values (narrow region) - resetting to defaults');
+        // Fall through to set defaults
+      } else {
+        console.log('✅ Using saved quantity params:', parsedSaved);
+        return parsedSaved;
+      }
+    }
+
+    // Use new defaults (this will run if old params exist or no params exist)
+    console.log('🔄 Migrating to new quantity detection parameters - clearing old values');
+    const newDefaults = {
+      offsetX: 0.0,
+      offsetY: 0.08,
+      width: 1.0,
+      height: 0.06,
+      brightnessThreshold: 100,
+      saturationThreshold: 50,
+      fillRatioThreshold: 0.15,
+    };
+    localStorage.setItem('quantityParams', JSON.stringify(newDefaults));
+    console.log('💾 Saved new defaults to localStorage:', newDefaults);
+    return newDefaults;
+  });
 
   // Preview canvas for real-time visualization
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -110,6 +160,10 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     localStorage.setItem('gridParams', JSON.stringify(gridParams));
   }, [gridParams]);
 
+  useEffect(() => {
+    localStorage.setItem('quantityParams', JSON.stringify(quantityParams));
+  }, [quantityParams]);
+
   // Load preview image when first image is uploaded
   useEffect(() => {
     if (images.length > 0 && !previewImage) {
@@ -156,6 +210,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         setCurrentStep(`Extracting ${grid.length} cards...`);
         const cards: CardData[] = [];
 
+        // Reset quantity detection counter before processing
+        (window as any)._cardCounter = 0;
+
         for (let i = 0; i < grid.length; i++) {
           const cell = grid[i];
 
@@ -168,8 +225,11 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
               { left: ocrLeft, top: ocrTop, width: ocrWidth, height: ocrHeight }
             );
 
-            // Detect quantity
-            const quantity = detectCardQuantity(canvas, cell.bbox);
+            // Detect quantity with custom parameters
+            if (i === 0) {
+              console.log('Processing with quantityParams:', quantityParams);
+            }
+            const quantity = detectCardQuantity(canvas, cell.bbox, quantityParams);
 
             if (text.trim().length > 0) {
               cards.push({
@@ -265,6 +325,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
       {debugMode && images.length > 0 && (
         <div className="mb-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-white mb-2">1. Grid Calibration</h2>
+          </div>
           <GridCalibrator
             imageUrl={images[0].preview}
             onGridParamsChange={setGridParams}
@@ -279,6 +342,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
           <hr className="my-4 border-gray-600" />
 
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-white mb-2">2. OCR Name Region</h2>
+          </div>
           <h3 className="text-sm font-semibold text-white mb-3">OCR Name Region (Red Boxes)</h3>
           <p className="text-xs text-gray-400 mb-3">
             Adjust where OCR reads the card names within each card.
@@ -334,6 +400,18 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
               />
             </div>
           </div>
+
+          <hr className="my-4 border-gray-600" />
+
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-white mb-2">3. Quantity Detection</h2>
+          </div>
+          <QuantityCalibrator
+            imageUrl={images[0].preview}
+            gridParams={gridParams}
+            onQuantityParamsChange={setQuantityParams}
+            initialQuantityParams={quantityParams}
+          />
         </div>
       )}
 

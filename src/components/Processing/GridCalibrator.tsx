@@ -33,6 +33,7 @@ export const GridCalibrator: React.FC<GridCalibratorProps> = ({ imageUrl, onGrid
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+  const lastEmittedParams = useRef<string>('');
 
   // Grid parameters (in percentage of image dimensions) - initialize from props or defaults
   const [gridX, setGridX] = useState(initialGridParams?.startX || 0.027);
@@ -127,8 +128,8 @@ export const GridCalibrator: React.FC<GridCalibratorProps> = ({ imageUrl, onGrid
       }
     }
 
-    // Emit parameters
-    onGridParamsChange({
+    // Emit parameters only if they changed
+    const currentParams = JSON.stringify({
       startX: gridX,
       startY: gridY,
       gridWidth,
@@ -136,6 +137,18 @@ export const GridCalibrator: React.FC<GridCalibratorProps> = ({ imageUrl, onGrid
       cardGapX,
       cardGapY,
     });
+
+    if (currentParams !== lastEmittedParams.current) {
+      lastEmittedParams.current = currentParams;
+      onGridParamsChange({
+        startX: gridX,
+        startY: gridY,
+        gridWidth,
+        gridHeight,
+        cardGapX,
+        cardGapY,
+      });
+    }
   }, [image, gridX, gridY, gridWidth, gridHeight, cardGapX, cardGapY, ocrParams, onGridParamsChange]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {

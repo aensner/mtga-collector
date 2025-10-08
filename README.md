@@ -58,14 +58,20 @@ npm run preview
 If the default settings don't work well with your screenshots:
 
 1. Enable **Debug Mode** checkbox
-2. **Adjust the Grid**:
+2. **Adjust the Grid** (Section 1):
    - Drag the green outline to position the grid
    - Drag green corner handles to resize
    - Use sliders to adjust card spacing
-3. **Adjust OCR Regions**:
+3. **Adjust OCR Regions** (Section 2):
    - Use sliders to position the red boxes over card names
    - See live preview on all 36 cards
-4. Settings are automatically saved to your browser
+4. **Adjust Quantity Detection** (Section 3):
+   - Select which card to preview (1-36)
+   - Adjust region position/size to frame the diamond indicators
+   - Fine-tune brightness, saturation, and fill ratio thresholds
+   - Enable debug view to see detected dark-grey pixels
+   - View real-time detection stats for each of the 4 diamond zones
+5. Settings are automatically saved to your browser
 
 ### Accuracy Testing
 
@@ -96,9 +102,12 @@ Cards are arranged in a 12-column x 3-row grid (36 cards per screenshot). The sy
 ### Quantity Detection
 
 Filled diamonds above cards indicate quantity (1-4):
-- Extracts region above each card
-- Counts bright/white pixels (filled diamonds)
-- Maps brightness ratio to quantity
+- Extracts region above each card (full width by default)
+- Splits region into 4 horizontal zones (one per diamond position)
+- Detects dark-grey pixels (filled diamonds have near-black filling)
+- Empty diamonds are transparent, showing background color
+- Uses brightness and saturation thresholds to distinguish filled vs empty
+- Counts filled zones to determine quantity (1-4)
 
 ## Configuration
 
@@ -144,6 +153,15 @@ Grid and OCR calibration values are stored in localStorage and persist across se
 - Width: 80% of card width
 - Height: 7.5% of card height
 
+**Quantity Detection Parameters:**
+- Offset X: 0% (full card width)
+- Offset Y: 8% (region above card)
+- Width: 100% of card width
+- Height: 6% of card height
+- Brightness Threshold: 100 (pixels darker than this are considered)
+- Saturation Threshold: 50 (pixels less colorful than this are grey/neutral)
+- Fill Ratio Threshold: 15% (% of zone pixels that must be dark-grey to count as filled)
+
 ## Project Structure
 
 ```
@@ -151,8 +169,9 @@ src/
 ├── components/
 │   ├── Auth/              # Supabase authentication
 │   ├── Processing/
-│   │   ├── CardProcessor.tsx      # Main processing logic
-│   │   └── GridCalibrator.tsx     # Interactive calibration UI
+│   │   ├── CardProcessor.tsx       # Main processing logic
+│   │   ├── GridCalibrator.tsx      # Interactive grid calibration
+│   │   └── QuantityCalibrator.tsx  # Interactive quantity calibration
 │   ├── Results/           # Results display and export
 │   └── Upload/            # File upload
 ├── services/

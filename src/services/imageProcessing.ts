@@ -16,7 +16,7 @@ export const detectCardGrid = (
   }
 ): GridCell[] => {
   const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
   if (!ctx) {
     throw new Error('Could not get canvas context');
@@ -79,20 +79,40 @@ export const detectCardGrid = (
  */
 export const detectCardQuantity = (
   canvas: HTMLCanvasElement,
-  cardBbox: { x: number; y: number; width: number; height: number }
+  cardBbox: { x: number; y: number; width: number; height: number },
+  params?: {
+    offsetX: number;
+    offsetY: number;
+    width: number;
+    height: number;
+    brightnessThreshold: number;
+    saturationThreshold: number;
+    fillRatioThreshold: number;
+  }
 ): number => {
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
   if (!ctx) {
     return 1; // Default to 1 if detection fails
   }
 
+  // Use provided params or defaults
+  const p = params || {
+    offsetX: 0.0,
+    offsetY: 0.08,
+    width: 1.0,
+    height: 0.06,
+    brightnessThreshold: 100,
+    saturationThreshold: 50,
+    fillRatioThreshold: 0.15,
+  };
+
   // Diamonds are located above the card, centered horizontally
   const diamondRegion = {
-    x: cardBbox.x + cardBbox.width * 0.3,
-    y: cardBbox.y - cardBbox.height * 0.08, // Slightly above card
-    width: cardBbox.width * 0.4,
-    height: cardBbox.height * 0.06,
+    x: cardBbox.x + cardBbox.width * p.offsetX,
+    y: cardBbox.y - cardBbox.height * p.offsetY, // Slightly above card
+    width: cardBbox.width * p.width,
+    height: cardBbox.height * p.height,
   };
 
   // Ensure region is within canvas bounds
@@ -107,31 +127,74 @@ export const detectCardQuantity = (
     Math.round(diamondRegion.height)
   );
 
-  // Count "bright" pixels (filled diamonds are white/bright)
+  // Split into 4 horizontal zones (one for each diamond)
   const data = imageData.data;
-  let brightPixels = 0;
-  const threshold = 200; // Brightness threshold
+  const regionWidth = Math.round(diamondRegion.width);
+  const regionHeight = Math.round(diamondRegion.height);
+  const zoneWidth = regionWidth / 4;
 
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    const brightness = (r + g + b) / 3;
+  let filledCount = 0;
+  const zoneStats = [];
 
-    if (brightness > threshold) {
-      brightPixels++;
+  // Analyze each zone
+  for (let zone = 0; zone < 4; zone++) {
+    const zoneStartX = Math.floor(zone * zoneWidth);
+    const zoneEndX = Math.floor((zone + 1) * zoneWidth);
+    let darkGreyPixels = 0;
+    let totalZonePixels = 0;
+
+    for (let y = 0; y < regionHeight; y++) {
+      for (let x = zoneStartX; x < zoneEndX; x++) {
+        const i = (y * regionWidth + x) * 4;
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+
+        // Calculate brightness and saturation
+        const brightness = (r + g + b) / 3;
+        const maxChannel = Math.max(r, g, b);
+        const minChannel = Math.min(r, g, b);
+        const saturation = maxChannel - minChannel;
+
+        // Filled diamond: dark AND low saturation (grey/neutral)
+        const isDarkGrey =
+          brightness < p.brightnessThreshold && // Dark enough
+          saturation < p.saturationThreshold; // Not colorful (grey/neutral)
+
+        if (isDarkGrey) {
+          darkGreyPixels++;
+        }
+        totalZonePixels++;
+      }
     }
+
+    const fillRatio = darkGreyPixels / totalZonePixels;
+    const isFilled = fillRatio > p.fillRatioThreshold;
+    if (isFilled) {
+      filledCount++;
+    }
+    zoneStats.push({ zone: zone + 1, fillRatio: (fillRatio * 100).toFixed(1) + '%', isFilled });
   }
 
-  const totalPixels = data.length / 4;
-  const brightRatio = brightPixels / totalPixels;
+  // Debug: log for card #2 (position 2,1)
+  // Card number is tracked externally, so we'll log the first few cards
+  // Store in a global counter to track which card this is
+  if (typeof (window as any)._cardCounter === 'undefined') {
+    (window as any)._cardCounter = 0;
+  }
+  (window as any)._cardCounter++;
 
-  // Map brightness ratio to quantity (1-4)
-  // These thresholds may need tuning based on actual screenshots
-  if (brightRatio > 0.25) return 4;
-  if (brightRatio > 0.18) return 3;
-  if (brightRatio > 0.10) return 2;
-  return 1;
+  if ((window as any)._cardCounter === 2) {
+    console.log('Quantity detection for card #2 (position 2,1):', {
+      cardBbox,
+      diamondRegion,
+      filledCount,
+      zoneStats,
+      params: p,
+    });
+  }
+
+  return filledCount;
 };
 
 /**
@@ -142,7 +205,7 @@ export const extractRegion = (
   bbox: { x: number; y: number; width: number; height: number }
 ): HTMLCanvasElement => {
   const newCanvas = document.createElement('canvas');
-  const ctx = newCanvas.getContext('2d');
+  const ctx = newCanvas.getContext('2d', { willReadFrequently: true });
 
   if (!ctx) {
     throw new Error('Could not get canvas context');
@@ -174,7 +237,7 @@ export const drawGridOverlay = (
   cells: GridCell[]
 ): HTMLCanvasElement => {
   const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
   if (!ctx) {
     throw new Error('Could not get canvas context');

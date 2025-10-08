@@ -16,9 +16,17 @@ interface GridCalibratorProps {
     width: number;
     height: number;
   };
+  initialGridParams?: {
+    startX: number;
+    startY: number;
+    gridWidth: number;
+    gridHeight: number;
+    cardGapX: number;
+    cardGapY: number;
+  };
 }
 
-export const GridCalibrator: React.FC<GridCalibratorProps> = ({ imageUrl, onGridParamsChange, ocrParams }) => {
+export const GridCalibrator: React.FC<GridCalibratorProps> = ({ imageUrl, onGridParamsChange, ocrParams, initialGridParams }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -26,13 +34,13 @@ export const GridCalibrator: React.FC<GridCalibratorProps> = ({ imageUrl, onGrid
   const [isResizing, setIsResizing] = useState(false);
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
 
-  // Grid parameters (in percentage of image dimensions)
-  const [gridX, setGridX] = useState(0.015);
-  const [gridY, setGridY] = useState(0.23);
-  const [gridWidth, setGridWidth] = useState(0.97);
-  const [gridHeight, setGridHeight] = useState(0.65);
-  const [cardGapX, setCardGapX] = useState(0.005); // Gap between cards horizontally
-  const [cardGapY, setCardGapY] = useState(0.01); // Gap between cards vertically
+  // Grid parameters (in percentage of image dimensions) - initialize from props or defaults
+  const [gridX, setGridX] = useState(initialGridParams?.startX || 0.027);
+  const [gridY, setGridY] = useState(initialGridParams?.startY || 0.193);
+  const [gridWidth, setGridWidth] = useState(initialGridParams?.gridWidth || 0.945);
+  const [gridHeight, setGridHeight] = useState(initialGridParams?.gridHeight || 0.788);
+  const [cardGapX, setCardGapX] = useState(initialGridParams?.cardGapX || 0.008); // Gap between cards horizontally (0.8%)
+  const [cardGapY, setCardGapY] = useState(initialGridParams?.cardGapY || 0.036); // Gap between cards vertically (3.6%)
 
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
@@ -249,6 +257,17 @@ export const GridCalibrator: React.FC<GridCalibratorProps> = ({ imageUrl, onGrid
         />
       </div>
 
+      {/* Display current grid position and size */}
+      <div className="mb-4 p-3 bg-gray-700 rounded-lg">
+        <h4 className="text-xs font-semibold text-white mb-2">Grid Position & Size (Green Box)</h4>
+        <div className="grid grid-cols-2 gap-2 text-xs text-gray-300">
+          <div>Start X: {(gridX * 100).toFixed(1)}%</div>
+          <div>Start Y: {(gridY * 100).toFixed(1)}%</div>
+          <div>Width: {(gridWidth * 100).toFixed(1)}%</div>
+          <div>Height: {(gridHeight * 100).toFixed(1)}%</div>
+        </div>
+      </div>
+
       <div className="space-y-2">
         <div>
           <label className="text-xs text-gray-400">Card Gap X (Horizontal: {(cardGapX * 100).toFixed(1)}%)</label>
@@ -267,7 +286,7 @@ export const GridCalibrator: React.FC<GridCalibratorProps> = ({ imageUrl, onGrid
           <input
             type="range"
             min="0"
-            max="0.03"
+            max="0.10"
             step="0.001"
             value={cardGapY}
             onChange={(e) => setCardGapY(parseFloat(e.target.value))}

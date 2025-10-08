@@ -98,18 +98,18 @@ VITE_SUPABASE_ANON_KEY=your_supabase_key
 ## Calibration Values (Defaults)
 
 ### Grid Parameters (saved to localStorage)
-- `startX`: 0.015 (1.5% from left)
-- `startY`: 0.23 (23% from top)
-- `gridWidth`: 0.97 (97% of image width)
-- `gridHeight`: 0.65 (65% of image height)
-- `cardGapX`: 0.005 (0.5% horizontal gap)
-- `cardGapY`: 0.01 (1% vertical gap)
+- `startX`: 0.027 (2.7% from left edge)
+- `startY`: 0.193 (19.3% from top edge)
+- `gridWidth`: 0.945 (94.5% of image width)
+- `gridHeight`: 0.788 (78.8% of image height)
+- `cardGapX`: 0.008 (0.8% horizontal gap between cards)
+- `cardGapY`: 0.036 (3.6% vertical gap between cards)
 
 ### OCR Region Parameters (saved to localStorage)
-- `ocrLeft`: 0.14 (14% from card left edge)
-- `ocrTop`: 0.012 (1.2% from card top edge)
-- `ocrWidth`: 0.74 (74% of card width)
-- `ocrHeight`: 0.058 (5.8% of card height)
+- `ocrLeft`: 0.05 (5% from card left edge)
+- `ocrTop`: 0.043 (4.3% from card top edge)
+- `ocrWidth`: 0.80 (80% of card width)
+- `ocrHeight`: 0.075 (7.5% of card height)
 
 ## Usage Workflow
 

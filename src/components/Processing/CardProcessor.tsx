@@ -25,20 +25,20 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
   };
 
   // OCR region calibration parameters
-  const [ocrLeft, setOcrLeft] = useState(() => loadCalibration('ocrLeft', 0.14));
-  const [ocrTop, setOcrTop] = useState(() => loadCalibration('ocrTop', 0.012));
-  const [ocrWidth, setOcrWidth] = useState(() => loadCalibration('ocrWidth', 0.74));
-  const [ocrHeight, setOcrHeight] = useState(() => loadCalibration('ocrHeight', 0.058));
+  const [ocrLeft, setOcrLeft] = useState(() => loadCalibration('ocrLeft', 0.05));
+  const [ocrTop, setOcrTop] = useState(() => loadCalibration('ocrTop', 0.043));
+  const [ocrWidth, setOcrWidth] = useState(() => loadCalibration('ocrWidth', 0.80));
+  const [ocrHeight, setOcrHeight] = useState(() => loadCalibration('ocrHeight', 0.075));
 
   // Grid calibration parameters (from GridCalibrator)
   const [gridParams, setGridParams] = useState(() =>
     loadCalibration('gridParams', {
-      startX: 0.015,
-      startY: 0.23,
-      gridWidth: 0.97,
-      gridHeight: 0.65,
-      cardGapX: 0.005,
-      cardGapY: 0.01,
+      startX: 0.027,
+      startY: 0.193,
+      gridWidth: 0.945,
+      gridHeight: 0.788,
+      cardGapX: 0.008,
+      cardGapY: 0.036,
     })
   );
 
@@ -268,6 +268,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           <GridCalibrator
             imageUrl={images[0].preview}
             onGridParamsChange={setGridParams}
+            initialGridParams={gridParams}
             ocrParams={{
               left: ocrLeft,
               top: ocrTop,

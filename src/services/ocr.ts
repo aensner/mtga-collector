@@ -61,7 +61,7 @@ export const recognizeCardName = async (
 ): Promise<{ text: string; confidence: number }> => {
   // Card name is in the top center title bar of the card
   // Use provided parameters or defaults
-  const params = regionParams || { left: 0.14, top: 0.012, width: 0.74, height: 0.058 };
+  const params = regionParams || { left: 0.05, top: 0.043, width: 0.80, height: 0.075 };
 
   const nameRegion = {
     left: cardBbox.x + cardBbox.width * params.left,

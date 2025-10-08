@@ -1,23 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "WebSearch",
-      "Bash(npm create:*)",
-      "Bash(robocopy:*)",
-      "Bash(npm install)",
-      "Bash(npm install:*)",
-      "Bash(npx tailwindcss init:*)",
-      "Bash(node:*)",
-      "Bash(npm run dev:*)",
-      "Bash(git init:*)",
-      "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nInitial commit: MTG Arena Collection Scanner\n\nBuilt a full-stack web app for scanning MTG Arena collection screenshots using OCR and AI.\n\nFeatures:\n- Screenshot upload with drag-and-drop interface\n- OCR processing with Tesseract.js\n- AI-powered card name correction using Anthropic Claude API\n- Card validation against Scryfall database\n- Automatic quantity detection from filled diamonds\n- Grid detection for 12-column card layout\n- Interactive results table with manual editing\n- Accuracy testing mode with test data comparison\n- CSV/JSON export functionality\n- Supabase authentication\n\nTech Stack:\n- React + TypeScript + Vite\n- Tailwind CSS\n- Tesseract.js (OCR)\n- Anthropic Claude API (Sonnet 4.5)\n- Scryfall API\n- Supabase Auth\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git remote add:*)",
-      "Bash(git branch:*)",
-      "Bash(git push:*)",
-      "Bash(cat:*)",
-      "Bash(rm:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nAdd interactive grid calibration system with persistent settings\n\nFeatures:\n- Interactive GridCalibrator component with drag/resize overlay\n  - Draggable green outline for grid positioning\n  - Corner handles for resizing grid dimensions\n  - Displays all 36 card slots (12 columns x 3 rows) with numbering\n  - Real-time red box preview for OCR name regions\n  - Sliders for card gap adjustments (horizontal/vertical)\n- Persistent calibration settings stored in localStorage\n  - Grid parameters (startX, startY, gridWidth, gridHeight, cardGapX, cardGapY)\n  - OCR region parameters (left, top, width, height)\n  - Settings automatically saved on change and restored on page load\n- Updated grid detection to support card spacing/gaps\n- Fixed test data CSV loading (corrected filename and header format)\n- Updated documentation (README.md and CLAUDE.md)\n\nTechnical changes:\n- Created src/components/Processing/GridCalibrator.tsx\n- Modified CardProcessor to integrate GridCalibrator with live preview\n- Updated imageProcessing.ts detectCardGrid() to accept gridParams with gap support\n- Updated ocr.ts recognizeCardName() to accept dynamic region parameters\n- Added localStorage persistence via useEffect hooks\n- Updated test data CSV with proper headers\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\nUpdate calibration default values and add live grid position display\n\nChanges:\n- Updated default grid parameters to calibrated values:\n  - Start X: 2.7% (was 1.5%)\n  - Start Y: 19.3% (was 23%)\n  - Grid Width: 94.5% (was 97%)\n  - Grid Height: 78.8% (was 65%)\n  - Card Gap Y max slider: 10% (was 3%)\n- Updated default OCR region parameters:\n  - Left: 5% (was 14%)\n  - Top: 4.3% (was 1.2%)\n  - Width: 80% (was 74%)\n  - Height: 7.5% (was 5.8%)\n- Added live display box showing green grid position and size\n- Updated documentation (README.md and CLAUDE.md) with new defaults\n\nThese calibrated values provide better accuracy for MTG Arena screenshots.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

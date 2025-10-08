@@ -30,12 +30,12 @@ export const detectCardGrid = (
   const COLUMNS = 12;
   const ROWS = 3;
   const params = gridParams || {
-    startX: 0.015,
-    startY: 0.23,
-    gridWidth: 0.97,
-    gridHeight: 0.65,
-    cardGapX: 0.005,
-    cardGapY: 0.01,
+    startX: 0.027,
+    startY: 0.193,
+    gridWidth: 0.945,
+    gridHeight: 0.788,
+    cardGapX: 0.008,
+    cardGapY: 0.036,
   };
 
   const GRID_START_X = image.width * params.startX;

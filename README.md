@@ -131,18 +131,18 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 Grid and OCR calibration values are stored in localStorage and persist across sessions.
 
 **Grid Parameters (all as % of image dimensions):**
-- Start X: 1.5% from left
-- Start Y: 23% from top
-- Grid Width: 97% of image
-- Grid Height: 65% of image
-- Card Gap X: 0.5% horizontal spacing
-- Card Gap Y: 1% vertical spacing
+- Start X: 2.7% from left edge
+- Start Y: 19.3% from top edge
+- Grid Width: 94.5% of image width
+- Grid Height: 78.8% of image height
+- Card Gap X: 0.8% horizontal spacing between cards
+- Card Gap Y: 3.6% vertical spacing between cards
 
 **OCR Region Parameters (as % of card dimensions):**
-- Left Offset: 14% from card left edge
-- Top Offset: 1.2% from card top edge
-- Width: 74% of card width
-- Height: 5.8% of card height
+- Left Offset: 5% from card left edge
+- Top Offset: 4.3% from card top edge
+- Width: 80% of card width
+- Height: 7.5% of card height
 
 ## Project Structure
 

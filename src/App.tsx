@@ -7,7 +7,7 @@ import { CardProcessor } from './components/Processing/CardProcessor';
 import { ResultsTable } from './components/Results/ResultsTable';
 import { ExportButtons } from './components/Results/ExportButtons';
 import { AccuracyMetrics } from './components/Results/AccuracyMetrics';
-import { CardData, ProcessingResult, UploadedImage } from './types';
+import type { CardData, ProcessingResult, UploadedImage } from './types';
 import { signOut } from './services/supabase';
 import { parseCSV } from './utils/csvParser';
 import { calculateAccuracy } from './utils/accuracyTester';
@@ -48,9 +48,10 @@ const MainApp: React.FC = () => {
 
   const handleLoadTestData = async () => {
     try {
-      const response = await fetch('/example/MTG Arena Collection Page 10 - Test data.csv');
+      const response = await fetch('/example/MTG Arena Collection Page 10 - Test data - Tabellenblatt1.csv');
       const csvText = await response.text();
       const parsed = parseCSV(csvText);
+      console.log('Loaded test data:', parsed);
       setGroundTruth(parsed);
       setTestMode(true);
       alert(`Loaded ${parsed.length} cards from test data for comparison`);
@@ -152,9 +153,7 @@ const MainApp: React.FC = () => {
 function App() {
   return (
     <AuthProvider>
-      <ProtectedRoute>
-        <MainApp />
-      </ProtectedRoute>
+      <MainApp />
     </AuthProvider>
   );
 }

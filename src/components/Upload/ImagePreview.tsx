@@ -1,5 +1,5 @@
 import React from 'react';
-import { UploadedImage } from '../../types';
+import type { UploadedImage } from '../../types';
 
 interface ImagePreviewProps {
   images: UploadedImage[];

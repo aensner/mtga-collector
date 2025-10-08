@@ -1,4 +1,4 @@
-import { CardData, AccuracyMetrics } from '../types';
+import type { CardData, AccuracyMetrics } from '../types';
 
 /**
  * Compares extracted card data with ground truth CSV

@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import { CardData } from '../types';
+import type { CardData } from '../types';
 
 export const parseCSV = (csvText: string): CardData[] => {
   const result = Papa.parse<any>(csvText, {

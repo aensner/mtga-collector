@@ -1,4 +1,4 @@
-import { ScryfallCard } from '../types';
+import type { ScryfallCard } from '../types';
 
 const SCRYFALL_API_BASE = 'https://api.scryfall.com';
 

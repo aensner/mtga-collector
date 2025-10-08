@@ -1,5 +1,5 @@
 import React from 'react';
-import { CardData } from '../../types';
+import type { CardData } from '../../types';
 import { exportToCSV, exportToJSON, downloadFile } from '../../utils/csvParser';
 
 interface ExportButtonsProps {

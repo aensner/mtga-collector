@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CardData } from '../../types';
+import type { CardData } from '../../types';
 
 interface ResultsTableProps {
   cards: CardData[];

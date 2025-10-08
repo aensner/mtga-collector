@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { CardData, ProcessingResult, UploadedImage } from '../../types';
+import React, { useState, useEffect, useRef } from 'react';
+import type { CardData, ProcessingResult, UploadedImage } from '../../types';
 import { initializeOCR, recognizeCardName, terminateOCR, preprocessImage } from '../../services/ocr';
 import { detectCardGrid, detectCardQuantity } from '../../services/imageProcessing';
 import { correctCardNamesBatch } from '../../services/anthropic';
 import { searchCardsBatch } from '../../services/scryfall';
+import { GridCalibrator } from './GridCalibrator';
 
 interface CardProcessorProps {
   images: UploadedImage[];
@@ -14,6 +15,109 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
+  const [debugMode, setDebugMode] = useState(false);
+  const [debugCanvas, setDebugCanvas] = useState<string | null>(null);
+
+  // Load calibration from localStorage or use defaults
+  const loadCalibration = (key: string, defaultValue: any) => {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : defaultValue;
+  };
+
+  // OCR region calibration parameters
+  const [ocrLeft, setOcrLeft] = useState(() => loadCalibration('ocrLeft', 0.14));
+  const [ocrTop, setOcrTop] = useState(() => loadCalibration('ocrTop', 0.012));
+  const [ocrWidth, setOcrWidth] = useState(() => loadCalibration('ocrWidth', 0.74));
+  const [ocrHeight, setOcrHeight] = useState(() => loadCalibration('ocrHeight', 0.058));
+
+  // Grid calibration parameters (from GridCalibrator)
+  const [gridParams, setGridParams] = useState(() =>
+    loadCalibration('gridParams', {
+      startX: 0.015,
+      startY: 0.23,
+      gridWidth: 0.97,
+      gridHeight: 0.65,
+      cardGapX: 0.005,
+      cardGapY: 0.01,
+    })
+  );
+
+  // Preview canvas for real-time visualization
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [previewImage, setPreviewImage] = useState<HTMLImageElement | null>(null);
+
+  // Update preview when sliders change
+  useEffect(() => {
+    if (!debugMode || !previewImage || !previewCanvasRef.current) return;
+
+    const canvas = previewCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas size to match image
+    canvas.width = previewImage.width;
+    canvas.height = previewImage.height;
+
+    // Draw the image
+    ctx.drawImage(previewImage, 0, 0);
+
+    // Detect grid and draw overlay with custom parameters
+    const grid = detectCardGrid(previewImage, gridParams);
+
+    // Draw only first few cards to avoid clutter
+    const cardsToShow = Math.min(grid.length, 12); // First row
+
+    for (let i = 0; i < cardsToShow; i++) {
+      const cell = grid[i];
+
+      // Draw full card bbox in blue
+      ctx.strokeStyle = 'rgba(0, 100, 255, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(cell.bbox.x, cell.bbox.y, cell.bbox.width, cell.bbox.height);
+
+      // Draw OCR name region in red
+      const nameRegion = {
+        left: cell.bbox.x + cell.bbox.width * ocrLeft,
+        top: cell.bbox.y + cell.bbox.height * ocrTop,
+        width: cell.bbox.width * ocrWidth,
+        height: cell.bbox.height * ocrHeight,
+      };
+
+      ctx.strokeStyle = 'rgba(255, 0, 0, 0.9)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(nameRegion.left, nameRegion.top, nameRegion.width, nameRegion.height);
+    }
+  }, [debugMode, ocrLeft, ocrTop, ocrWidth, ocrHeight, previewImage, gridParams]);
+
+  // Save calibration values to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('ocrLeft', JSON.stringify(ocrLeft));
+  }, [ocrLeft]);
+
+  useEffect(() => {
+    localStorage.setItem('ocrTop', JSON.stringify(ocrTop));
+  }, [ocrTop]);
+
+  useEffect(() => {
+    localStorage.setItem('ocrWidth', JSON.stringify(ocrWidth));
+  }, [ocrWidth]);
+
+  useEffect(() => {
+    localStorage.setItem('ocrHeight', JSON.stringify(ocrHeight));
+  }, [ocrHeight]);
+
+  useEffect(() => {
+    localStorage.setItem('gridParams', JSON.stringify(gridParams));
+  }, [gridParams]);
+
+  // Load preview image when first image is uploaded
+  useEffect(() => {
+    if (images.length > 0 && !previewImage) {
+      const img = new Image();
+      img.onload = () => setPreviewImage(img);
+      img.src = images[0].preview;
+    }
+  }, [images, previewImage]);
 
   const processImages = async () => {
     if (images.length === 0) return;
@@ -41,10 +145,12 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           img.src = image.preview;
         });
 
-        // Preprocess and detect grid
+        // Preprocess and detect grid with custom parameters
         setCurrentStep(`Detecting card grid in image ${imgIndex + 1}...`);
         const canvas = preprocessImage(img);
-        const grid = detectCardGrid(img);
+        const grid = detectCardGrid(img, gridParams);
+
+        console.log(`Detected ${grid.length} card positions in grid`);
 
         // Extract cards
         setCurrentStep(`Extracting ${grid.length} cards...`);
@@ -54,8 +160,13 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           const cell = grid[i];
 
           try {
-            // OCR card name
-            const { text, confidence } = await recognizeCardName(canvas, cell.bbox);
+            // OCR card name with custom region parameters
+            const { text, confidence } = await recognizeCardName(
+              canvas,
+              cell.bbox,
+              debugMode,
+              { left: ocrLeft, top: ocrTop, width: ocrWidth, height: ocrHeight }
+            );
 
             // Detect quantity
             const quantity = detectCardQuantity(canvas, cell.bbox);
@@ -77,17 +188,19 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           }
         }
 
-        // AI correction
-        setCurrentStep('Correcting card names with AI...');
-        const cardNames = cards.map(c => c.kartenname);
-        const corrections = await correctCardNamesBatch(cardNames);
+        // AI correction (skip if no API key or credits)
+        if (cards.length > 0) {
+          setCurrentStep('Correcting card names with AI...');
+          const cardNames = cards.map(c => c.kartenname);
+          const corrections = await correctCardNamesBatch(cardNames);
 
-        cards.forEach((card, i) => {
-          if (corrections[i]) {
-            card.correctedName = corrections[i].correctedName;
-            card.confidence = (card.confidence || 0) * corrections[i].confidence;
-          }
-        });
+          cards.forEach((card, i) => {
+            if (corrections[i] && corrections[i].correctedName !== card.kartenname) {
+              card.correctedName = corrections[i].correctedName;
+              card.confidence = (card.confidence || 0) * corrections[i].confidence;
+            }
+          });
+        }
 
         setProgress(75);
 
@@ -108,12 +221,21 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
         setProgress(100);
 
+        console.log(`Extracted ${cards.length} cards successfully`);
+
+        // Save debug canvas if in debug mode
+        if (debugMode) {
+          setDebugCanvas(canvas.toDataURL());
+        }
+
         results.push({
           cards,
           totalCards: cards.length,
           processingTime: Date.now() - startTime,
         });
       }
+
+      console.log('Processing complete. Total results:', results);
 
       onProcessingComplete(results);
     } catch (error) {
@@ -129,6 +251,91 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
   return (
     <div className="mt-6">
+      <div className="mb-4">
+        <label className="flex items-center space-x-2 text-sm text-gray-300">
+          <input
+            type="checkbox"
+            checked={debugMode}
+            onChange={(e) => setDebugMode(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
+          />
+          <span>Debug Mode (visualize OCR regions)</span>
+        </label>
+      </div>
+
+      {debugMode && images.length > 0 && (
+        <div className="mb-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
+          <GridCalibrator
+            imageUrl={images[0].preview}
+            onGridParamsChange={setGridParams}
+            ocrParams={{
+              left: ocrLeft,
+              top: ocrTop,
+              width: ocrWidth,
+              height: ocrHeight,
+            }}
+          />
+
+          <hr className="my-4 border-gray-600" />
+
+          <h3 className="text-sm font-semibold text-white mb-3">OCR Name Region (Red Boxes)</h3>
+          <p className="text-xs text-gray-400 mb-3">
+            Adjust where OCR reads the card names within each card.
+          </p>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-gray-400">Left Offset ({(ocrLeft * 100).toFixed(1)}%)</label>
+              <input
+                type="range"
+                min="0"
+                max="0.3"
+                step="0.01"
+                value={ocrLeft}
+                onChange={(e) => setOcrLeft(parseFloat(e.target.value))}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400">Top Offset ({(ocrTop * 100).toFixed(1)}%)</label>
+              <input
+                type="range"
+                min="0"
+                max="0.1"
+                step="0.001"
+                value={ocrTop}
+                onChange={(e) => setOcrTop(parseFloat(e.target.value))}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400">Width ({(ocrWidth * 100).toFixed(1)}%)</label>
+              <input
+                type="range"
+                min="0.4"
+                max="0.95"
+                step="0.01"
+                value={ocrWidth}
+                onChange={(e) => setOcrWidth(parseFloat(e.target.value))}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400">Height ({(ocrHeight * 100).toFixed(1)}%)</label>
+              <input
+                type="range"
+                min="0.02"
+                max="0.15"
+                step="0.001"
+                value={ocrHeight}
+                onChange={(e) => setOcrHeight(parseFloat(e.target.value))}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <button
         onClick={processImages}
         disabled={processing || images.length === 0}
@@ -151,6 +358,16 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {debugCanvas && (
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold text-white mb-2">Debug Visualization</h3>
+          <p className="text-sm text-gray-400 mb-2">
+            Blue boxes = detected card areas | Red boxes = OCR reading regions
+          </p>
+          <img src={debugCanvas} alt="Debug visualization" className="w-full border border-gray-700 rounded" />
         </div>
       )}
     </div>

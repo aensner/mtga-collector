@@ -1,11 +1,19 @@
-import { GridCell } from '../types';
+import type { GridCell } from '../types';
 
 /**
  * Detects the card grid in an MTG Arena collection screenshot
  * Cards are arranged in a 12-column grid
  */
 export const detectCardGrid = (
-  image: HTMLImageElement
+  image: HTMLImageElement,
+  gridParams?: {
+    startX: number;
+    startY: number;
+    gridWidth: number;
+    gridHeight: number;
+    cardGapX: number;
+    cardGapY: number;
+  }
 ): GridCell[] => {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -20,25 +28,34 @@ export const detectCardGrid = (
 
   // MTG Arena UI constants (these may need adjustment)
   const COLUMNS = 12;
-  const GRID_START_X = image.width * 0.015; // Left margin
-  const GRID_START_Y = image.height * 0.23; // Top margin (below UI)
-  const GRID_WIDTH = image.width * 0.97;
-  const CARD_ASPECT_RATIO = 0.7; // Card height/width ratio
+  const ROWS = 3;
+  const params = gridParams || {
+    startX: 0.015,
+    startY: 0.23,
+    gridWidth: 0.97,
+    gridHeight: 0.65,
+    cardGapX: 0.005,
+    cardGapY: 0.01,
+  };
 
-  const cardWidth = GRID_WIDTH / COLUMNS;
-  const cardHeight = cardWidth / CARD_ASPECT_RATIO;
+  const GRID_START_X = image.width * params.startX;
+  const GRID_START_Y = image.height * params.startY;
+  const GRID_WIDTH = image.width * params.gridWidth;
+  const GRID_HEIGHT = image.height * params.gridHeight;
 
-  // Calculate number of rows visible
-  const availableHeight = image.height - GRID_START_Y - (image.height * 0.02);
-  const rows = Math.floor(availableHeight / cardHeight);
+  // Calculate individual card dimensions accounting for gaps
+  const totalGapX = params.cardGapX * image.width * (COLUMNS - 1);
+  const totalGapY = params.cardGapY * image.height * (ROWS - 1);
+  const cardWidth = (GRID_WIDTH - totalGapX) / COLUMNS;
+  const cardHeight = (GRID_HEIGHT - totalGapY) / ROWS;
 
   const cells: GridCell[] = [];
 
   // Grid is read from bottom-left to top-right based on CSV data
-  for (let row = 0; row < rows; row++) {
+  for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLUMNS; col++) {
-      const x = GRID_START_X + (col * cardWidth);
-      const y = GRID_START_Y + (row * cardHeight);
+      const x = GRID_START_X + col * (cardWidth + params.cardGapX * image.width);
+      const y = GRID_START_Y + row * (cardHeight + params.cardGapY * image.height);
 
       cells.push({
         x: col + 1, // 1-indexed

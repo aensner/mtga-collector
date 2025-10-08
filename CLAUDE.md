@@ -4,23 +4,124 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MTGA Collector - A project for managing Magic: The Gathering Arena card collection data.
+**MTGA Arena Collection Scanner** - A full-stack web application for scanning and digitizing Magic: The Gathering Arena collection screenshots using OCR and AI.
 
-## Current State
+## Features
 
-This is a new repository with minimal setup. The only existing content is example data:
-- `example/MTG Arena Collection Page 10 - Test data.csv` - Sample MTG Arena collection export with card positions and quantities
+### Core Functionality
+- **Screenshot Upload**: Drag-and-drop interface for MTG Arena collection screenshots
+- **OCR Processing**: Extracts card names from screenshots using Tesseract.js
+- **AI Correction**: Uses Anthropic Claude API (Sonnet 4.5) to correct OCR errors in card names
+- **Card Validation**: Validates card names against Scryfall database
+- **Quantity Detection**: Automatically detects card quantities from diamond indicators
+- **Grid Detection**: Detects 12-column x 3-row card layout (36 cards per page)
+- **Interactive Results**: Editable table for manual corrections
+- **Export**: CSV and JSON export functionality
+- **Accuracy Testing**: Load test data and compare against OCR results
+
+### Calibration System
+- **Interactive Grid Calibrator**: Draggable/resizable overlay for positioning the card grid
+  - Green outline with corner handles for drag/resize
+  - Blue boxes showing all 36 individual card slots
+  - Card gap adjustment sliders for horizontal/vertical spacing
+- **OCR Region Calibration**: Adjust where OCR reads card names within each card
+  - Red boxes show live preview of OCR regions
+  - Four sliders: Left Offset, Top Offset, Width, Height
+  - Updates in real-time on all 36 cards
+- **Persistent Settings**: All calibration values saved to localStorage
+
+### Debug Mode
+- Enable via checkbox to access calibration tools
+- Live preview canvas showing grid and OCR regions
+- Card numbering (1-36) for easy reference
+
+## Tech Stack
+
+- **Frontend**: React + TypeScript + Vite
+- **Styling**: Tailwind CSS
+- **OCR**: Tesseract.js
+- **AI**: Anthropic Claude API (Sonnet 4.5)
+- **Card Database**: Scryfall API
+- **Authentication**: Supabase Auth (currently disabled for development)
 
 ## Data Format
 
 The CSV export format includes:
-- **Nummer**: Card number/ID
-- **Position X/Y**: Grid position (12 columns wide)
-- **Kartenname**: Card name (German locale)
-- **Anzahl**: Quantity owned
+- **Nummer**: Card number/ID (1-36)
+- **Position X**: Column position (1-12)
+- **Position Y**: Row position (1-3)
+- **Kartenname**: Card name
+- **Anzahl**: Quantity owned (1-4)
 
-Cards are arranged in a grid layout (12 columns per row), with position data tracking where each card appears in the MTG Arena collection view.
+Cards are arranged in a 12-column x 3-row grid (36 cards per screenshot), with gaps between cards.
+
+## File Structure
+
+```
+src/
+├── components/
+│   ├── Auth/              # Authentication (Supabase)
+│   ├── Processing/
+│   │   ├── CardProcessor.tsx      # Main processing logic
+│   │   └── GridCalibrator.tsx     # Interactive calibration UI
+│   ├── Results/           # Results display and export
+│   └── Upload/            # Image upload interface
+├── services/
+│   ├── ocr.ts            # Tesseract.js OCR
+│   ├── anthropic.ts      # Claude AI correction
+│   ├── scryfall.ts       # Card validation
+│   └── imageProcessing.ts # Grid detection & quantity
+├── utils/
+│   ├── csvParser.ts      # CSV import/export
+│   └── accuracyTester.ts # Test data comparison
+└── types.ts              # TypeScript interfaces
+
+example/
+└── MTG Arena Collection Page 10 - Test data - Tabellenblatt1.csv
+```
 
 ## Development Setup
 
-No build system, package manager, or testing framework has been configured yet. The project structure and tooling need to be established based on the intended functionality (web app, CLI tool, data processor, etc.).
+1. Install dependencies: `npm install`
+2. Start dev server: `npm run dev`
+3. Open: http://localhost:5173
+
+## Environment Variables
+
+Create `.env` file:
+```
+VITE_ANTHROPIC_API_KEY=your_api_key
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_key
+```
+
+## Calibration Values (Defaults)
+
+### Grid Parameters (saved to localStorage)
+- `startX`: 0.015 (1.5% from left)
+- `startY`: 0.23 (23% from top)
+- `gridWidth`: 0.97 (97% of image width)
+- `gridHeight`: 0.65 (65% of image height)
+- `cardGapX`: 0.005 (0.5% horizontal gap)
+- `cardGapY`: 0.01 (1% vertical gap)
+
+### OCR Region Parameters (saved to localStorage)
+- `ocrLeft`: 0.14 (14% from card left edge)
+- `ocrTop`: 0.012 (1.2% from card top edge)
+- `ocrWidth`: 0.74 (74% of card width)
+- `ocrHeight`: 0.058 (5.8% of card height)
+
+## Usage Workflow
+
+1. Upload MTG Arena collection screenshot
+2. (Optional) Enable Debug Mode and calibrate grid/OCR regions
+3. Click "Process" to extract card data
+4. Review and manually edit results if needed
+5. (Optional) Load test data to check accuracy
+6. Export to CSV or JSON
+
+## Known Issues
+
+- Authentication is currently disabled (line 154-156 in App.tsx)
+- Quantity detection needs refinement for better accuracy
+- OCR works best with high-resolution screenshots

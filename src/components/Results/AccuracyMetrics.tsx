@@ -1,5 +1,5 @@
 import React from 'react';
-import { AccuracyMetrics as AccuracyMetricsType } from '../../types';
+import type { AccuracyMetrics as AccuracyMetricsType } from '../../types';
 
 interface AccuracyMetricsProps {
   metrics: AccuracyMetricsType;

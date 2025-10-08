@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { UploadedImage } from '../../types';
+import type { UploadedImage } from '../../types';
 
 interface ImageDropzoneProps {
   onImagesUploaded: (images: UploadedImage[]) => void;

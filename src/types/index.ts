@@ -7,6 +7,7 @@ export interface CardData {
   confidence?: number;
   correctedName?: string;
   scryfallMatch?: ScryfallCard;
+  pageNumber?: number; // Which screenshot/page this card came from (1-indexed)
 }
 
 export interface ScryfallCard {

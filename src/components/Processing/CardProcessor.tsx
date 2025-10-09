@@ -22,6 +22,8 @@ interface ProcessingProgress {
   currentPosition: { x: number; y: number };
   batchNumber: number;
   totalBatches: number;
+  currentPage?: number;
+  totalPages?: number;
 }
 
 export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessingComplete }) => {
@@ -259,6 +261,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       currentPosition: { x: 0, y: 0 },
       batchNumber: 0,
       totalBatches: 9,
+      currentPage: 1,
+      totalPages: images.length,
     });
     const startTime = Date.now();
 
@@ -271,7 +275,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
       for (let imgIndex = 0; imgIndex < images.length; imgIndex++) {
         const image = images[imgIndex];
-        setCurrentStep(`Processing image ${imgIndex + 1}/${images.length}...`);
+        const pageNumber = imgIndex + 1;
+        setCurrentStep(`Processing image ${pageNumber}/${images.length}...`);
 
         // Load image
         const img = new Image();
@@ -297,6 +302,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           currentPosition: { x: 0, y: 0 },
           batchNumber: 0,
           totalBatches: Math.ceil(grid.length / 4),
+          currentPage: pageNumber,
+          totalPages: images.length,
         });
 
         // Create a separate canvas from the ORIGINAL image for quantity detection
@@ -351,6 +358,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
             currentPosition: { x: firstCell.x, y: firstCell.y },
             batchNumber: batchIdx + 1,
             totalBatches: batches.length,
+            currentPage: pageNumber,
+            totalPages: images.length,
           });
 
           // Update canvas to show processing status
@@ -387,6 +396,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
                   anzahl: quantity,
                   confidence,
                   cardTime,
+                  pageNumber,
                 };
               } else {
                 return { empty: true, cardTime };
@@ -433,6 +443,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
               currentPosition: { x: lastSuccessCard.positionX, y: lastSuccessCard.positionY },
               batchNumber: batchIdx + 1,
               totalBatches: batches.length,
+              currentPage: pageNumber,
+              totalPages: images.length,
             });
           }
 
@@ -465,6 +477,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
             currentPosition: { x: 0, y: 0 },
             batchNumber: batches.length,
             totalBatches: batches.length,
+            currentPage: pageNumber,
+            totalPages: images.length,
           });
 
           const cardNames = cards.map(c => c.kartenname);
@@ -502,6 +516,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           currentPosition: { x: 0, y: 0 },
           batchNumber: batches.length,
           totalBatches: batches.length,
+          currentPage: pageNumber,
+          totalPages: images.length,
         });
 
         const correctedNames = cards.map(c => c.correctedName || c.kartenname);
@@ -537,6 +553,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           currentPosition: { x: 0, y: 0 },
           batchNumber: batches.length,
           totalBatches: batches.length,
+          currentPage: pageNumber,
+          totalPages: images.length,
         });
 
         // Save debug canvas if in debug mode
@@ -717,6 +735,14 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
                   />
                 </div>
                 <div className="space-y-1">
+                  {processingProgress.totalPages && processingProgress.totalPages > 1 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-400">Page:</span>
+                      <span className="text-xs font-medium text-green-400">
+                        {processingProgress.currentPage}/{processingProgress.totalPages}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">Current Phase:</span>
                     <span className="text-xs font-medium text-blue-400">

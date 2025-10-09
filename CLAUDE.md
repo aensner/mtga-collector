@@ -34,10 +34,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Real-time Progress Indicator** (always visible during processing):
   - Visual progress bar showing percentage completion
   - Card counter (e.g., "Processing Cards: 9/36")
+  - Page indicator when processing multiple screenshots (e.g., "Page: 2/5")
   - Current phase indicator (OCR / AI Correction / Card Validation / Complete)
   - Batch progress (e.g., "Batch: 2/9")
   - Current card details with name and position
   - Auto-hides 2 seconds after completion
+
+### Multi-Page Processing
+- **Process Multiple Screenshots**: Upload and process multiple collection pages in one session
+- **Page Number Tracking**: Each card tracks which screenshot/page it came from
+- **Page Filtering**: Dropdown to filter results by individual pages or view all together
+- **Collection Summary**:
+  - Total cards, unique cards, total quantity across all pages
+  - Average confidence score
+  - Per-page breakdown showing card count and quantity for each page
+  - Scryfall match statistics
+- **Auto-Validation**: Only cards validated by Scryfall are included in results (empty slots and OCR errors are filtered out)
 
 ### Debug Mode
 - Enable via checkbox to access calibration tools

@@ -7,6 +7,7 @@ import { CardProcessor } from './components/Processing/CardProcessor';
 import { ResultsTable } from './components/Results/ResultsTable';
 import { ExportButtons } from './components/Results/ExportButtons';
 import { AccuracyMetrics } from './components/Results/AccuracyMetrics';
+import { CollectionSummary } from './components/Results/CollectionSummary';
 import type { CardData, ProcessingResult, UploadedImage } from './types';
 import { signOut } from './services/supabase';
 import { parseCSV } from './utils/csvParser';
@@ -32,9 +33,12 @@ const MainApp: React.FC = () => {
   const handleProcessingComplete = (results: ProcessingResult[]) => {
     setProcessingResults(results);
 
-    // Combine all cards from all results
+    // Combine all cards from all results and filter out those without Scryfall matches
     const allCards = results.flatMap((r) => r.cards);
-    setCards(allCards);
+    const validatedCards = allCards.filter(card => card.scryfallMatch !== undefined && card.scryfallMatch !== null);
+
+    console.log(`Filtered ${allCards.length} cards -> ${validatedCards.length} validated cards (removed ${allCards.length - validatedCards.length} non-matches)`);
+    setCards(validatedCards);
 
     // Mark images as processed
     setImages(images.map((img) => ({ ...img, processed: true })));
@@ -114,6 +118,7 @@ const MainApp: React.FC = () => {
           {/* Results Section */}
           {cards.length > 0 && (
             <section className="mt-8">
+              <CollectionSummary cards={cards} />
               <ResultsTable cards={cards} onCardUpdate={handleCardUpdate} />
               <ExportButtons cards={cards} />
             </section>

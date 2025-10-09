@@ -22,8 +22,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **AI Correction**: Uses Anthropic Claude API (Sonnet 4.5) to correct OCR errors in card names (on-demand)
 - **Card Validation**: Validates card names against Scryfall database with fuzzy matching
 - **Quantity Detection**: Automatically detects card quantities from indicators
-  - Infinity symbol (∞) for basic lands/unlimited cards
+  - Infinity symbol (∞) for basic lands/unlimited cards (displayed as ∞ in UI, exported as 4)
   - Diamond indicators (1-4) for regular cards
+  - Compatible with MTGGoldfish and standard deck formats
 - **Grid Detection**: Detects 12-column x 3-row card layout (36 cards per page)
 - **Interactive Results**: Editable table for manual corrections
 - **Export**: CSV and JSON export functionality

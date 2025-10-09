@@ -128,7 +128,7 @@ Detects card quantities from indicator symbols above each card:
 - **Infinity Symbol (∞)**: For basic lands and unlimited cards
   - Detects centered dark pixels (figure-8 pattern)
   - Center has >20% dark pixels, edges <10%
-  - Returns `-1` (displayed as ∞ in UI and CSV)
+  - Returns `-1` internally (displayed as ∞ in UI, exported as 4 in CSV)
 - **Diamond Indicators (1-4)**: For regular cards
   - Splits region into 4 horizontal zones (one per diamond)
   - Detects dark-grey pixels (filled diamonds have near-black filling)
@@ -233,7 +233,7 @@ Exports include the following fields:
 | Position X | Column position (1-12) |
 | Position Y | Row position (1-3) |
 | Kartenname | Card name |
-| Anzahl | Quantity owned (1-4, or ∞ for unlimited) |
+| Anzahl | Quantity owned (1-4) - basic lands exported as 4 |
 
 ## Tech Stack
 

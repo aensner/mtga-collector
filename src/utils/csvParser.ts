@@ -9,7 +9,8 @@ export const parseCSV = (csvText: string): CardData[] => {
 
   return result.data.map((row) => {
     const anzahlValue = row.Anzahl || row.anzahl || '0';
-    // Handle infinity symbol in CSV
+    // Handle infinity symbol in CSV (for backwards compatibility with older exports)
+    // Standard exports use numeric values (4 for basic lands/unlimited cards)
     const anzahl = anzahlValue === '∞' || anzahlValue === 'Infinity' || anzahlValue === '-1'
       ? -1
       : parseInt(anzahlValue);
@@ -30,7 +31,9 @@ export const exportToCSV = (cards: CardData[]): string => {
     'Position X': card.positionX,
     'Position Y': card.positionY,
     Kartenname: card.correctedName || card.kartenname,
-    Anzahl: card.anzahl === -1 ? '∞' : card.anzahl, // Export infinity as symbol
+    // Export infinity (-1) as 4 for compatibility with MTGGoldfish and deck builders
+    // Infinity symbol in Arena UI indicates unlimited availability, but exports use numeric quantities
+    Anzahl: card.anzahl === -1 ? 4 : card.anzahl,
   }));
 
   return Papa.unparse(csvData, {

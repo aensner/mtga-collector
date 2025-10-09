@@ -54,11 +54,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Unmatched cards are logged to console with warning for review
   - Scryfall fuzzy matching handles most OCR typos
 
-### AI Correction (Optional/Disabled)
-- **Current Status**: AI correction via Anthropic Claude is currently disabled
-- **Reason**: Scryfall's fuzzy matching handles most OCR errors effectively
-- **When to Enable**: If you see many unmatched cards in console warnings, AI correction can help
-- **Location**: See `src/services/anthropic.ts` to re-enable if needed
+### AI Correction (On-Demand)
+- **Unmatched Cards UI**: Cards not found in Scryfall are shown in a separate section
+- **Manual Trigger**: User clicks "✨ Correct All with AI" button to use Anthropic Claude
+- **Smart Correction**: Only sends unmatched cards to AI (saves API credits)
+- **Before/After View**: Shows original OCR text → AI corrected name → Scryfall match status
+- **Selective Addition**: Only successfully matched cards are added to collection
+- **API Cost Control**: AI is never called automatically - only when user requests it
+- **Location**: `src/components/Results/UnmatchedCards.tsx`
 
 ### Debug Mode
 - Enable via checkbox to access calibration tools

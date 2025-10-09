@@ -8,6 +8,7 @@ import { ResultsTable } from './components/Results/ResultsTable';
 import { ExportButtons } from './components/Results/ExportButtons';
 import { AccuracyMetrics } from './components/Results/AccuracyMetrics';
 import { CollectionSummary } from './components/Results/CollectionSummary';
+import { UnmatchedCards } from './components/Results/UnmatchedCards';
 import type { CardData, ProcessingResult, UploadedImage } from './types';
 import { signOut } from './services/supabase';
 import { parseCSV } from './utils/csvParser';
@@ -18,6 +19,7 @@ const MainApp: React.FC = () => {
   const { user } = useAuth();
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [cards, setCards] = useState<CardData[]>([]);
+  const [unmatchedCards, setUnmatchedCards] = useState<CardData[]>([]);
   const [processingResults, setProcessingResults] = useState<ProcessingResult[]>([]);
   const [testMode, setTestMode] = useState(false);
   const [groundTruth, setGroundTruth] = useState<CardData[]>([]);
@@ -38,18 +40,32 @@ const MainApp: React.FC = () => {
 
     // Separate validated and unmatched cards
     const validatedCards = allCards.filter(card => card.scryfallMatch !== undefined && card.scryfallMatch !== null);
-    const unmatchedCards = allCards.filter(card => card.scryfallMatch === undefined || card.scryfallMatch === null);
+    const unmatchedCardsFound = allCards.filter(card => card.scryfallMatch === undefined || card.scryfallMatch === null);
 
-    console.log(`Processing complete: ${validatedCards.length} validated, ${unmatchedCards.length} unmatched (total: ${allCards.length})`);
+    console.log(`Processing complete: ${validatedCards.length} validated, ${unmatchedCardsFound.length} unmatched (total: ${allCards.length})`);
 
-    if (unmatchedCards.length > 0) {
-      console.warn('⚠️ Unmatched cards (these may need AI correction):', unmatchedCards.map(c => c.kartenname));
+    if (unmatchedCardsFound.length > 0) {
+      console.warn('⚠️ Unmatched cards (these may need AI correction):', unmatchedCardsFound.map(c => c.kartenname));
     }
 
     setCards(validatedCards);
+    setUnmatchedCards(unmatchedCardsFound);
 
     // Mark images as processed
     setImages(images.map((img) => ({ ...img, processed: true })));
+  };
+
+  const handleCardsMatched = (correctedCards: CardData[]) => {
+    // Add corrected cards to the main collection
+    setCards([...cards, ...correctedCards]);
+
+    // Remove them from unmatched
+    const remainingUnmatched = unmatchedCards.filter(
+      unmatched => !correctedCards.some(corrected => corrected.nummer === unmatched.nummer)
+    );
+    setUnmatchedCards(remainingUnmatched);
+
+    console.log(`Added ${correctedCards.length} corrected cards to collection`);
   };
 
   const handleCardUpdate = (index: number, field: keyof CardData, value: any) => {
@@ -122,6 +138,9 @@ const MainApp: React.FC = () => {
               <CardProcessor images={images} onProcessingComplete={handleProcessingComplete} />
             </section>
           )}
+
+          {/* Unmatched Cards Section */}
+          <UnmatchedCards unmatchedCards={unmatchedCards} onCardsMatched={handleCardsMatched} />
 
           {/* Results Section */}
           {cards.length > 0 && (

@@ -21,7 +21,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Only processes non-empty slots
 - **AI Correction**: Uses Anthropic Claude API (Sonnet 4.5) to correct OCR errors in card names (on-demand)
 - **Card Validation**: Validates card names against Scryfall database with fuzzy matching
-- **Quantity Detection**: Automatically detects card quantities from diamond indicators
+- **Quantity Detection**: Automatically detects card quantities from indicators
+  - Infinity symbol (∞) for basic lands/unlimited cards
+  - Diamond indicators (1-4) for regular cards
 - **Grid Detection**: Detects 12-column x 3-row card layout (36 cards per page)
 - **Interactive Results**: Editable table for manual corrections
 - **Export**: CSV and JSON export functionality

@@ -76,6 +76,8 @@ export const detectCardGrid = (
 /**
  * Detects the quantity of a card by counting filled diamonds above it
  * Diamonds are typically white/filled vs outlined
+ * Returns -1 for infinity symbol (unlimited quantity, typically basic lands)
+ * Returns 0-4 for normal quantities
  */
 export const detectCardQuantity = (
   canvas: HTMLCanvasElement,
@@ -127,10 +129,91 @@ export const detectCardQuantity = (
     Math.round(diamondRegion.height)
   );
 
-  // Split into 4 horizontal zones (one for each diamond)
   const data = imageData.data;
   const regionWidth = Math.round(diamondRegion.width);
   const regionHeight = Math.round(diamondRegion.height);
+
+  // First, check for infinity symbol (∞)
+  // Infinity symbol appears in the CENTER of the region with a distinctive pattern
+  // It has dark pixels concentrated in the middle (horizontal figure-8 shape)
+  const centerZoneX = Math.floor(regionWidth * 0.25); // Middle 50% horizontally
+  const centerZoneWidth = Math.floor(regionWidth * 0.5);
+  let centerDarkPixels = 0;
+  let centerTotalPixels = 0;
+
+  for (let y = 0; y < regionHeight; y++) {
+    for (let x = centerZoneX; x < centerZoneX + centerZoneWidth; x++) {
+      const i = (y * regionWidth + x) * 4;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const brightness = (r + g + b) / 3;
+
+      if (brightness < p.brightnessThreshold) {
+        centerDarkPixels++;
+      }
+      centerTotalPixels++;
+    }
+  }
+
+  const centerDarkRatio = centerDarkPixels / centerTotalPixels;
+
+  // If center has significant dark pixels (>20%), check if it's infinity vs diamonds
+  // Infinity: Dark pixels concentrated in CENTER, edges relatively clear
+  // Diamonds: Dark pixels distributed across 4 zones evenly
+  if (centerDarkRatio > 0.20) {
+    // Check edge zones (left 25% and right 25%)
+    const leftEdgeX = 0;
+    const leftEdgeWidth = Math.floor(regionWidth * 0.2);
+    const rightEdgeX = Math.floor(regionWidth * 0.8);
+    const rightEdgeWidth = Math.floor(regionWidth * 0.2);
+
+    let edgeDarkPixels = 0;
+    let edgeTotalPixels = 0;
+
+    // Check left edge
+    for (let y = 0; y < regionHeight; y++) {
+      for (let x = leftEdgeX; x < leftEdgeX + leftEdgeWidth; x++) {
+        const i = (y * regionWidth + x) * 4;
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const brightness = (r + g + b) / 3;
+
+        if (brightness < p.brightnessThreshold) {
+          edgeDarkPixels++;
+        }
+        edgeTotalPixels++;
+      }
+    }
+
+    // Check right edge
+    for (let y = 0; y < regionHeight; y++) {
+      for (let x = rightEdgeX; x < rightEdgeX + rightEdgeWidth; x++) {
+        const i = (y * regionWidth + x) * 4;
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const brightness = (r + g + b) / 3;
+
+        if (brightness < p.brightnessThreshold) {
+          edgeDarkPixels++;
+        }
+        edgeTotalPixels++;
+      }
+    }
+
+    const edgeDarkRatio = edgeDarkPixels / edgeTotalPixels;
+
+    // Infinity: Center is dark (>20%), edges are relatively clear (<10%)
+    if (centerDarkRatio > 0.20 && edgeDarkRatio < 0.10) {
+      console.log('Detected infinity symbol (∞) - unlimited quantity');
+      return -1; // Return -1 for infinity
+    }
+  }
+
+  // No infinity detected, proceed with normal diamond counting
+  // Split into 4 horizontal zones (one for each diamond)
   const zoneWidth = regionWidth / 4;
 
   let filledCount = 0;

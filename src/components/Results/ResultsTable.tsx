@@ -137,11 +137,12 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                         type="number"
                         min="1"
                         max="4"
-                        defaultValue={card.anzahl}
-                        onBlur={(e) => handleEdit(index, 'anzahl', parseInt(e.target.value))}
+                        defaultValue={card.anzahl === -1 ? '' : card.anzahl}
+                        placeholder={card.anzahl === -1 ? '∞' : ''}
+                        onBlur={(e) => handleEdit(index, 'anzahl', parseInt(e.target.value) || card.anzahl)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
-                            handleEdit(index, 'anzahl', parseInt(e.currentTarget.value));
+                            handleEdit(index, 'anzahl', parseInt(e.currentTarget.value) || card.anzahl);
                           }
                         }}
                         autoFocus
@@ -152,7 +153,9 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                         onClick={() => setEditingCell({ row: index, field: 'anzahl' })}
                         className="cursor-pointer hover:bg-gray-600/30 px-2 py-1 rounded inline-block"
                       >
-                        <span className="text-sm text-white">{card.anzahl}</span>
+                        <span className="text-sm text-white">
+                          {card.anzahl === -1 ? '∞' : card.anzahl}
+                        </span>
                       </div>
                     )}
                   </td>

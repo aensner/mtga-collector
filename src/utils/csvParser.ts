@@ -7,13 +7,21 @@ export const parseCSV = (csvText: string): CardData[] => {
     skipEmptyLines: true,
   });
 
-  return result.data.map((row) => ({
-    nummer: parseInt(row.Nummer || row.nummer || '0'),
-    positionX: parseInt(row['Position X'] || row.positionX || '0'),
-    positionY: parseInt(row['Position Y'] || row.positionY || '0'),
-    kartenname: (row.Kartenname || row.kartenname || '').trim(),
-    anzahl: parseInt(row.Anzahl || row.anzahl || '0'),
-  }));
+  return result.data.map((row) => {
+    const anzahlValue = row.Anzahl || row.anzahl || '0';
+    // Handle infinity symbol in CSV
+    const anzahl = anzahlValue === '∞' || anzahlValue === 'Infinity' || anzahlValue === '-1'
+      ? -1
+      : parseInt(anzahlValue);
+
+    return {
+      nummer: parseInt(row.Nummer || row.nummer || '0'),
+      positionX: parseInt(row['Position X'] || row.positionX || '0'),
+      positionY: parseInt(row['Position Y'] || row.positionY || '0'),
+      kartenname: (row.Kartenname || row.kartenname || '').trim(),
+      anzahl,
+    };
+  });
 };
 
 export const exportToCSV = (cards: CardData[]): string => {
@@ -22,7 +30,7 @@ export const exportToCSV = (cards: CardData[]): string => {
     'Position X': card.positionX,
     'Position Y': card.positionY,
     Kartenname: card.correctedName || card.kartenname,
-    Anzahl: card.anzahl,
+    Anzahl: card.anzahl === -1 ? '∞' : card.anzahl, // Export infinity as symbol
   }));
 
   return Papa.unparse(csvData, {

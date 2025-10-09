@@ -123,6 +123,8 @@ VITE_SUPABASE_ANON_KEY=your_supabase_key
 
 **Algorithm**: Splits diamond region into 4 horizontal zones. For each zone, counts pixels that are BOTH dark (brightness < 100) AND grey (saturation < 50). If zone has >15% dark-grey pixels, it's counted as filled. Filled diamonds have near-black filling; empty diamonds are transparent showing background color.
 
+**Important**: Quantity detection uses the ORIGINAL unmodified image, not the preprocessed canvas. The preprocessImage function applies contrast enhancement (1.5x factor) which changes pixel values and would break quantity detection thresholds. OCR uses the preprocessed canvas for better text recognition.
+
 ## Usage Workflow
 
 1. Upload MTG Arena collection screenshot
@@ -138,6 +140,14 @@ VITE_SUPABASE_ANON_KEY=your_supabase_key
 ## Known Issues
 
 - Authentication is currently disabled (line 154-156 in App.tsx)
-- Quantity detection accuracy depends on calibration - use Section 3 in Debug Mode to fine-tune
 - OCR works best with high-resolution screenshots
 - localStorage migration may require manual clearing if old parameters persist
+
+## Implementation Details
+
+### Image Processing Pipeline
+CardProcessor (src/components/Processing/CardProcessor.tsx) uses TWO separate canvases:
+1. **Preprocessed canvas** - Used for OCR with contrast enhancement for better text recognition
+2. **Original canvas** - Used for quantity detection to preserve accurate pixel values
+
+This separation is critical because the preprocessImage function (src/services/ocr.ts) applies a 1.5x contrast enhancement that modifies all RGB values, which would break the brightness/saturation thresholds used in quantity detection.

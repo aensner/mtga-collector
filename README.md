@@ -108,6 +108,7 @@ Filled diamonds above cards indicate quantity (1-4):
 - Empty diamonds are transparent, showing background color
 - Uses brightness and saturation thresholds to distinguish filled vs empty
 - Counts filled zones to determine quantity (1-4)
+- **Note**: Uses the original unmodified image for accurate pixel analysis, while OCR uses a contrast-enhanced version for better text recognition
 
 ## Configuration
 
@@ -221,7 +222,6 @@ Exports include the following fields:
 ## Known Issues & Limitations
 
 - Authentication is currently disabled for development
-- Quantity detection accuracy could be improved
 - OCR accuracy depends on image quality and resolution
 - Currently optimized for English card names
 - Anthropic API calls incur costs

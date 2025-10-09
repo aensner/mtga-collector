@@ -206,6 +206,17 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
         console.log(`Detected ${grid.length} card positions in grid`);
 
+        // Create a separate canvas from the ORIGINAL image for quantity detection
+        // (preprocessing changes pixel values which breaks quantity detection)
+        const originalCanvas = document.createElement('canvas');
+        const originalCtx = originalCanvas.getContext('2d', { willReadFrequently: true });
+        if (!originalCtx) {
+          throw new Error('Could not get canvas context for quantity detection');
+        }
+        originalCanvas.width = img.width;
+        originalCanvas.height = img.height;
+        originalCtx.drawImage(img, 0, 0);
+
         // Extract cards
         setCurrentStep(`Extracting ${grid.length} cards...`);
         const cards: CardData[] = [];
@@ -217,7 +228,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           const cell = grid[i];
 
           try {
-            // OCR card name with custom region parameters
+            // OCR card name with custom region parameters (use preprocessed canvas for OCR)
             const { text, confidence } = await recognizeCardName(
               canvas,
               cell.bbox,
@@ -225,11 +236,11 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
               { left: ocrLeft, top: ocrTop, width: ocrWidth, height: ocrHeight }
             );
 
-            // Detect quantity with custom parameters
+            // Detect quantity with custom parameters (use ORIGINAL canvas for quantity)
             if (i === 0) {
               console.log('Processing with quantityParams:', quantityParams);
             }
-            const quantity = detectCardQuantity(canvas, cell.bbox, quantityParams);
+            const quantity = detectCardQuantity(originalCanvas, cell.bbox, quantityParams);
 
             if (text.trim().length > 0) {
               cards.push({

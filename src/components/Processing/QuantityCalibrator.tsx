@@ -42,19 +42,19 @@ export const QuantityCalibrator: React.FC<QuantityCalibratorProps> = ({
   const [showDebugView, setShowDebugView] = useState(true);
   const lastEmittedParams = useRef<string>('');
 
-  // Quantity detection parameters
-  const [offsetX, setOffsetX] = useState(initialQuantityParams?.offsetX || 0.0);
-  const [offsetY, setOffsetY] = useState(initialQuantityParams?.offsetY || 0.08);
-  const [width, setWidth] = useState(initialQuantityParams?.width || 1.0);
-  const [height, setHeight] = useState(initialQuantityParams?.height || 0.06);
+  // Quantity detection parameters (calibrated defaults)
+  const [offsetX, setOffsetX] = useState(initialQuantityParams?.offsetX ?? 0.28);
+  const [offsetY, setOffsetY] = useState(initialQuantityParams?.offsetY ?? 0.08);
+  const [width, setWidth] = useState(initialQuantityParams?.width ?? 0.44);
+  const [height, setHeight] = useState(initialQuantityParams?.height ?? 0.07);
   const [brightnessThreshold, setBrightnessThreshold] = useState(
-    initialQuantityParams?.brightnessThreshold || 100
+    initialQuantityParams?.brightnessThreshold ?? 50
   );
   const [saturationThreshold, setSaturationThreshold] = useState(
-    initialQuantityParams?.saturationThreshold || 50
+    initialQuantityParams?.saturationThreshold ?? 10
   );
   const [fillRatioThreshold, setFillRatioThreshold] = useState(
-    initialQuantityParams?.fillRatioThreshold || 0.15
+    initialQuantityParams?.fillRatioThreshold ?? 0.05
   );
 
   const [selectedCard, setSelectedCard] = useState(0); // Which card to preview
@@ -366,26 +366,26 @@ export const QuantityCalibrator: React.FC<QuantityCalibratorProps> = ({
         </p>
         <button
           onClick={() => {
-            console.log('Resetting quantity params to defaults');
-            setOffsetX(0.0);
+            console.log('Resetting quantity params to calibrated defaults');
+            setOffsetX(0.28);
             setOffsetY(0.08);
-            setWidth(1.0);
-            setHeight(0.06);
-            setBrightnessThreshold(100);
-            setSaturationThreshold(50);
-            setFillRatioThreshold(0.15);
+            setWidth(0.44);
+            setHeight(0.07);
+            setBrightnessThreshold(50);
+            setSaturationThreshold(10);
+            setFillRatioThreshold(0.05);
             // Force save to localStorage immediately
             const newDefaults = {
-              offsetX: 0.0,
+              offsetX: 0.28,
               offsetY: 0.08,
-              width: 1.0,
-              height: 0.06,
-              brightnessThreshold: 100,
-              saturationThreshold: 50,
-              fillRatioThreshold: 0.15,
+              width: 0.44,
+              height: 0.07,
+              brightnessThreshold: 50,
+              saturationThreshold: 10,
+              fillRatioThreshold: 0.05,
             };
             localStorage.setItem('quantityParams', JSON.stringify(newDefaults));
-            console.log('Saved new defaults to localStorage:', newDefaults);
+            console.log('Saved calibrated defaults to localStorage:', newDefaults);
           }}
           className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs rounded"
         >

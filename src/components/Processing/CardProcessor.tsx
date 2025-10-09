@@ -45,50 +45,36 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
   // Quantity calibration parameters
   const [quantityParams, setQuantityParams] = useState(() => {
-    // Force clear old quantity params - migration to new algorithm
     const saved = localStorage.getItem('quantityParams');
-    let parsedSaved = null;
 
     if (saved) {
       try {
-        parsedSaved = JSON.parse(saved);
+        const parsedSaved = JSON.parse(saved);
         console.log('🔍 Found saved quantity params:', parsedSaved);
+
+        // Validate that saved params have the correct structure
+        if ('saturationThreshold' in parsedSaved && 'fillRatioThreshold' in parsedSaved) {
+          console.log('✅ Using saved quantity params:', parsedSaved);
+          return parsedSaved;
+        }
       } catch (e) {
         console.error('Failed to parse saved quantity params:', e);
       }
-    } else {
-      console.log('🔍 No saved quantity params found in localStorage');
     }
 
-    // Check if saved params have new structure (saturationThreshold)
-    // Old structure had: ratio2, ratio3, ratio4
-    // New structure has: saturationThreshold, fillRatioThreshold
-    // ALSO check if they're using wrong calibration values (offsetX != 0, width != 1.0)
-    if (parsedSaved && 'saturationThreshold' in parsedSaved && 'fillRatioThreshold' in parsedSaved) {
-      // Check if using outdated calibration (narrow region instead of full card width)
-      const hasWrongRegion = parsedSaved.offsetX !== 0.0 || parsedSaved.width !== 1.0;
-      if (hasWrongRegion) {
-        console.log('⚠️ Detected old calibration values (narrow region) - resetting to defaults');
-        // Fall through to set defaults
-      } else {
-        console.log('✅ Using saved quantity params:', parsedSaved);
-        return parsedSaved;
-      }
-    }
-
-    // Use new defaults (this will run if old params exist or no params exist)
-    console.log('🔄 Migrating to new quantity detection parameters - clearing old values');
+    // Use calibrated defaults
+    console.log('🔄 No valid saved params - using calibrated defaults');
     const newDefaults = {
-      offsetX: 0.0,
+      offsetX: 0.28,
       offsetY: 0.08,
-      width: 1.0,
-      height: 0.06,
-      brightnessThreshold: 100,
-      saturationThreshold: 50,
-      fillRatioThreshold: 0.15,
+      width: 0.44,
+      height: 0.07,
+      brightnessThreshold: 50,
+      saturationThreshold: 10,
+      fillRatioThreshold: 0.05,
     };
     localStorage.setItem('quantityParams', JSON.stringify(newDefaults));
-    console.log('💾 Saved new defaults to localStorage:', newDefaults);
+    console.log('💾 Saved calibrated defaults to localStorage:', newDefaults);
     return newDefaults;
   });
 

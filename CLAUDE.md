@@ -113,15 +113,15 @@ VITE_SUPABASE_ANON_KEY=your_supabase_key
 - `ocrHeight`: 0.075 (7.5% of card height)
 
 ### Quantity Detection Parameters (saved to localStorage)
-- `offsetX`: 0.0 (0% - uses full card width)
+- `offsetX`: 0.28 (28% from left edge of card - centers on diamond region)
 - `offsetY`: 0.08 (8% above card)
-- `width`: 1.0 (100% of card width)
-- `height`: 0.06 (6% of card height)
-- `brightnessThreshold`: 100 (max brightness for dark pixels)
-- `saturationThreshold`: 50 (max saturation for grey/neutral pixels)
-- `fillRatioThreshold`: 0.15 (15% - minimum % of zone pixels to count as filled)
+- `width`: 0.44 (44% of card width - focuses on diamond indicators)
+- `height`: 0.07 (7% of card height)
+- `brightnessThreshold`: 50 (max brightness for dark pixels)
+- `saturationThreshold`: 10 (max saturation for grey/neutral pixels)
+- `fillRatioThreshold`: 0.05 (5% - minimum % of zone pixels to count as filled)
 
-**Algorithm**: Splits diamond region into 4 horizontal zones. For each zone, counts pixels that are BOTH dark (brightness < 100) AND grey (saturation < 50). If zone has >15% dark-grey pixels, it's counted as filled. Filled diamonds have near-black filling; empty diamonds are transparent showing background color.
+**Algorithm**: Splits diamond region into 4 horizontal zones. For each zone, counts pixels that are BOTH dark (brightness < 50) AND grey (saturation < 10). If zone has >5% dark-grey pixels, it's counted as filled. Filled diamonds have near-black filling; empty diamonds are transparent showing background color.
 
 **Important**: Quantity detection uses the ORIGINAL unmodified image, not the preprocessed canvas. The preprocessImage function applies contrast enhancement (1.5x factor) which changes pixel values and would break quantity detection thresholds. OCR uses the preprocessed canvas for better text recognition.
 

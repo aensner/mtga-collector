@@ -155,13 +155,13 @@ Grid and OCR calibration values are stored in localStorage and persist across se
 - Height: 7.5% of card height
 
 **Quantity Detection Parameters:**
-- Offset X: 0% (full card width)
+- Offset X: 28% (from left edge of card - centers on diamond region)
 - Offset Y: 8% (region above card)
-- Width: 100% of card width
-- Height: 6% of card height
-- Brightness Threshold: 100 (pixels darker than this are considered)
-- Saturation Threshold: 50 (pixels less colorful than this are grey/neutral)
-- Fill Ratio Threshold: 15% (% of zone pixels that must be dark-grey to count as filled)
+- Width: 44% of card width (focuses on diamond indicators)
+- Height: 7% of card height
+- Brightness Threshold: 50 (pixels darker than this are considered)
+- Saturation Threshold: 10 (pixels less colorful than this are grey/neutral)
+- Fill Ratio Threshold: 5% (% of zone pixels that must be dark-grey to count as filled)
 
 ## Project Structure
 

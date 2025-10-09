@@ -96,15 +96,15 @@ export const detectCardQuantity = (
     return 1; // Default to 1 if detection fails
   }
 
-  // Use provided params or defaults
+  // Use provided params or calibrated defaults
   const p = params || {
-    offsetX: 0.0,
+    offsetX: 0.28,
     offsetY: 0.08,
-    width: 1.0,
-    height: 0.06,
-    brightnessThreshold: 100,
-    saturationThreshold: 50,
-    fillRatioThreshold: 0.15,
+    width: 0.44,
+    height: 0.07,
+    brightnessThreshold: 50,
+    saturationThreshold: 10,
+    fillRatioThreshold: 0.05,
   };
 
   // Diamonds are located above the card, centered horizontally

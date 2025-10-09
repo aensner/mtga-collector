@@ -133,86 +133,6 @@ export const detectCardQuantity = (
   const regionWidth = Math.round(diamondRegion.width);
   const regionHeight = Math.round(diamondRegion.height);
 
-  // First, check for infinity symbol (∞)
-  // Infinity symbol appears in the CENTER of the region with a distinctive pattern
-  // It has dark pixels concentrated in the middle (horizontal figure-8 shape)
-  const centerZoneX = Math.floor(regionWidth * 0.25); // Middle 50% horizontally
-  const centerZoneWidth = Math.floor(regionWidth * 0.5);
-  let centerDarkPixels = 0;
-  let centerTotalPixels = 0;
-
-  for (let y = 0; y < regionHeight; y++) {
-    for (let x = centerZoneX; x < centerZoneX + centerZoneWidth; x++) {
-      const i = (y * regionWidth + x) * 4;
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const brightness = (r + g + b) / 3;
-
-      if (brightness < p.brightnessThreshold) {
-        centerDarkPixels++;
-      }
-      centerTotalPixels++;
-    }
-  }
-
-  const centerDarkRatio = centerDarkPixels / centerTotalPixels;
-
-  // If center has significant dark pixels (>20%), check if it's infinity vs diamonds
-  // Infinity: Dark pixels concentrated in CENTER, edges relatively clear
-  // Diamonds: Dark pixels distributed across 4 zones evenly
-  if (centerDarkRatio > 0.20) {
-    // Check edge zones (left 25% and right 25%)
-    const leftEdgeX = 0;
-    const leftEdgeWidth = Math.floor(regionWidth * 0.2);
-    const rightEdgeX = Math.floor(regionWidth * 0.8);
-    const rightEdgeWidth = Math.floor(regionWidth * 0.2);
-
-    let edgeDarkPixels = 0;
-    let edgeTotalPixels = 0;
-
-    // Check left edge
-    for (let y = 0; y < regionHeight; y++) {
-      for (let x = leftEdgeX; x < leftEdgeX + leftEdgeWidth; x++) {
-        const i = (y * regionWidth + x) * 4;
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        const brightness = (r + g + b) / 3;
-
-        if (brightness < p.brightnessThreshold) {
-          edgeDarkPixels++;
-        }
-        edgeTotalPixels++;
-      }
-    }
-
-    // Check right edge
-    for (let y = 0; y < regionHeight; y++) {
-      for (let x = rightEdgeX; x < rightEdgeX + rightEdgeWidth; x++) {
-        const i = (y * regionWidth + x) * 4;
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        const brightness = (r + g + b) / 3;
-
-        if (brightness < p.brightnessThreshold) {
-          edgeDarkPixels++;
-        }
-        edgeTotalPixels++;
-      }
-    }
-
-    const edgeDarkRatio = edgeDarkPixels / edgeTotalPixels;
-
-    // Infinity: Center is dark (>20%), edges are relatively clear (<10%)
-    if (centerDarkRatio > 0.20 && edgeDarkRatio < 0.10) {
-      console.log('Detected infinity symbol (∞) - unlimited quantity');
-      return -1; // Return -1 for infinity
-    }
-  }
-
-  // No infinity detected, proceed with normal diamond counting
   // Split into 4 horizontal zones (one for each diamond)
   const zoneWidth = regionWidth / 4;
 
@@ -256,25 +176,38 @@ export const detectCardQuantity = (
     if (isFilled) {
       filledCount++;
     }
-    zoneStats.push({ zone: zone + 1, fillRatio: (fillRatio * 100).toFixed(1) + '%', isFilled });
   }
 
-  // Debug: log for card #2 (position 2,1)
-  // Card number is tracked externally, so we'll log the first few cards
-  // Store in a global counter to track which card this is
-  if (typeof (window as any)._cardCounter === 'undefined') {
-    (window as any)._cardCounter = 0;
-  }
-  (window as any)._cardCounter++;
+  // Special case: If filledCount is 0, it might be infinity symbol
+  // Check if there are ANY pixels that suggest a symbol is present
+  // (as opposed to completely empty background)
+  if (filledCount === 0) {
+    // Calculate total variance in the region to see if there's SOMETHING there
+    let totalDarkPixels = 0;
+    const anySymbolThreshold = 100; // Less strict threshold
 
-  if ((window as any)._cardCounter === 2) {
-    console.log('Quantity detection for card #2 (position 2,1):', {
-      cardBbox,
-      diamondRegion,
-      filledCount,
-      zoneStats,
-      params: p,
-    });
+    for (let y = 0; y < regionHeight; y++) {
+      for (let x = 0; x < regionWidth; x++) {
+        const i = (y * regionWidth + x) * 4;
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const brightness = (r + g + b) / 3;
+
+        if (brightness < anySymbolThreshold) {
+          totalDarkPixels++;
+        }
+      }
+    }
+
+    const totalPixels = regionWidth * regionHeight;
+    const darkPixelRatio = totalDarkPixels / totalPixels;
+
+    // If more than 10% of pixels are darker than 100, there's SOMETHING in this region
+    // Since no diamonds were detected, assume it's the infinity symbol
+    if (darkPixelRatio > 0.10) {
+      return -1; // Return infinity
+    }
   }
 
   return filledCount;
@@ -385,27 +318,7 @@ export const isCardSlotEmpty = (
   // Primary: Low edge density (no card borders, text, or art details)
   // Real cards have 9-26% edge density, empty slots have 0-0.04%
   // Background patterns can have high color variance, so we rely primarily on edges
-  const isEmpty = edgeDensity < opts.edgeThreshold;
-
-  // Debug logging for first few cards
-  if (typeof (window as any)._emptyCheckCounter === 'undefined') {
-    (window as any)._emptyCheckCounter = 0;
-  }
-  (window as any)._emptyCheckCounter++;
-
-  if ((window as any)._emptyCheckCounter <= 12) {
-    console.log(`Empty check card #${(window as any)._emptyCheckCounter}:`, {
-      edgeDensity: (edgeDensity * 100).toFixed(2) + '%',
-      variance: variance.toFixed(0),
-      isEmpty,
-      thresholds: {
-        edgeThreshold: (opts.edgeThreshold * 100).toFixed(2) + '%',
-        varianceThreshold: opts.varianceThreshold,
-      },
-    });
-  }
-
-  return isEmpty;
+  return edgeDensity < opts.edgeThreshold;
 };
 
 /**

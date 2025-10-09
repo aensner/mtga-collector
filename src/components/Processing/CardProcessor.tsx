@@ -65,11 +65,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     if (saved) {
       try {
         const parsedSaved = JSON.parse(saved);
-        console.log('🔍 Found saved quantity params:', parsedSaved);
-
         // Validate that saved params have the correct structure
         if ('saturationThreshold' in parsedSaved && 'fillRatioThreshold' in parsedSaved) {
-          console.log('✅ Using saved quantity params:', parsedSaved);
           return parsedSaved;
         }
       } catch (e) {
@@ -78,7 +75,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     }
 
     // Use calibrated defaults
-    console.log('🔄 No valid saved params - using calibrated defaults');
     const newDefaults = {
       offsetX: 0.28,
       offsetY: 0.08,
@@ -89,7 +85,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       fillRatioThreshold: 0.05,
     };
     localStorage.setItem('quantityParams', JSON.stringify(newDefaults));
-    console.log('💾 Saved calibrated defaults to localStorage:', newDefaults);
     return newDefaults;
   });
 
@@ -290,7 +285,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         const canvas = preprocessImage(img);
         const grid = detectCardGrid(img, gridParams);
 
-        console.log(`Detected ${grid.length} card positions in grid`);
+        // Grid detected
 
         // Update progress with actual grid size
         setProcessingProgress({
@@ -335,7 +330,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           batches.push(grid.slice(i, i + BATCH_SIZE));
         }
 
-        console.log(`Processing ${grid.length} cards in ${batches.length} batches of ${BATCH_SIZE}`);
+        // Processing cards in batches
 
         for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
           const batch = batches[batchIdx];
@@ -379,7 +374,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
               if (isEmpty) {
                 const cardTime = Date.now() - cardStartTime;
-                console.log(`Card ${cardIndex + 1}/${grid.length}: Empty slot detected (${cardTime}ms) - skipping OCR`);
                 return { empty: true, cardTime };
               }
 
@@ -429,10 +423,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
               cardStatuses.set(cardIndex, 'success');
               lastSuccessCard = result;
 
-              const displayName = result.kartenname.length > 20
-                ? result.kartenname.substring(0, 20) + '...'
-                : result.kartenname;
-              console.log(`Card ${cardIndex + 1}/${grid.length}: "${displayName}" (${result.cardTime}ms)`);
+              // Card processed successfully
             } else if (result && result.empty) {
               cardStatuses.set(cardIndex, 'empty');
             } else if (result && result.error) {

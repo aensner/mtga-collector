@@ -71,7 +71,7 @@ export const recognizeText = async (
 
   return {
     text: data.text.trim(),
-    confidence: data.confidence,
+    confidence: data.confidence / 100, // Tesseract returns 0-100, we need 0-1
     bbox: {
       x0: data.bbox?.x0 || 0,
       y0: data.bbox?.y0 || 0,

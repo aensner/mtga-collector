@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { CardData, ProcessingResult, UploadedImage } from '../../types';
 import { initializeOCR, recognizeCardName, terminateOCR, preprocessImage } from '../../services/ocr';
-import { detectCardGrid, detectCardQuantity } from '../../services/imageProcessing';
+import { detectCardGrid, detectCardQuantity, isCardSlotEmpty } from '../../services/imageProcessing';
 import { searchCardsBatch } from '../../services/scryfall';
 import { GridCalibrator } from './GridCalibrator';
 import { QuantityCalibrator } from './QuantityCalibrator';
@@ -324,8 +324,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         // Track card statuses for visual overlay
         const cardStatuses = new Map<number, CardStatus>();
 
-        // Reset quantity detection counter before processing
+        // Reset counters before processing
         (window as any)._cardCounter = 0;
+        (window as any)._emptyCheckCounter = 0;
 
         // Process cards in batches of 4 (parallel)
         const BATCH_SIZE = 4;
@@ -373,6 +374,15 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
             const cardStartTime = Date.now();
 
             try {
+              // Check if slot is empty BEFORE running OCR
+              const isEmpty = isCardSlotEmpty(originalCanvas, cell.bbox);
+
+              if (isEmpty) {
+                const cardTime = Date.now() - cardStartTime;
+                console.log(`Card ${cardIndex + 1}/${grid.length}: Empty slot detected (${cardTime}ms) - skipping OCR`);
+                return { empty: true, cardTime };
+              }
+
               // OCR card name with custom region parameters (use preprocessed canvas for OCR)
               const { text, confidence } = await recognizeCardName(
                 canvas,

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empty Slot Detection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        h1 { color: #4ade80; }
+        .upload-area {
+            border: 2px dashed #4ade80;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+            background: #2a2a2a;
+        }
+        .upload-area:hover {
+            background: #3a3a3a;
+        }
+        canvas {
+            max-width: 100%;
+            margin: 20px 0;
+            border: 1px solid #4ade80;
+        }
+        .results {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .card-result {
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .filled {
+            background: rgba(74, 222, 128, 0.2);
+            border-left: 4px solid #4ade80;
+        }
+        .empty {
+            background: rgba(156, 163, 175, 0.2);
+            border-left: 4px solid #9ca3af;
+        }
+        .summary {
+            background: #3a3a3a;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .summary h3 {
+            margin-top: 0;
+            color: #4ade80;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Empty Slot Detection Test</h1>
+    <p>This page tests the empty slot detection algorithm before OCR processing.</p>
+
+    <div class="upload-area" id="uploadArea">
+        <p>📸 Click or drag to upload MTG Arena screenshot</p>
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+    </div>
+
+    <div class="summary" id="summary" style="display: none;">
+        <h3>Detection Summary</h3>
+        <p><strong>Total Slots:</strong> <span id="totalSlots">0</span></p>
+        <p><strong>Filled Slots:</strong> <span id="filledSlots">0</span> (will process with OCR)</p>
+        <p><strong>Empty Slots:</strong> <span id="emptySlots">0</span> (will skip OCR)</p>
+        <p><strong>Time Saved:</strong> ~<span id="timeSaved">0</span> seconds</p>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="results" id="results"></div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const results = document.getElementById('results');
+
+        uploadArea.onclick = () => fileInput.click();
+
+        uploadArea.ondragover = (e) => {
+            e.preventDefault();
+            uploadArea.style.background = '#3a3a3a';
+        };
+
+        uploadArea.ondragleave = () => {
+            uploadArea.style.background = '#2a2a2a';
+        };
+
+        uploadArea.ondrop = (e) => {
+            e.preventDefault();
+            uploadArea.style.background = '#2a2a2a';
+            const file = e.dataTransfer.files[0];
+            if (file) processImage(file);
+        };
+
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) processImage(file);
+        };
+
+        function isCardSlotEmpty(imageData, opts = {}) {
+            const edgeThreshold = opts.edgeThreshold ?? 0.02;
+            const varianceThreshold = opts.varianceThreshold ?? 800;
+
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            const pixelCount = width * height;
+
+            // Calculate color variance
+            let sumR = 0, sumG = 0, sumB = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                sumR += data[i];
+                sumG += data[i + 1];
+                sumB += data[i + 2];
+            }
+            const avgR = sumR / pixelCount;
+            const avgG = sumG / pixelCount;
+            const avgB = sumB / pixelCount;
+
+            let varianceSum = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                varianceSum += Math.pow(r - avgR, 2) + Math.pow(g - avgG, 2) + Math.pow(b - avgB, 2);
+            }
+            const variance = varianceSum / pixelCount;
+
+            // Calculate edge density
+            let edgePixels = 0;
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    const i = (y * width + x) * 4;
+                    const current = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                    const right = (data[i + 4] + data[i + 5] + data[i + 6]) / 3;
+                    const bottom = (data[i + width * 4] + data[i + width * 4 + 1] + data[i + width * 4 + 2]) / 3;
+
+                    const gradientX = Math.abs(current - right);
+                    const gradientY = Math.abs(current - bottom);
+                    const gradient = Math.sqrt(gradientX * gradientX + gradientY * gradientY);
+
+                    if (gradient > 30) edgePixels++;
+                }
+            }
+
+            const edgeDensity = edgePixels / pixelCount;
+            const isEmpty = edgeDensity < edgeThreshold;
+
+            return {
+                isEmpty,
+                edgeDensity: (edgeDensity * 100).toFixed(2),
+                variance: variance.toFixed(0),
+                edgeThreshold: (edgeThreshold * 100).toFixed(2),
+                varianceThreshold
+            };
+        }
+
+        function processImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    // Grid parameters
+                    const COLUMNS = 12;
+                    const ROWS = 3;
+                    const params = {
+                        startX: 0.027,
+                        startY: 0.193,
+                        gridWidth: 0.945,
+                        gridHeight: 0.788,
+                        cardGapX: 0.008,
+                        cardGapY: 0.036,
+                    };
+
+                    const GRID_START_X = img.width * params.startX;
+                    const GRID_START_Y = img.height * params.startY;
+                    const GRID_WIDTH = img.width * params.gridWidth;
+                    const GRID_HEIGHT = img.height * params.gridHeight;
+
+                    const totalGapX = params.cardGapX * img.width * (COLUMNS - 1);
+                    const totalGapY = params.cardGapY * img.height * (ROWS - 1);
+                    const cardWidth = (GRID_WIDTH - totalGapX) / COLUMNS;
+                    const cardHeight = (GRID_HEIGHT - totalGapY) / ROWS;
+
+                    let resultsHTML = '<h3>🔍 Detection Results (36 slots)</h3>';
+                    let filledCount = 0;
+                    let emptyCount = 0;
+
+                    // Test each card slot
+                    for (let row = 0; row < ROWS; row++) {
+                        for (let col = 0; col < COLUMNS; col++) {
+                            const cardNum = row * COLUMNS + col + 1;
+                            const x = GRID_START_X + col * (cardWidth + params.cardGapX * img.width);
+                            const y = GRID_START_Y + row * (cardHeight + params.cardGapY * img.height);
+
+                            // Sample center region
+                            const sampleMargin = 0.15;
+                            const sampleX = Math.round(x + cardWidth * sampleMargin);
+                            const sampleY = Math.round(y + cardHeight * sampleMargin);
+                            const sampleW = Math.round(cardWidth * (1 - 2 * sampleMargin));
+                            const sampleH = Math.round(cardHeight * (1 - 2 * sampleMargin));
+
+                            const imageData = ctx.getImageData(sampleX, sampleY, sampleW, sampleH);
+                            const result = isCardSlotEmpty(imageData);
+
+                            if (result.isEmpty) {
+                                emptyCount++;
+                                resultsHTML += `<div class="card-result empty">Card ${cardNum} (${col + 1},${row + 1}): EMPTY - Edge: ${result.edgeDensity}%, Variance: ${result.variance}</div>`;
+
+                                // Draw grey overlay
+                                ctx.fillStyle = 'rgba(128, 128, 128, 0.3)';
+                                ctx.fillRect(x, y, cardWidth, cardHeight);
+                                ctx.strokeStyle = 'rgba(128, 128, 128, 0.8)';
+                                ctx.lineWidth = 3;
+                                ctx.strokeRect(x, y, cardWidth, cardHeight);
+                            } else {
+                                filledCount++;
+                                resultsHTML += `<div class="card-result filled">Card ${cardNum} (${col + 1},${row + 1}): FILLED - Edge: ${result.edgeDensity}%, Variance: ${result.variance}</div>`;
+
+                                // Draw green overlay
+                                ctx.strokeStyle = 'rgba(74, 222, 128, 0.8)';
+                                ctx.lineWidth = 3;
+                                ctx.strokeRect(x, y, cardWidth, cardHeight);
+                            }
+                        }
+                    }
+
+                    results.innerHTML = resultsHTML;
+
+                    // Update summary
+                    const timeSaved = (emptyCount * 1.5).toFixed(1);
+                    document.getElementById('summary').style.display = 'block';
+                    document.getElementById('totalSlots').textContent = '36';
+                    document.getElementById('filledSlots').textContent = filledCount;
+                    document.getElementById('emptySlots').textContent = emptyCount;
+                    document.getElementById('timeSaved').textContent = timeSaved;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
+</body>
+</html>

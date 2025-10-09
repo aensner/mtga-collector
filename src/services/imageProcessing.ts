@@ -198,6 +198,134 @@ export const detectCardQuantity = (
 };
 
 /**
+ * Detects if a card slot is empty by analyzing edge density and color variance
+ * Empty slots have low edge density and uniform background patterns
+ * Real cards have distinct edges, varied colors, and structural features
+ */
+export const isCardSlotEmpty = (
+  canvas: HTMLCanvasElement,
+  cardBbox: { x: number; y: number; width: number; height: number },
+  options?: {
+    edgeThreshold?: number;
+    varianceThreshold?: number;
+  }
+): boolean => {
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+  if (!ctx) {
+    return false; // If we can't check, assume card is present
+  }
+
+  const opts = {
+    edgeThreshold: options?.edgeThreshold ?? 0.02, // 2% of pixels should be edges for a card
+    varianceThreshold: options?.varianceThreshold ?? 800, // Variance in pixel values (not used, kept for compatibility)
+  };
+
+  // Sample a region in the center of the card (avoid borders)
+  const sampleMargin = 0.15; // 15% margin from edges
+  const sampleRegion = {
+    x: Math.round(cardBbox.x + cardBbox.width * sampleMargin),
+    y: Math.round(cardBbox.y + cardBbox.height * sampleMargin),
+    width: Math.round(cardBbox.width * (1 - 2 * sampleMargin)),
+    height: Math.round(cardBbox.height * (1 - 2 * sampleMargin)),
+  };
+
+  // Ensure region is within canvas bounds
+  if (
+    sampleRegion.x < 0 ||
+    sampleRegion.y < 0 ||
+    sampleRegion.x + sampleRegion.width > canvas.width ||
+    sampleRegion.y + sampleRegion.height > canvas.height
+  ) {
+    return false;
+  }
+
+  const imageData = ctx.getImageData(
+    sampleRegion.x,
+    sampleRegion.y,
+    sampleRegion.width,
+    sampleRegion.height
+  );
+
+  const data = imageData.data;
+  const pixelCount = sampleRegion.width * sampleRegion.height;
+
+  // Calculate color variance (standard deviation)
+  let sumR = 0, sumG = 0, sumB = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    sumR += data[i];
+    sumG += data[i + 1];
+    sumB += data[i + 2];
+  }
+  const avgR = sumR / pixelCount;
+  const avgG = sumG / pixelCount;
+  const avgB = sumB / pixelCount;
+
+  let varianceSum = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    varianceSum += Math.pow(r - avgR, 2) + Math.pow(g - avgG, 2) + Math.pow(b - avgB, 2);
+  }
+  const variance = varianceSum / pixelCount;
+
+  // Calculate edge density using simple Sobel-like edge detection
+  let edgePixels = 0;
+  const width = sampleRegion.width;
+  const height = sampleRegion.height;
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const i = (y * width + x) * 4;
+
+      // Get grayscale value for current pixel and neighbors
+      const current = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      const right = (data[i + 4] + data[i + 5] + data[i + 6]) / 3;
+      const bottom = (data[i + width * 4] + data[i + width * 4 + 1] + data[i + width * 4 + 2]) / 3;
+
+      // Calculate gradient
+      const gradientX = Math.abs(current - right);
+      const gradientY = Math.abs(current - bottom);
+      const gradient = Math.sqrt(gradientX * gradientX + gradientY * gradientY);
+
+      // Threshold for edge detection
+      if (gradient > 30) {
+        edgePixels++;
+      }
+    }
+  }
+
+  const edgeDensity = edgePixels / pixelCount;
+
+  // Empty slot detection criteria:
+  // Primary: Low edge density (no card borders, text, or art details)
+  // Real cards have 9-26% edge density, empty slots have 0-0.04%
+  // Background patterns can have high color variance, so we rely primarily on edges
+  const isEmpty = edgeDensity < opts.edgeThreshold;
+
+  // Debug logging for first few cards
+  if (typeof (window as any)._emptyCheckCounter === 'undefined') {
+    (window as any)._emptyCheckCounter = 0;
+  }
+  (window as any)._emptyCheckCounter++;
+
+  if ((window as any)._emptyCheckCounter <= 12) {
+    console.log(`Empty check card #${(window as any)._emptyCheckCounter}:`, {
+      edgeDensity: (edgeDensity * 100).toFixed(2) + '%',
+      variance: variance.toFixed(0),
+      isEmpty,
+      thresholds: {
+        edgeThreshold: (opts.edgeThreshold * 100).toFixed(2) + '%',
+        varianceThreshold: opts.varianceThreshold,
+      },
+    });
+  }
+
+  return isEmpty;
+};
+
+/**
  * Extracts a region of the canvas as a new canvas
  */
 export const extractRegion = (

@@ -10,9 +10,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Core Functionality
 - **Screenshot Upload**: Drag-and-drop interface for MTG Arena collection screenshots
+- **Empty Slot Detection**: Analyzes card slots before OCR to skip empty positions
+  - Uses edge detection (Sobel-like gradient calculation)
+  - Real cards: 9-26% edge density, Empty slots: 0-0.04% edge density
+  - Threshold: < 2% edge density = empty
+  - Saves ~70% processing time on partially filled pages (26 empty slots × 1.5s = 39s saved)
+  - Takes ~5-10ms per slot vs ~1500ms for OCR (99% faster)
 - **OCR Processing**: Extracts card names from screenshots using Tesseract.js
-- **AI Correction**: Uses Anthropic Claude API (Sonnet 4.5) to correct OCR errors in card names
-- **Card Validation**: Validates card names against Scryfall database
+  - Parallel processing with 4 workers
+  - Only processes non-empty slots
+- **AI Correction**: Uses Anthropic Claude API (Sonnet 4.5) to correct OCR errors in card names (on-demand)
+- **Card Validation**: Validates card names against Scryfall database with fuzzy matching
 - **Quantity Detection**: Automatically detects card quantities from diamond indicators
 - **Grid Detection**: Detects 12-column x 3-row card layout (36 cards per page)
 - **Interactive Results**: Editable table for manual corrections

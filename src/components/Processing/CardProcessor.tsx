@@ -206,14 +206,19 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         // Extract cards
         setCurrentStep(`Extracting ${grid.length} cards...`);
         const cards: CardData[] = [];
+        const ocrStartTime = Date.now();
 
         // Reset quantity detection counter before processing
         (window as any)._cardCounter = 0;
 
         for (let i = 0; i < grid.length; i++) {
           const cell = grid[i];
+          const cardStartTime = Date.now();
 
           try {
+            // Show detailed progress for current card
+            setCurrentStep(`Reading card ${i + 1}/${grid.length} at position (${cell.x},${cell.y})...`);
+
             // OCR card name with custom region parameters (use preprocessed canvas for OCR)
             const { text, confidence } = await recognizeCardName(
               canvas,
@@ -228,6 +233,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
             }
             const quantity = detectCardQuantity(originalCanvas, cell.bbox, quantityParams);
 
+            const cardTime = Date.now() - cardStartTime;
+
             if (text.trim().length > 0) {
               cards.push({
                 nummer: i + 1,
@@ -237,48 +244,77 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
                 anzahl: quantity,
                 confidence,
               });
+
+              // Show card name in progress (truncate if too long)
+              const displayName = text.length > 20 ? text.substring(0, 20) + '...' : text;
+              setCurrentStep(`Card ${i + 1}/${grid.length}: "${displayName}" (${cardTime}ms)`);
+            } else {
+              setCurrentStep(`Card ${i + 1}/${grid.length}: Empty slot (${cardTime}ms)`);
             }
 
             setProgress(Math.round(((i + 1) / grid.length) * 50));
           } catch (error) {
             console.error(`Error processing card at ${cell.x},${cell.y}:`, error);
+            setCurrentStep(`Card ${i + 1}/${grid.length}: Error`);
           }
         }
 
-        // AI correction (skip if no API key or credits)
+        const ocrTotalTime = ((Date.now() - ocrStartTime) / 1000).toFixed(1);
+        console.log(`OCR completed in ${ocrTotalTime}s - Extracted ${cards.length} cards`);
+
+        // AI correction (skip if no cards extracted)
         if (cards.length > 0) {
-          setCurrentStep('Correcting card names with AI...');
+          const aiStartTime = Date.now();
+          setCurrentStep(`Correcting ${cards.length} card names with AI...`);
+
           const cardNames = cards.map(c => c.kartenname);
           const corrections = await correctCardNamesBatch(cardNames);
 
+          let correctionCount = 0;
           cards.forEach((card, i) => {
             if (corrections[i] && corrections[i].correctedName !== card.kartenname) {
               card.correctedName = corrections[i].correctedName;
               card.confidence = (card.confidence || 0) * corrections[i].confidence;
+              correctionCount++;
             }
           });
+
+          const aiTime = ((Date.now() - aiStartTime) / 1000).toFixed(1);
+          console.log(`AI correction completed in ${aiTime}s - ${correctionCount} cards corrected`);
+          setCurrentStep(`AI correction complete (${aiTime}s, ${correctionCount} corrections)`);
+        } else {
+          console.log('Skipping AI correction - no cards extracted');
+          setCurrentStep('Skipping AI correction (no cards found)');
         }
 
         setProgress(75);
 
         // Validate with Scryfall
-        setCurrentStep('Validating with Scryfall database...');
+        const scryfallStartTime = Date.now();
+        setCurrentStep(`Validating ${cards.length} cards with Scryfall...`);
         const correctedNames = cards.map(c => c.correctedName || c.kartenname);
         const scryfallResults = await searchCardsBatch(correctedNames);
 
+        let scryfallMatches = 0;
         cards.forEach((card, i) => {
           if (scryfallResults[i]) {
             card.scryfallMatch = scryfallResults[i] || undefined;
             // Use Scryfall name as final correction if found
             if (scryfallResults[i]) {
               card.correctedName = scryfallResults[i]!.name;
+              scryfallMatches++;
             }
           }
         });
 
+        const scryfallTime = ((Date.now() - scryfallStartTime) / 1000).toFixed(1);
+        console.log(`Scryfall validation completed in ${scryfallTime}s - ${scryfallMatches}/${cards.length} matches`);
+
         setProgress(100);
 
-        console.log(`Extracted ${cards.length} cards successfully`);
+        const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`Processing complete in ${totalTime}s - ${cards.length} cards extracted`);
+        setCurrentStep(`Complete! Processed ${cards.length} cards in ${totalTime}s`);
 
         // Save debug canvas if in debug mode
         if (debugMode) {

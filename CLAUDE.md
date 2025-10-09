@@ -49,7 +49,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Average confidence score
   - Per-page breakdown showing card count and quantity for each page
   - Scryfall match statistics
-- **Auto-Validation**: Only cards validated by Scryfall are included in results (empty slots and OCR errors are filtered out)
+- **Auto-Validation**: Only cards validated by Scryfall are included in results
+  - Empty slots and OCR errors are automatically filtered out
+  - Unmatched cards are logged to console with warning for review
+  - Scryfall fuzzy matching handles most OCR typos
+
+### AI Correction (Optional/Disabled)
+- **Current Status**: AI correction via Anthropic Claude is currently disabled
+- **Reason**: Scryfall's fuzzy matching handles most OCR errors effectively
+- **When to Enable**: If you see many unmatched cards in console warnings, AI correction can help
+- **Location**: See `src/services/anthropic.ts` to re-enable if needed
 
 ### Debug Mode
 - Enable via checkbox to access calibration tools

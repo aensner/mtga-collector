@@ -33,11 +33,19 @@ const MainApp: React.FC = () => {
   const handleProcessingComplete = (results: ProcessingResult[]) => {
     setProcessingResults(results);
 
-    // Combine all cards from all results and filter out those without Scryfall matches
+    // Combine all cards from all results
     const allCards = results.flatMap((r) => r.cards);
-    const validatedCards = allCards.filter(card => card.scryfallMatch !== undefined && card.scryfallMatch !== null);
 
-    console.log(`Filtered ${allCards.length} cards -> ${validatedCards.length} validated cards (removed ${allCards.length - validatedCards.length} non-matches)`);
+    // Separate validated and unmatched cards
+    const validatedCards = allCards.filter(card => card.scryfallMatch !== undefined && card.scryfallMatch !== null);
+    const unmatchedCards = allCards.filter(card => card.scryfallMatch === undefined || card.scryfallMatch === null);
+
+    console.log(`Processing complete: ${validatedCards.length} validated, ${unmatchedCards.length} unmatched (total: ${allCards.length})`);
+
+    if (unmatchedCards.length > 0) {
+      console.warn('⚠️ Unmatched cards (these may need AI correction):', unmatchedCards.map(c => c.kartenname));
+    }
+
     setCards(validatedCards);
 
     // Mark images as processed

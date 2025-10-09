@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { CardData, ProcessingResult, UploadedImage } from '../../types';
 import { initializeOCR, recognizeCardName, terminateOCR, preprocessImage } from '../../services/ocr';
 import { detectCardGrid, detectCardQuantity } from '../../services/imageProcessing';
-import { correctCardNamesBatch } from '../../services/anthropic';
 import { searchCardsBatch } from '../../services/scryfall';
 import { GridCalibrator } from './GridCalibrator';
 import { QuantityCalibrator } from './QuantityCalibrator';
@@ -17,7 +16,7 @@ type CardStatus = 'pending' | 'processing' | 'success' | 'error' | 'empty';
 interface ProcessingProgress {
   currentCard: number;
   totalCards: number;
-  currentPhase: 'OCR' | 'AI Correction' | 'Card Validation' | 'Complete';
+  currentPhase: 'OCR' | 'Card Validation' | 'Complete';
   currentCardName: string;
   currentPosition: { x: number; y: number };
   batchNumber: number;
@@ -463,44 +462,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         const ocrTotalTime = ((Date.now() - ocrStartTime) / 1000).toFixed(1);
         console.log(`Parallel OCR completed in ${ocrTotalTime}s - Extracted ${cards.length} cards`);
 
-        // AI correction (skip if no cards extracted)
-        if (cards.length > 0) {
-          const aiStartTime = Date.now();
-          setCurrentStep(`Correcting ${cards.length} card names with AI...`);
-
-          // Update progress to AI phase
-          setProcessingProgress({
-            currentCard: cards.length,
-            totalCards: grid.length,
-            currentPhase: 'AI Correction',
-            currentCardName: `Processing ${cards.length} cards...`,
-            currentPosition: { x: 0, y: 0 },
-            batchNumber: batches.length,
-            totalBatches: batches.length,
-            currentPage: pageNumber,
-            totalPages: images.length,
-          });
-
-          const cardNames = cards.map(c => c.kartenname);
-          const corrections = await correctCardNamesBatch(cardNames);
-
-          let correctionCount = 0;
-          cards.forEach((card, i) => {
-            if (corrections[i] && corrections[i].correctedName !== card.kartenname) {
-              card.correctedName = corrections[i].correctedName;
-              card.confidence = (card.confidence || 0) * corrections[i].confidence;
-              correctionCount++;
-            }
-          });
-
-          const aiTime = ((Date.now() - aiStartTime) / 1000).toFixed(1);
-          console.log(`AI correction completed in ${aiTime}s - ${correctionCount} cards corrected`);
-          setCurrentStep(`AI correction complete (${aiTime}s, ${correctionCount} corrections)`);
-        } else {
-          console.log('Skipping AI correction - no cards extracted');
-          setCurrentStep('Skipping AI correction (no cards found)');
-        }
-
         setProgress(75);
 
         // Validate with Scryfall
@@ -520,23 +481,31 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           totalPages: images.length,
         });
 
-        const correctedNames = cards.map(c => c.correctedName || c.kartenname);
-        const scryfallResults = await searchCardsBatch(correctedNames);
+        const cardNames = cards.map(c => c.kartenname);
+        const scryfallResults = await searchCardsBatch(cardNames);
 
         let scryfallMatches = 0;
+        let unmatchedCards: string[] = [];
+
         cards.forEach((card, i) => {
           if (scryfallResults[i]) {
             card.scryfallMatch = scryfallResults[i] || undefined;
             // Use Scryfall name as final correction if found
-            if (scryfallResults[i]) {
-              card.correctedName = scryfallResults[i]!.name;
-              scryfallMatches++;
-            }
+            card.correctedName = scryfallResults[i]!.name;
+            scryfallMatches++;
+          } else {
+            // Mark unmatched cards
+            card.scryfallMatch = undefined;
+            unmatchedCards.push(card.kartenname);
           }
         });
 
         const scryfallTime = ((Date.now() - scryfallStartTime) / 1000).toFixed(1);
         console.log(`Scryfall validation completed in ${scryfallTime}s - ${scryfallMatches}/${cards.length} matches`);
+
+        if (unmatchedCards.length > 0) {
+          console.warn(`⚠️ ${unmatchedCards.length} cards not found in Scryfall:`, unmatchedCards);
+        }
 
         setProgress(100);
 

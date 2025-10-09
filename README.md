@@ -9,7 +9,7 @@ A web application for scanning and digitizing Magic: The Gathering Arena collect
 - ✅ **Card Validation** - Validates against Scryfall database with fuzzy matching (auto-filters non-matching cards)
 - ⚠️ **Smart Unmatched Card Handling** - Shows unmatched cards with optional AI correction button
 - 🤖 **On-Demand AI Correction** - Use Anthropic Claude to correct OCR errors only when needed
-- 🎯 **Quantity Detection** - Automatically detects card quantities (1-4)
+- 🎯 **Quantity Detection** - Automatically detects card quantities (1-4) and infinity symbol (∞) for basic lands
 - 🎚️ **Interactive Calibration** - Drag-and-resize grid overlay with live preview
 - 📊 **Real-time Progress Tracking** - Live progress bar with card-by-card status updates
 - 📄 **Multi-Page Processing** - Process multiple screenshots in one session with per-page tracking
@@ -17,6 +17,7 @@ A web application for scanning and digitizing Magic: The Gathering Arena collect
 - 🔍 **Page Filtering** - Filter results by individual pages or view all together
 - 🖼️ **Visual Processing Indicators** - Color-coded overlays showing processing status in debug mode
 - 💾 **Export** - Export to CSV or JSON format
+- 🎨 **MTG Arena Design System** - Polished UI with official MTG Arena color palette and components
 
 ## Quick Start
 
@@ -126,14 +127,13 @@ Before running OCR, the system checks if a card slot is empty:
 
 Detects card quantities from indicator symbols above each card:
 - **Infinity Symbol (∞)**: For basic lands and unlimited cards
-  - Detects centered dark pixels (figure-8 pattern)
-  - Center has >20% dark pixels, edges <10%
+  - Fallback detection: If no diamonds detected but >10% dark pixels present
   - Returns `-1` internally (displayed as ∞ in UI, exported as 4 in CSV)
 - **Diamond Indicators (1-4)**: For regular cards
   - Splits region into 4 horizontal zones (one per diamond)
-  - Detects dark-grey pixels (filled diamonds have near-black filling)
-  - Empty diamonds are transparent, showing background color
-  - Counts filled zones to determine quantity (1-4)
+  - Detects dark-grey pixels (brightness < 50, saturation < 10)
+  - Filled diamonds have near-black filling, empty diamonds show background
+  - Counts filled zones (>5% dark-grey pixels) to determine quantity (1-4)
 - **Note**: Uses the original unmodified image for accurate pixel analysis, while OCR uses a contrast-enhanced version for better text recognition
 
 ## Configuration
@@ -239,7 +239,7 @@ Exports include the following fields:
 
 - **React** + **TypeScript** - UI framework
 - **Vite** - Build tool
-- **Tailwind CSS** - Styling
+- **Tailwind CSS** + **MTG Arena Design System** - Styling with official color palette
 - **Tesseract.js** - OCR engine with parallel processing (4 workers)
 - **Anthropic Claude** (Sonnet 4.5) - AI name correction
 - **Scryfall API** - Card validation
@@ -252,10 +252,34 @@ Exports include the following fields:
 - Currently optimized for English card names
 - Anthropic API calls incur costs
 
+## UI Design
+
+The app uses a custom **MTG Arena Design System** for visual consistency:
+
+### Color Palette
+- **Background**: `#0C0F14` (base), `#131821` (panels), `#1A2130` (muted)
+- **Foreground**: `#E6EEF7` (primary), `#BBD0E4` (secondary), `#8BA3B8` (muted)
+- **Accent**: `#13B9D5` (cyan) with hover states
+- **Status**: `#3CCB7F` (success), `#FFD166` (warning), `#EF476F` (error), `#4DA3FF` (info)
+
+### Components
+Pre-built component classes available in `src/mtga.css`:
+- **Buttons**: `.button`, `.button.ok`, `.button.ghost`, `.button.danger`
+- **Cards**: `.card` with `.card-header`, `.card-body`, `.card-actions`
+- **Forms**: `.input`, `.select`, `.textarea`, `.checkbox`
+- **Badges**: `.badge.ok`, `.badge.warn`, `.badge.error`, `.badge.info`
+- **Tables**: `.table` with proper theming
+- **Progress**: `.progress > .bar`
+
+### Accessibility
+- Text contrast ≥ 4.5:1, UI contrast ≥ 3:1
+- Visible focus rings on all interactive elements
+- Respects `prefers-reduced-motion`
+- Keyboard navigation support
+
 ## Future Enhancements
 
 - Backend proxy for API calls
-- Improved quantity detection algorithm
 - Collection tracking over time
 - Price tracking integration
 - Multi-language support

@@ -78,6 +78,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Enable via checkbox to access calibration tools
 - Live preview canvas showing grid and OCR regions
 - Card numbering (1-36) for easy reference
+
+### UI Design System
+- **MTG Arena Theme**: Custom design system with official MTG Arena color palette
+- **Component Library**: Pre-built classes in `src/mtga.css`
+  - Buttons: `.button`, `.button.ok`, `.button.ghost`, `.button.danger`
+  - Cards: `.card` with `.card-header`, `.card-body`, `.card-actions`
+  - Forms: `.input`, `.select`, `.textarea`, `.checkbox`
+  - Badges: `.badge.ok`, `.badge.warn`, `.badge.error`, `.badge.info`
+  - Tables: `.table` with proper theming
+  - Progress: `.progress > .bar`
+- **Colors**:
+  - Background: `#0C0F14` (base), `#131821` (panels), `#1A2130` (muted)
+  - Foreground: `#E6EEF7` (primary), `#BBD0E4` (secondary), `#8BA3B8` (muted)
+  - Accent: `#13B9D5` (cyan)
+  - Status: `#3CCB7F` (success), `#FFD166` (warning), `#EF476F` (error)
+- **Accessibility**: 4.5:1 text contrast, focus rings, keyboard navigation, `prefers-reduced-motion` support
 - **Real-time processing visualization** with color-coded status indicators:
   - 🟡 Yellow = Currently processing
   - 🟢 Green = Successfully extracted

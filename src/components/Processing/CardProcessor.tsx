@@ -12,12 +12,15 @@ interface CardProcessorProps {
   onProcessingComplete: (results: ProcessingResult[]) => void;
 }
 
+type CardStatus = 'pending' | 'processing' | 'success' | 'error' | 'empty';
+
 export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessingComplete }) => {
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
   const [debugMode, setDebugMode] = useState(false);
   const [debugCanvas, setDebugCanvas] = useState<string | null>(null);
+  const [processingCanvas, setProcessingCanvas] = useState<string | null>(null);
 
   // Load calibration from localStorage or use defaults
   const loadCalibration = (key: string, defaultValue: any) => {
@@ -159,11 +162,74 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     }
   }, [images, previewImage]);
 
+  // Function to draw card status overlays on canvas
+  const drawCardStatusOverlay = (
+    img: HTMLImageElement,
+    grid: any[],
+    cardStatuses: Map<number, CardStatus>
+  ): string => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    // Draw original image
+    ctx.drawImage(img, 0, 0);
+
+    // Draw status overlays for each card
+    grid.forEach((cell, idx) => {
+      const status = cardStatuses.get(idx) || 'pending';
+
+      // Define colors based on status
+      let borderColor = '';
+      let fillColor = '';
+      switch (status) {
+        case 'processing':
+          borderColor = 'rgba(255, 215, 0, 0.9)'; // Yellow/Gold
+          fillColor = 'rgba(255, 215, 0, 0.15)';
+          break;
+        case 'success':
+          borderColor = 'rgba(0, 255, 0, 0.7)'; // Green
+          fillColor = 'rgba(0, 255, 0, 0.1)';
+          break;
+        case 'error':
+          borderColor = 'rgba(255, 0, 0, 0.8)'; // Red
+          fillColor = 'rgba(255, 0, 0, 0.15)';
+          break;
+        case 'empty':
+          borderColor = 'rgba(128, 128, 128, 0.6)'; // Gray
+          fillColor = 'rgba(128, 128, 128, 0.1)';
+          break;
+        default:
+          return; // Don't draw anything for 'pending'
+      }
+
+      // Draw filled background
+      ctx.fillStyle = fillColor;
+      ctx.fillRect(cell.bbox.x, cell.bbox.y, cell.bbox.width, cell.bbox.height);
+
+      // Draw border
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 4;
+      ctx.strokeRect(cell.bbox.x, cell.bbox.y, cell.bbox.width, cell.bbox.height);
+
+      // Draw card number
+      ctx.fillStyle = borderColor;
+      ctx.font = 'bold 20px Arial';
+      ctx.fillText(`${idx + 1}`, cell.bbox.x + 8, cell.bbox.y + 25);
+    });
+
+    return canvas.toDataURL();
+  };
+
   const processImages = async () => {
     if (images.length === 0) return;
 
     setProcessing(true);
     setProgress(0);
+    setProcessingCanvas(null);
     const startTime = Date.now();
 
     try {
@@ -208,6 +274,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         const cards: CardData[] = [];
         const ocrStartTime = Date.now();
 
+        // Track card statuses for visual overlay
+        const cardStatuses = new Map<number, CardStatus>();
+
         // Reset quantity detection counter before processing
         (window as any)._cardCounter = 0;
 
@@ -223,6 +292,18 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
           const batch = batches[batchIdx];
           const batchStartTime = Date.now();
+
+          // Mark current batch as processing (yellow)
+          for (let cellIdx = 0; cellIdx < batch.length; cellIdx++) {
+            const cardIndex = batchIdx * BATCH_SIZE + cellIdx;
+            cardStatuses.set(cardIndex, 'processing');
+          }
+
+          // Update canvas to show processing status
+          if (debugMode) {
+            const overlayCanvas = drawCardStatusOverlay(img, grid, cardStatuses);
+            setProcessingCanvas(overlayCanvas);
+          }
 
           // Process all cards in batch in parallel
           const batchPromises = batch.map(async (cell, cellIdx) => {
@@ -266,18 +347,29 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           const batchResults = await Promise.all(batchPromises);
           const batchTime = Date.now() - batchStartTime;
 
-          // Add valid cards to results (maintaining order)
+          // Update card statuses based on results
           batchResults.forEach((result: any, idx) => {
             const cardIndex = batchIdx * BATCH_SIZE + idx;
             if (result && !result.empty && !result.error) {
               cards.push(result);
+              cardStatuses.set(cardIndex, 'success');
 
               const displayName = result.kartenname.length > 20
                 ? result.kartenname.substring(0, 20) + '...'
                 : result.kartenname;
               console.log(`Card ${cardIndex + 1}/${grid.length}: "${displayName}" (${result.cardTime}ms)`);
+            } else if (result && result.empty) {
+              cardStatuses.set(cardIndex, 'empty');
+            } else if (result && result.error) {
+              cardStatuses.set(cardIndex, 'error');
             }
           });
+
+          // Update canvas to show completed batch
+          if (debugMode) {
+            const overlayCanvas = drawCardStatusOverlay(img, grid, cardStatuses);
+            setProcessingCanvas(overlayCanvas);
+          }
 
           // Update progress
           const processed = Math.min((batchIdx + 1) * BATCH_SIZE, grid.length);
@@ -496,6 +588,16 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {processingCanvas && debugMode && (
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold text-white mb-2">Processing Visualization</h3>
+          <p className="text-sm text-gray-400 mb-2">
+            🟡 Yellow = Processing | 🟢 Green = Success | 🔴 Red = Error | ⚪ Gray = Empty
+          </p>
+          <img src={processingCanvas} alt="Processing visualization" className="w-full border border-gray-700 rounded" />
         </div>
       )}
 

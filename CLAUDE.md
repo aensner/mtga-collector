@@ -34,6 +34,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Enable via checkbox to access calibration tools
 - Live preview canvas showing grid and OCR regions
 - Card numbering (1-36) for easy reference
+- **Real-time processing visualization** with color-coded status indicators:
+  - 🟡 Yellow = Currently processing
+  - 🟢 Green = Successfully extracted
+  - 🔴 Red = Error occurred
+  - ⚪ Gray = Empty slot
 
 ## Tech Stack
 
@@ -165,3 +170,13 @@ Processing flow:
 3. Process each batch in parallel (4 cards at once)
 4. Maintain original card order in results
 5. Update progress after each batch completes
+6. Visual indicators update in real-time (debug mode only)
+
+### Visual Processing Indicators
+When debug mode is enabled, the system displays real-time processing status:
+- **Live canvas overlay** shows the original screenshot with status overlays
+- **Color-coded borders** (4px width) indicate processing state
+- **Translucent fills** (10-15% opacity) keep cards visible underneath
+- **Card numbers** displayed in top-left corner of each card
+- Updates **before each batch** (yellow highlights) and **after each batch** (green/red/gray)
+- Persists final state after completion for review

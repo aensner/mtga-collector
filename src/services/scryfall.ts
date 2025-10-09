@@ -7,10 +7,17 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const searchCardByName = async (name: string): Promise<ScryfallCard | null> => {
   try {
+    // Validate card name before searching
+    const trimmedName = name.trim();
+    if (trimmedName.length < 2) {
+      console.log(`Skipping Scryfall search for invalid name: "${name}" (too short)`);
+      return null;
+    }
+
     await delay(100); // Rate limiting
 
     const response = await fetch(
-      `${SCRYFALL_API_BASE}/cards/named?fuzzy=${encodeURIComponent(name)}`
+      `${SCRYFALL_API_BASE}/cards/named?fuzzy=${encodeURIComponent(trimmedName)}`
     );
 
     if (!response.ok) {

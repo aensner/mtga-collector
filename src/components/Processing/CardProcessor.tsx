@@ -203,64 +203,90 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         originalCanvas.height = img.height;
         originalCtx.drawImage(img, 0, 0);
 
-        // Extract cards
-        setCurrentStep(`Extracting ${grid.length} cards...`);
+        // Extract cards using parallel processing
+        setCurrentStep(`Extracting ${grid.length} cards with 4 parallel workers...`);
         const cards: CardData[] = [];
         const ocrStartTime = Date.now();
 
         // Reset quantity detection counter before processing
         (window as any)._cardCounter = 0;
 
-        for (let i = 0; i < grid.length; i++) {
-          const cell = grid[i];
-          const cardStartTime = Date.now();
+        // Process cards in batches of 4 (parallel)
+        const BATCH_SIZE = 4;
+        const batches = [];
+        for (let i = 0; i < grid.length; i += BATCH_SIZE) {
+          batches.push(grid.slice(i, i + BATCH_SIZE));
+        }
 
-          try {
-            // Show detailed progress for current card
-            setCurrentStep(`Reading card ${i + 1}/${grid.length} at position (${cell.x},${cell.y})...`);
+        console.log(`Processing ${grid.length} cards in ${batches.length} batches of ${BATCH_SIZE}`);
 
-            // OCR card name with custom region parameters (use preprocessed canvas for OCR)
-            const { text, confidence } = await recognizeCardName(
-              canvas,
-              cell.bbox,
-              debugMode,
-              { left: ocrLeft, top: ocrTop, width: ocrWidth, height: ocrHeight }
-            );
+        for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+          const batch = batches[batchIdx];
+          const batchStartTime = Date.now();
 
-            // Detect quantity with custom parameters (use ORIGINAL canvas for quantity)
-            if (i === 0) {
-              console.log('Processing with quantityParams:', quantityParams);
+          // Process all cards in batch in parallel
+          const batchPromises = batch.map(async (cell, cellIdx) => {
+            const cardIndex = batchIdx * BATCH_SIZE + cellIdx;
+            const cardStartTime = Date.now();
+
+            try {
+              // OCR card name with custom region parameters (use preprocessed canvas for OCR)
+              const { text, confidence } = await recognizeCardName(
+                canvas,
+                cell.bbox,
+                debugMode,
+                { left: ocrLeft, top: ocrTop, width: ocrWidth, height: ocrHeight }
+              );
+
+              // Detect quantity with custom parameters (use ORIGINAL canvas for quantity)
+              const quantity = detectCardQuantity(originalCanvas, cell.bbox, quantityParams);
+
+              const cardTime = Date.now() - cardStartTime;
+
+              if (text.trim().length > 0) {
+                return {
+                  nummer: cardIndex + 1,
+                  positionX: cell.x,
+                  positionY: cell.y,
+                  kartenname: text,
+                  anzahl: quantity,
+                  confidence,
+                  cardTime,
+                };
+              } else {
+                return { empty: true, cardTime };
+              }
+            } catch (error) {
+              console.error(`Error processing card at ${cell.x},${cell.y}:`, error);
+              return { error: true, cardTime: Date.now() - cardStartTime };
             }
-            const quantity = detectCardQuantity(originalCanvas, cell.bbox, quantityParams);
+          });
 
-            const cardTime = Date.now() - cardStartTime;
+          // Wait for all cards in batch to complete
+          const batchResults = await Promise.all(batchPromises);
+          const batchTime = Date.now() - batchStartTime;
 
-            if (text.trim().length > 0) {
-              cards.push({
-                nummer: i + 1,
-                positionX: cell.x,
-                positionY: cell.y,
-                kartenname: text,
-                anzahl: quantity,
-                confidence,
-              });
+          // Add valid cards to results (maintaining order)
+          batchResults.forEach((result: any, idx) => {
+            const cardIndex = batchIdx * BATCH_SIZE + idx;
+            if (result && !result.empty && !result.error) {
+              cards.push(result);
 
-              // Show card name in progress (truncate if too long)
-              const displayName = text.length > 20 ? text.substring(0, 20) + '...' : text;
-              setCurrentStep(`Card ${i + 1}/${grid.length}: "${displayName}" (${cardTime}ms)`);
-            } else {
-              setCurrentStep(`Card ${i + 1}/${grid.length}: Empty slot (${cardTime}ms)`);
+              const displayName = result.kartenname.length > 20
+                ? result.kartenname.substring(0, 20) + '...'
+                : result.kartenname;
+              console.log(`Card ${cardIndex + 1}/${grid.length}: "${displayName}" (${result.cardTime}ms)`);
             }
+          });
 
-            setProgress(Math.round(((i + 1) / grid.length) * 50));
-          } catch (error) {
-            console.error(`Error processing card at ${cell.x},${cell.y}:`, error);
-            setCurrentStep(`Card ${i + 1}/${grid.length}: Error`);
-          }
+          // Update progress
+          const processed = Math.min((batchIdx + 1) * BATCH_SIZE, grid.length);
+          setProgress(Math.round((processed / grid.length) * 50));
+          setCurrentStep(`Processed batch ${batchIdx + 1}/${batches.length} (${batchTime}ms) - ${cards.length} cards found`);
         }
 
         const ocrTotalTime = ((Date.now() - ocrStartTime) / 1000).toFixed(1);
-        console.log(`OCR completed in ${ocrTotalTime}s - Extracted ${cards.length} cards`);
+        console.log(`Parallel OCR completed in ${ocrTotalTime}s - Extracted ${cards.length} cards`);
 
         // AI correction (skip if no cards extracted)
         if (cards.length > 0) {

@@ -1,42 +1,70 @@
 import Tesseract, { Worker } from 'tesseract.js';
 import type { OCRResult } from '../types';
 
-let worker: Worker | null = null;
+let workers: Worker[] = [];
+const WORKER_POOL_SIZE = 4; // Number of parallel OCR workers
 
 export const initializeOCR = async (): Promise<void> => {
-  if (worker) return;
+  if (workers.length > 0) return;
 
-  worker = await Tesseract.createWorker('eng', 1, {
-    logger: (m) => {
-      if (m.status === 'recognizing text') {
-        console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
-      }
-    },
-  });
+  console.log(`Initializing ${WORKER_POOL_SIZE} OCR workers...`);
+  const workerPromises = [];
 
-  // Configure for better card name recognition
-  await worker.setParameters({
-    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\' -,',
-  });
+  for (let i = 0; i < WORKER_POOL_SIZE; i++) {
+    const workerPromise = Tesseract.createWorker('eng', 1, {
+      logger: (m) => {
+        if (m.status === 'recognizing text') {
+          // Reduce log spam from multiple workers
+          if (m.progress === 0 || m.progress === 1) {
+            console.log(`OCR Worker ${i + 1}: ${m.status}`);
+          }
+        }
+      },
+    }).then(async (worker) => {
+      // Configure for better card name recognition
+      await worker.setParameters({
+        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\' -,',
+      });
+      return worker;
+    });
+
+    workerPromises.push(workerPromise);
+  }
+
+  workers = await Promise.all(workerPromises);
+  console.log(`${workers.length} OCR workers initialized`);
 };
 
 export const terminateOCR = async (): Promise<void> => {
-  if (worker) {
-    await worker.terminate();
-    worker = null;
+  if (workers.length > 0) {
+    console.log(`Terminating ${workers.length} OCR workers...`);
+    await Promise.all(workers.map(w => w.terminate()));
+    workers = [];
   }
 };
 
+let workerIndex = 0; // Round-robin worker selection
+
 export const recognizeText = async (
   imageData: string | HTMLCanvasElement | HTMLImageElement,
-  rectangle?: { left: number; top: number; width: number; height: number }
+  rectangle?: { left: number; top: number; width: number; height: number },
+  workerIdx?: number // Optional: specify which worker to use
 ): Promise<OCRResult> => {
-  if (!worker) {
+  if (workers.length === 0) {
     await initializeOCR();
   }
 
-  if (!worker) {
-    throw new Error('OCR worker not initialized');
+  if (workers.length === 0) {
+    throw new Error('OCR workers not initialized');
+  }
+
+  // Use specified worker or round-robin selection
+  const selectedWorkerIdx = workerIdx !== undefined ? workerIdx : workerIndex;
+  const worker = workers[selectedWorkerIdx % workers.length];
+
+  // Increment for next call (round-robin)
+  if (workerIdx === undefined) {
+    workerIndex = (workerIndex + 1) % workers.length;
   }
 
   const { data } = await worker.recognize(imageData, rectangle ? { rectangle } : undefined);

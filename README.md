@@ -254,28 +254,24 @@ Exports include the following fields:
 
 ## UI Design
 
-The app uses a custom **MTG Arena Design System** for visual consistency:
+The app uses a custom **MTG Arena Design System** for visual consistency.
 
-### Color Palette
-- **Background**: `#0C0F14` (base), `#131821` (panels), `#1A2130` (muted)
-- **Foreground**: `#E6EEF7` (primary), `#BBD0E4` (secondary), `#8BA3B8` (muted)
-- **Accent**: `#13B9D5` (cyan) with hover states
-- **Status**: `#3CCB7F` (success), `#FFD166` (warning), `#EF476F` (error), `#4DA3FF` (info)
+📖 **[View Full Design System Documentation](docs/design-system/README.md)**
 
-### Components
-Pre-built component classes available in `src/mtga.css`:
-- **Buttons**: `.button`, `.button.ok`, `.button.ghost`, `.button.danger`
-- **Cards**: `.card` with `.card-header`, `.card-body`, `.card-actions`
-- **Forms**: `.input`, `.select`, `.textarea`, `.checkbox`
-- **Badges**: `.badge.ok`, `.badge.warn`, `.badge.error`, `.badge.info`
-- **Tables**: `.table` with proper theming
-- **Progress**: `.progress > .bar`
+### Quick Reference
 
-### Accessibility
-- Text contrast ≥ 4.5:1, UI contrast ≥ 3:1
-- Visible focus rings on all interactive elements
+**Colors**: Dark theme with MTG Arena cyan accents (#13B9D5)
+- Background: #0C0F14 (base), #131821 (panels)
+- Status: #3CCB7F (success), #FFD166 (warning), #EF476F (error)
+
+**Components**: Pre-built classes in `src/mtga.css`
+- Buttons, Cards, Forms, Badges, Tables, Progress bars
+- Full examples in `docs/design-system/components/`
+
+**Accessibility**: WCAG AA compliant
+- 4.5:1 text contrast, 3:1 UI contrast
+- Keyboard navigation, focus indicators
 - Respects `prefers-reduced-motion`
-- Keyboard navigation support
 
 ## Future Enhancements
 

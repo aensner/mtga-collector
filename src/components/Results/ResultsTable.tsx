@@ -17,7 +17,7 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
 
   if (cards.length === 0) {
     return (
-      <div className="text-center text-gray-400 py-12">
+      <div className="text-center text-fg-muted py-12">
         No cards to display. Upload and process images to see results.
       </div>
     );
@@ -35,16 +35,16 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
   return (
     <div className="mt-8">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-bold text-white">
+        <h3 className="text-xl font-bold text-fg-primary">
           Extracted Cards ({filteredCards.length}{selectedPage !== 'all' ? ` of ${cards.length}` : ''})
         </h3>
         {hasMultiplePages && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-400">Filter by page:</span>
+            <span className="text-sm text-fg-muted">Filter by page:</span>
             <select
               value={selectedPage}
               onChange={(e) => setSelectedPage(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-              className="bg-gray-700 text-white text-sm px-3 py-1 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+              className="select"
             >
               <option value="all">All Pages</option>
               {pages.map(page => (
@@ -55,50 +55,50 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
         )}
       </div>
 
-      <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
+      <div className="card">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-900">
+          <table className="table">
+            <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   #
                 </th>
                 {hasMultiplePages && (
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                     Page
                   </th>
                 )}
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Position
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Card Name
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Quantity
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Confidence
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Status
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-700">
+            <tbody>
               {filteredCards.map((card, index) => (
-                <tr key={index} className="hover:bg-gray-700/50 transition-colors">
-                  <td className="px-4 py-3 text-sm text-gray-300">
+                <tr key={index} className="hover:bg-bg-muted/30 transition-base">
+                  <td className="px-4 py-3 text-sm text-fg-secondary">
                     {card.nummer}
                   </td>
                   {hasMultiplePages && (
-                    <td className="px-4 py-3 text-sm text-gray-300">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-900/30 text-green-400 border border-green-700">
+                    <td className="px-4 py-3 text-sm text-fg-secondary">
+                      <span className="badge ok">
                         {card.pageNumber}
                       </span>
                     </td>
                   )}
-                  <td className="px-4 py-3 text-sm text-gray-300">
+                  <td className="px-4 py-3 text-sm text-fg-secondary">
                     ({card.positionX}, {card.positionY})
                   </td>
                   <td className="px-4 py-3">
@@ -113,18 +113,18 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                           }
                         }}
                         autoFocus
-                        className="bg-gray-700 text-white px-2 py-1 rounded w-full"
+                        className="input px-2 py-1 w-full"
                       />
                     ) : (
                       <div
                         onClick={() => setEditingCell({ row: index, field: 'correctedName' })}
-                        className="cursor-pointer hover:bg-gray-600/30 px-2 py-1 rounded"
+                        className="cursor-pointer hover:bg-bg-muted/40 px-2 py-1 rounded-md transition-fast"
                       >
-                        <div className="text-sm text-white font-medium">
+                        <div className="text-sm text-fg-primary font-medium">
                           {card.correctedName || card.kartenname}
                         </div>
                         {card.correctedName && card.correctedName !== card.kartenname && (
-                          <div className="text-xs text-gray-500 line-through">
+                          <div className="text-xs text-fg-muted line-through">
                             {card.kartenname}
                           </div>
                         )}
@@ -146,14 +146,14 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                           }
                         }}
                         autoFocus
-                        className="bg-gray-700 text-white px-2 py-1 rounded w-16"
+                        className="input px-2 py-1 w-16"
                       />
                     ) : (
                       <div
                         onClick={() => setEditingCell({ row: index, field: 'anzahl' })}
-                        className="cursor-pointer hover:bg-gray-600/30 px-2 py-1 rounded inline-block"
+                        className="cursor-pointer hover:bg-bg-muted/40 px-2 py-1 rounded-md inline-block transition-fast"
                       >
-                        <span className="text-sm text-white">
+                        <span className="text-sm text-fg-primary">
                           {card.anzahl === -1 ? '∞' : card.anzahl}
                         </span>
                       </div>
@@ -161,30 +161,30 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="w-16 bg-gray-700 rounded-full h-2">
+                      <div className="progress w-16">
                         <div
-                          className={`h-2 rounded-full ${
+                          className={`bar ${
                             (card.confidence || 0) > 0.8
-                              ? 'bg-green-500'
+                              ? '!bg-ok'
                               : (card.confidence || 0) > 0.5
-                              ? 'bg-yellow-500'
-                              : 'bg-red-500'
+                              ? '!bg-warn'
+                              : '!bg-error'
                           }`}
                           style={{ width: `${(card.confidence || 0) * 100}%` }}
                         />
                       </div>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-fg-muted">
                         {Math.round((card.confidence || 0) * 100)}%
                       </span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     {card.scryfallMatch ? (
-                      <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded">
+                      <span className="badge ok">
                         Verified
                       </span>
                     ) : (
-                      <span className="text-xs px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded">
+                      <span className="badge warn">
                         Unverified
                       </span>
                     )}

@@ -1,0 +1,213 @@
+{
+  "$schema": "https://design-tokens.org/schema.json",
+  "meta": {
+    "name": "MTGArena DS",
+    "version": "1.0.0",
+    "updated": "2025-10-09T21:33:26.960499Z"
+  },
+  "color": {
+    "bg": {
+      "base": {
+        "value": "#0C0F14"
+      },
+      "panel": {
+        "value": "#131821"
+      },
+      "muted": {
+        "value": "#1A2130"
+      },
+      "elevated": {
+        "value": "#0E131B"
+      }
+    },
+    "fg": {
+      "primary": {
+        "value": "#E6EEF7"
+      },
+      "secondary": {
+        "value": "#BBD0E4"
+      },
+      "muted": {
+        "value": "#8BA3B8"
+      },
+      "inverted": {
+        "value": "#0C0F14"
+      }
+    },
+    "accent": {
+      "cyan": {
+        "value": "#13B9D5"
+      },
+      "cyan-600": {
+        "value": "#0FA3BA"
+      },
+      "cyan-700": {
+        "value": "#0C8EA2"
+      }
+    },
+    "status": {
+      "ok": {
+        "value": "#3CCB7F"
+      },
+      "warn": {
+        "value": "#FFD166"
+      },
+      "error": {
+        "value": "#EF476F"
+      },
+      "info": {
+        "value": "#4DA3FF"
+      }
+    },
+    "borders": {
+      "subtle": {
+        "value": "#233045"
+      },
+      "focus": {
+        "value": "#13B9D5"
+      },
+      "separator": {
+        "value": "#1F2A3C"
+      }
+    },
+    "overlay": {
+      "scrim": {
+        "value": "rgba(0,0,0,0.6)"
+      }
+    }
+  },
+  "typography": {
+    "font": {
+      "ui": {
+        "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', sans-serif"
+      },
+      "mono": {
+        "value": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
+      }
+    },
+    "size": {
+      "xs": {
+        "value": "12px"
+      },
+      "sm": {
+        "value": "14px"
+      },
+      "md": {
+        "value": "16px"
+      },
+      "lg": {
+        "value": "18px"
+      },
+      "xl": {
+        "value": "22px"
+      },
+      "h1": {
+        "value": "28px"
+      },
+      "h2": {
+        "value": "22px"
+      },
+      "h3": {
+        "value": "18px"
+      }
+    },
+    "lineHeight": {
+      "tight": {
+        "value": "1.25"
+      },
+      "normal": {
+        "value": "1.45"
+      },
+      "relaxed": {
+        "value": "1.6"
+      }
+    }
+  },
+  "radius": {
+    "sm": {
+      "value": "8px"
+    },
+    "md": {
+      "value": "12px"
+    },
+    "lg": {
+      "value": "16px"
+    },
+    "pill": {
+      "value": "999px"
+    }
+  },
+  "shadow": {
+    "sm": {
+      "value": "0 1px 2px rgba(0,0,0,0.35)"
+    },
+    "md": {
+      "value": "0 6px 20px rgba(0,0,0,0.35)"
+    },
+    "lg": {
+      "value": "0 12px 32px rgba(0,0,0,0.45)"
+    }
+  },
+  "spacing": {
+    "grid": {
+      "value": 4
+    },
+    "scale": {
+      "0": {
+        "value": "0"
+      },
+      "1": {
+        "value": "4px"
+      },
+      "2": {
+        "value": "8px"
+      },
+      "3": {
+        "value": "12px"
+      },
+      "4": {
+        "value": "16px"
+      },
+      "5": {
+        "value": "20px"
+      },
+      "6": {
+        "value": "24px"
+      },
+      "7": {
+        "value": "28px"
+      },
+      "8": {
+        "value": "32px"
+      }
+    }
+  },
+  "z": {
+    "dropdown": {
+      "value": 1000
+    },
+    "modal": {
+      "value": 1100
+    },
+    "toast": {
+      "value": 1200
+    },
+    "overlay": {
+      "value": 1300
+    }
+  },
+  "motion": {
+    "fast": {
+      "value": "120ms"
+    },
+    "base": {
+      "value": "180ms"
+    },
+    "slow": {
+      "value": "240ms"
+    },
+    "curve": {
+      "value": "cubic-bezier(0.25, 0.1, 0.25, 1)"
+    }
+  }
+}

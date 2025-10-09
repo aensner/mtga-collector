@@ -4,7 +4,11 @@
       "Bash(git commit -m \"$(cat <<''EOF''\nUpdate calibration default values and add live grid position display\n\nChanges:\n- Updated default grid parameters to calibrated values:\n  - Start X: 2.7% (was 1.5%)\n  - Start Y: 19.3% (was 23%)\n  - Grid Width: 94.5% (was 97%)\n  - Grid Height: 78.8% (was 65%)\n  - Card Gap Y max slider: 10% (was 3%)\n- Updated default OCR region parameters:\n  - Left: 5% (was 14%)\n  - Top: 4.3% (was 1.2%)\n  - Width: 80% (was 74%)\n  - Height: 7.5% (was 5.8%)\n- Added live display box showing green grid position and size\n- Updated documentation (README.md and CLAUDE.md) with new defaults\n\nThese calibrated values provide better accuracy for MTG Arena screenshots.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(npm run dev:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "WebSearch",
+      "WebFetch(domain:www.mtggoldfish.com)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

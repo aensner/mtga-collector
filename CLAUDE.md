@@ -30,6 +30,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Updates in real-time on all 36 cards
 - **Persistent Settings**: All calibration values saved to localStorage
 
+### Progress Tracking
+- **Real-time Progress Indicator** (always visible during processing):
+  - Visual progress bar showing percentage completion
+  - Card counter (e.g., "Processing Cards: 9/36")
+  - Current phase indicator (OCR / AI Correction / Card Validation / Complete)
+  - Batch progress (e.g., "Batch: 2/9")
+  - Current card details with name and position
+  - Auto-hides 2 seconds after completion
+
 ### Debug Mode
 - Enable via checkbox to access calibration tools
 - Live preview canvas showing grid and OCR regions

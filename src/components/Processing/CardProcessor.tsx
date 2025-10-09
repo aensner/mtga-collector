@@ -14,6 +14,16 @@ interface CardProcessorProps {
 
 type CardStatus = 'pending' | 'processing' | 'success' | 'error' | 'empty';
 
+interface ProcessingProgress {
+  currentCard: number;
+  totalCards: number;
+  currentPhase: 'OCR' | 'AI Correction' | 'Card Validation' | 'Complete';
+  currentCardName: string;
+  currentPosition: { x: number; y: number };
+  batchNumber: number;
+  totalBatches: number;
+}
+
 export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessingComplete }) => {
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -21,6 +31,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
   const [debugMode, setDebugMode] = useState(false);
   const [debugCanvas, setDebugCanvas] = useState<string | null>(null);
   const [processingCanvas, setProcessingCanvas] = useState<string | null>(null);
+  const [processingProgress, setProcessingProgress] = useState<ProcessingProgress | null>(null);
 
   // Load calibration from localStorage or use defaults
   const loadCalibration = (key: string, defaultValue: any) => {
@@ -230,6 +241,15 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     setProcessing(true);
     setProgress(0);
     setProcessingCanvas(null);
+    setProcessingProgress({
+      currentCard: 0,
+      totalCards: 36,
+      currentPhase: 'OCR',
+      currentCardName: 'Initializing...',
+      currentPosition: { x: 0, y: 0 },
+      batchNumber: 0,
+      totalBatches: 9,
+    });
     const startTime = Date.now();
 
     try {
@@ -257,6 +277,17 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         const grid = detectCardGrid(img, gridParams);
 
         console.log(`Detected ${grid.length} card positions in grid`);
+
+        // Update progress with actual grid size
+        setProcessingProgress({
+          currentCard: 0,
+          totalCards: grid.length,
+          currentPhase: 'OCR',
+          currentCardName: 'Starting OCR...',
+          currentPosition: { x: 0, y: 0 },
+          batchNumber: 0,
+          totalBatches: Math.ceil(grid.length / 4),
+        });
 
         // Create a separate canvas from the ORIGINAL image for quantity detection
         // (preprocessing changes pixel values which breaks quantity detection)
@@ -298,6 +329,19 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
             const cardIndex = batchIdx * BATCH_SIZE + cellIdx;
             cardStatuses.set(cardIndex, 'processing');
           }
+
+          // Update progress indicator for first card in batch
+          const firstCardIndex = batchIdx * BATCH_SIZE;
+          const firstCell = batch[0];
+          setProcessingProgress({
+            currentCard: firstCardIndex + 1,
+            totalCards: grid.length,
+            currentPhase: 'OCR',
+            currentCardName: 'Reading...',
+            currentPosition: { x: firstCell.x, y: firstCell.y },
+            batchNumber: batchIdx + 1,
+            totalBatches: batches.length,
+          });
 
           // Update canvas to show processing status
           if (debugMode) {
@@ -348,11 +392,13 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           const batchTime = Date.now() - batchStartTime;
 
           // Update card statuses based on results
+          let lastSuccessCard: any = null;
           batchResults.forEach((result: any, idx) => {
             const cardIndex = batchIdx * BATCH_SIZE + idx;
             if (result && !result.empty && !result.error) {
               cards.push(result);
               cardStatuses.set(cardIndex, 'success');
+              lastSuccessCard = result;
 
               const displayName = result.kartenname.length > 20
                 ? result.kartenname.substring(0, 20) + '...'
@@ -364,6 +410,21 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
               cardStatuses.set(cardIndex, 'error');
             }
           });
+
+          // Update progress with last successful card from batch
+          if (lastSuccessCard) {
+            setProcessingProgress({
+              currentCard: batchIdx * BATCH_SIZE + batchResults.length,
+              totalCards: grid.length,
+              currentPhase: 'OCR',
+              currentCardName: lastSuccessCard.kartenname.length > 25
+                ? lastSuccessCard.kartenname.substring(0, 25) + '...'
+                : lastSuccessCard.kartenname,
+              currentPosition: { x: lastSuccessCard.positionX, y: lastSuccessCard.positionY },
+              batchNumber: batchIdx + 1,
+              totalBatches: batches.length,
+            });
+          }
 
           // Update canvas to show completed batch
           if (debugMode) {
@@ -384,6 +445,17 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         if (cards.length > 0) {
           const aiStartTime = Date.now();
           setCurrentStep(`Correcting ${cards.length} card names with AI...`);
+
+          // Update progress to AI phase
+          setProcessingProgress({
+            currentCard: cards.length,
+            totalCards: grid.length,
+            currentPhase: 'AI Correction',
+            currentCardName: `Processing ${cards.length} cards...`,
+            currentPosition: { x: 0, y: 0 },
+            batchNumber: batches.length,
+            totalBatches: batches.length,
+          });
 
           const cardNames = cards.map(c => c.kartenname);
           const corrections = await correctCardNamesBatch(cardNames);
@@ -410,6 +482,18 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         // Validate with Scryfall
         const scryfallStartTime = Date.now();
         setCurrentStep(`Validating ${cards.length} cards with Scryfall...`);
+
+        // Update progress to Scryfall phase
+        setProcessingProgress({
+          currentCard: cards.length,
+          totalCards: grid.length,
+          currentPhase: 'Card Validation',
+          currentCardName: `Validating ${cards.length} cards...`,
+          currentPosition: { x: 0, y: 0 },
+          batchNumber: batches.length,
+          totalBatches: batches.length,
+        });
+
         const correctedNames = cards.map(c => c.correctedName || c.kartenname);
         const scryfallResults = await searchCardsBatch(correctedNames);
 
@@ -434,6 +518,17 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         console.log(`Processing complete in ${totalTime}s - ${cards.length} cards extracted`);
         setCurrentStep(`Complete! Processed ${cards.length} cards in ${totalTime}s`);
 
+        // Update progress to complete
+        setProcessingProgress({
+          currentCard: cards.length,
+          totalCards: grid.length,
+          currentPhase: 'Complete',
+          currentCardName: `${cards.length} cards processed`,
+          currentPosition: { x: 0, y: 0 },
+          batchNumber: batches.length,
+          totalBatches: batches.length,
+        });
+
         // Save debug canvas if in debug mode
         if (debugMode) {
           setDebugCanvas(canvas.toDataURL());
@@ -457,6 +552,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       setProcessing(false);
       setProgress(0);
       setCurrentStep('');
+      // Keep progress visible for a moment, then clear it
+      setTimeout(() => setProcessingProgress(null), 2000);
     }
   };
 
@@ -573,6 +670,55 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       >
         {processing ? `Processing... ${progress}%` : `Process ${images.length} Image(s)`}
       </button>
+
+      {processingProgress && (
+        <div className="mt-4">
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-semibold text-white">
+                    Processing Cards: {processingProgress.currentCard}/{processingProgress.totalCards}
+                  </span>
+                  <span className="text-sm text-gray-400">
+                    {Math.round((processingProgress.currentCard / processingProgress.totalCards) * 100)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-700 rounded-full h-2 mb-3">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${(processingProgress.currentCard / processingProgress.totalCards) * 100}%`
+                    }}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400">Current Phase:</span>
+                    <span className="text-xs font-medium text-blue-400">
+                      {processingProgress.currentPhase}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400">Batch:</span>
+                    <span className="text-xs text-gray-300">
+                      {processingProgress.batchNumber}/{processingProgress.totalBatches}
+                    </span>
+                  </div>
+                  {processingProgress.currentCardName && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-400">Card:</span>
+                      <span className="text-xs text-gray-300 font-mono">
+                        "{processingProgress.currentCardName}" (Row {processingProgress.currentPosition.y}, Col {processingProgress.currentPosition.x})
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {processing && (
         <div className="mt-4">

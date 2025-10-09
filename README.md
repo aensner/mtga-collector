@@ -5,13 +5,14 @@ A web application for scanning and digitizing Magic: The Gathering Arena collect
 ## Features
 
 - 📸 **Screenshot Upload** - Drag and drop your MTG Arena collection screenshots
-- 🔍 **OCR Processing** - Automatic card name extraction using Tesseract.js
+- 🔍 **OCR Processing** - Automatic card name extraction using Tesseract.js with 4 parallel workers
 - 🤖 **AI Correction** - Claude AI corrects OCR errors for accurate card names
 - ✅ **Card Validation** - Validates against Scryfall database
 - 🎯 **Quantity Detection** - Automatically detects card quantities (1-4)
 - 🎚️ **Interactive Calibration** - Drag-and-resize grid overlay with live preview
-- 📊 **Interactive Results** - Edit and review extracted data
+- 📊 **Real-time Progress Tracking** - Live progress bar with card-by-card status updates
 - 📈 **Accuracy Testing** - Compare results against test data
+- 🖼️ **Visual Processing Indicators** - Color-coded overlays showing processing status in debug mode
 - 💾 **Export** - Export to CSV or JSON format
 
 ## Quick Start

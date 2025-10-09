@@ -96,6 +96,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [previewImage, setPreviewImage] = useState<HTMLImageElement | null>(null);
 
+  // Reference to progress indicator for auto-scrolling
+  const progressIndicatorRef = useRef<HTMLDivElement>(null);
+
   // Update preview when sliders change
   useEffect(() => {
     if (!debugMode || !previewImage || !previewCanvasRef.current) return;
@@ -172,6 +175,13 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       img.src = images[0].preview;
     }
   }, [images, previewImage]);
+
+  // Auto-scroll to progress indicator when it appears
+  useEffect(() => {
+    if (processingProgress && progressIndicatorRef.current) {
+      progressIndicatorRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [processingProgress]);
 
   // Function to draw card status overlays on canvas
   const drawCardStatusOverlay = (
@@ -672,7 +682,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       </button>
 
       {processingProgress && (
-        <div className="mt-4">
+        <div className="mt-4" ref={progressIndicatorRef}>
           <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1">
@@ -684,11 +694,25 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
                     {Math.round((processingProgress.currentCard / processingProgress.totalCards) * 100)}%
                   </span>
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-2 mb-3">
+                <div
+                  className="w-full rounded-full mb-3"
+                  style={{
+                    backgroundColor: '#374151',
+                    height: '12px',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                >
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                     style={{
-                      width: `${(processingProgress.currentCard / processingProgress.totalCards) * 100}%`
+                      width: `${Math.max(2, (processingProgress.currentCard / processingProgress.totalCards) * 100)}%`,
+                      backgroundColor: '#3b82f6',
+                      height: '12px',
+                      borderRadius: '9999px',
+                      transition: 'width 0.3s ease-in-out',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0
                     }}
                   />
                 </div>

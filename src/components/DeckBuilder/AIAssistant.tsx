@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { CardData } from '../../types';
-import { getAIDeckSuggestions } from '../../services/anthropic';
+import { getAIDeckSuggestions } from '../../services/ai';
 
 interface DeckCard {
   card: CardData;
@@ -124,25 +124,39 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         {error && (
           <div className="bg-error/20 border border-error rounded p-4 text-sm space-y-2">
             <div className="text-error font-semibold">{error}</div>
-            {error.includes('credit balance') && (
+            {(error.includes('credit balance') || error.includes('quota')) && (
               <div className="text-fg-secondary text-xs space-y-1">
                 <p>To continue using AI features:</p>
-                <ol className="list-decimal list-inside ml-2 space-y-1">
-                  <li>Visit <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">console.anthropic.com</a></li>
-                  <li>Go to Plans & Billing</li>
-                  <li>Purchase credits or upgrade your plan</li>
-                </ol>
+                <div className="ml-2 space-y-1">
+                  <p><strong>For OpenAI:</strong></p>
+                  <ol className="list-decimal list-inside ml-2">
+                    <li>Visit <a href="https://platform.openai.com/account/billing" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">platform.openai.com/account/billing</a></li>
+                    <li>Add credits to your account</li>
+                  </ol>
+                  <p className="mt-2"><strong>For Anthropic:</strong></p>
+                  <ol className="list-decimal list-inside ml-2">
+                    <li>Visit <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">console.anthropic.com</a></li>
+                    <li>Go to Plans & Billing</li>
+                    <li>Purchase credits or upgrade your plan</li>
+                  </ol>
+                </div>
                 <p className="mt-2 text-fg-muted italic">Note: You can still build decks manually without AI suggestions.</p>
               </div>
             )}
-            {error.includes('API Key Missing') && (
+            {(error.includes('API Key Missing') || error.includes('No AI Provider')) && (
               <div className="text-fg-secondary text-xs space-y-1">
-                <p>To enable AI features:</p>
-                <ol className="list-decimal list-inside ml-2 space-y-1">
-                  <li>Get an API key from <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">console.anthropic.com</a></li>
-                  <li>Add it to your .env file: <code className="bg-bg-muted px-1 py-0.5 rounded">VITE_ANTHROPIC_API_KEY=your_key</code></li>
-                  <li>Restart the development server</li>
-                </ol>
+                <p>To enable AI features, get an API key from:</p>
+                <ul className="list-disc list-inside ml-2 space-y-1">
+                  <li><strong>OpenAI</strong> (recommended): <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">platform.openai.com/api-keys</a></li>
+                  <li><strong>Anthropic</strong>: <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">console.anthropic.com</a></li>
+                </ul>
+                <p className="mt-2">Add to your .env file:</p>
+                <code className="block bg-bg-muted px-2 py-1 rounded text-xs mt-1">
+                  VITE_OPENAI_API_KEY=your_key<br/>
+                  <span className="text-fg-muted"># OR</span><br/>
+                  VITE_ANTHROPIC_API_KEY=your_key
+                </code>
+                <p className="mt-2 text-fg-muted italic">Then restart the development server</p>
               </div>
             )}
           </div>

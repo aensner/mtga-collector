@@ -16,6 +16,8 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
   const [selectedCard, setSelectedCard] = useState<CardData | null>(null);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
 
   const handleEdit = (index: number, field: keyof CardData, value: any) => {
     onCardUpdate(index, field, value);
@@ -35,6 +37,12 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
       setSortField(field);
       setSortDirection('asc');
     }
+    setCurrentPage(1); // Reset to first page when sorting changes
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1); // Reset to first page when page size changes
   };
 
   const SortableHeader: React.FC<{ field: SortField; children: React.ReactNode }> = ({ field, children }) => {
@@ -133,6 +141,12 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
     });
   }
 
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredCards.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedCards = filteredCards.slice(startIndex, endIndex);
+
   return (
     <div className="mt-8">
       <div className="flex items-center justify-between mb-4">
@@ -180,7 +194,7 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
               </tr>
             </thead>
             <tbody>
-              {filteredCards.map((card, index) => (
+              {paginatedCards.map((card, index) => (
                 <tr key={index} className="hover:bg-bg-muted/30 transition-base">
                   <td className="px-4 py-3 text-sm text-fg-secondary">
                     {card.nummer}
@@ -346,6 +360,66 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="card-actions flex items-center justify-between pt-4 border-t border-gray-700">
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-fg-secondary">
+              Showing {startIndex + 1}-{Math.min(endIndex, filteredCards.length)} of {filteredCards.length}
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-fg-muted">Per page:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(parseInt(e.target.value))}
+                className="select text-sm"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              className="button ghost text-sm"
+              title="First page"
+            >
+              ««
+            </button>
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="button ghost text-sm"
+              title="Previous page"
+            >
+              «
+            </button>
+            <span className="text-sm text-fg-secondary px-2">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="button ghost text-sm"
+              title="Next page"
+            >
+              »
+            </button>
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+              className="button ghost text-sm"
+              title="Last page"
+            >
+              »»
+            </button>
+          </div>
         </div>
       </div>
 

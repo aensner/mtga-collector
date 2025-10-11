@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { CardData } from '../../types';
 import { CardDetailModal } from './CardDetailModal';
+import { FilterPanel, type FilterCriteria } from './FilterPanel';
 
 interface ResultsTableProps {
   cards: CardData[];
@@ -18,6 +19,18 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
+  const [filters, setFilters] = useState<FilterCriteria>({
+    colors: [],
+    cardTypes: [],
+    cmcMin: null,
+    cmcMax: null,
+    rarities: [],
+    powerMin: null,
+    powerMax: null,
+    toughnesMin: null,
+    toughnessMax: null,
+    searchText: ''
+  });
 
   const handleEdit = (index: number, field: keyof CardData, value: any) => {
     onCardUpdate(index, field, value);
@@ -43,6 +56,27 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
     setCurrentPage(1); // Reset to first page when page size changes
+  };
+
+  const handleFiltersChange = (newFilters: FilterCriteria) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      colors: [],
+      cardTypes: [],
+      cmcMin: null,
+      cmcMax: null,
+      rarities: [],
+      powerMin: null,
+      powerMax: null,
+      toughnesMin: null,
+      toughnessMax: null,
+      searchText: ''
+    });
+    setCurrentPage(1);
   };
 
   const SortableHeader: React.FC<{ field: SortField; children: React.ReactNode }> = ({ field, children }) => {
@@ -81,6 +115,52 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
   let filteredCards = selectedPage === 'all'
     ? cards
     : cards.filter(c => c.pageNumber === selectedPage);
+
+  // Apply advanced filters
+  filteredCards = filteredCards.filter(card => {
+    // Search text filter
+    if (filters.searchText) {
+      const searchLower = filters.searchText.toLowerCase();
+      const cardName = (card.scryfallMatch?.name || card.correctedName || card.kartenname).toLowerCase();
+      if (!cardName.includes(searchLower)) return false;
+    }
+
+    // Color filter (card must have at least one of the selected colors)
+    if (filters.colors.length > 0) {
+      const cardColors = card.scryfallMatch?.colors || [];
+      const hasMatchingColor = filters.colors.some(filterColor =>
+        cardColors.includes(filterColor)
+      );
+      if (!hasMatchingColor) return false;
+    }
+
+    // Rarity filter
+    if (filters.rarities.length > 0) {
+      const cardRarity = card.scryfallMatch?.rarity?.toLowerCase();
+      if (!cardRarity || !filters.rarities.includes(cardRarity)) return false;
+    }
+
+    // CMC filter
+    const cmc = card.scryfallMatch?.cmc;
+    if (filters.cmcMin !== null && (cmc === undefined || cmc < filters.cmcMin)) return false;
+    if (filters.cmcMax !== null && (cmc === undefined || cmc > filters.cmcMax)) return false;
+
+    // Power filter
+    if (filters.powerMin !== null || filters.powerMax !== null) {
+      const power = card.scryfallMatch?.power ? parseFloat(card.scryfallMatch.power) : null;
+      if (filters.powerMin !== null && (power === null || power < filters.powerMin)) return false;
+      if (filters.powerMax !== null && (power === null || power > filters.powerMax)) return false;
+    }
+
+    // Toughness filter
+    if (filters.toughnesMin !== null || filters.toughnessMax !== null) {
+      const toughness = card.scryfallMatch?.toughness ? parseFloat(card.scryfallMatch.toughness) : null;
+      if (filters.toughnesMin !== null && (toughness === null || toughness < filters.toughnesMin)) return false;
+      if (filters.toughnessMax !== null && (toughness === null || toughness > filters.toughnessMax)) return false;
+    }
+
+    return true;
+  });
 
   // Sort cards
   if (sortField && sortDirection) {
@@ -149,6 +229,13 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
 
   return (
     <div className="mt-8">
+      {/* Filter Panel */}
+      <FilterPanel
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onClearFilters={handleClearFilters}
+      />
+
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-bold text-fg-primary">
           Extracted Cards ({filteredCards.length}{selectedPage !== 'all' ? ` of ${cards.length}` : ''})

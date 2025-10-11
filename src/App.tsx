@@ -9,6 +9,7 @@ import { ExportButtons } from './components/Results/ExportButtons';
 import { AccuracyMetrics } from './components/Results/AccuracyMetrics';
 import { CollectionSummary } from './components/Results/CollectionSummary';
 import { UnmatchedCards } from './components/Results/UnmatchedCards';
+import { DeckBuilder } from './components/DeckBuilder/DeckBuilder';
 import type { CardData, ProcessingResult, UploadedImage, SaveStatus, LoadStatus } from './types';
 import { signOut } from './services/supabase';
 import { loadCollection, saveCards, resetCollection, saveScanHistory } from './services/database';
@@ -25,6 +26,7 @@ const MainApp: React.FC = () => {
   const [groundTruth, setGroundTruth] = useState<CardData[]>([]);
   const [loadStatus, setLoadStatus] = useState<LoadStatus>('idle');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [activeTab, setActiveTab] = useState<'collection' | 'deckbuilder'>('collection');
 
   // Load collection on mount
   useEffect(() => {
@@ -178,45 +180,71 @@ const MainApp: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
       {/* Header */}
       <header className="bg-gray-900/50 backdrop-blur border-b border-gray-700">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-white">MTG Arena Collector</h1>
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-white">MTG Arena Collector</h1>
 
-            {/* Status Indicators */}
-            {loadStatus === 'loading' && (
-              <span className="text-sm text-blue-400">📦 Loading collection...</span>
-            )}
-            {saveStatus === 'saving' && (
-              <span className="text-sm text-blue-400">💾 Saving...</span>
-            )}
-            {saveStatus === 'saved' && (
-              <span className="text-sm text-green-400">✅ Saved</span>
-            )}
-            {saveStatus === 'error' && (
-              <span className="text-sm text-red-400">❌ Save failed</span>
-            )}
+              {/* Status Indicators */}
+              {loadStatus === 'loading' && (
+                <span className="text-sm text-blue-400">📦 Loading collection...</span>
+              )}
+              {saveStatus === 'saving' && (
+                <span className="text-sm text-blue-400">💾 Saving...</span>
+              )}
+              {saveStatus === 'saved' && (
+                <span className="text-sm text-green-400">✅ Saved</span>
+              )}
+              {saveStatus === 'error' && (
+                <span className="text-sm text-red-400">❌ Save failed</span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-400">{user?.email}</span>
+              <button
+                onClick={handleLoadTestData}
+                className="bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition duration-200"
+              >
+                Load Test Data
+              </button>
+              <button
+                onClick={handleResetCollection}
+                className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition duration-200"
+                disabled={saveStatus === 'saving'}
+              >
+                Reset Collection
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-semibold py-2 px-4 rounded-lg transition duration-200"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-400">{user?.email}</span>
+          {/* Tab Navigation */}
+          <div className="flex gap-2">
             <button
-              onClick={handleLoadTestData}
-              className="bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition duration-200"
+              onClick={() => setActiveTab('collection')}
+              className={`py-2 px-6 rounded-lg font-semibold text-sm transition duration-200 ${
+                activeTab === 'collection'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+              }`}
             >
-              Load Test Data
+              📷 Collection Scanner
             </button>
             <button
-              onClick={handleResetCollection}
-              className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition duration-200"
-              disabled={saveStatus === 'saving'}
+              onClick={() => setActiveTab('deckbuilder')}
+              className={`py-2 px-6 rounded-lg font-semibold text-sm transition duration-200 ${
+                activeTab === 'deckbuilder'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+              }`}
             >
-              Reset Collection
-            </button>
-            <button
-              onClick={handleSignOut}
-              className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-semibold py-2 px-4 rounded-lg transition duration-200"
-            >
-              Sign Out
+              🎴 Deck Builder
             </button>
           </div>
         </div>
@@ -225,57 +253,67 @@ const MainApp: React.FC = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
-          {/* Upload Section */}
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">Upload Screenshots</h2>
-            <ImageDropzone onImagesUploaded={handleImagesUploaded} />
-            <ImagePreview images={images} onRemove={handleRemoveImage} />
-          </section>
+          {/* Collection Scanner Tab */}
+          {activeTab === 'collection' && (
+            <>
+              {/* Upload Section */}
+              <section>
+                <h2 className="text-xl font-semibold text-white mb-4">Upload Screenshots</h2>
+                <ImageDropzone onImagesUploaded={handleImagesUploaded} />
+                <ImagePreview images={images} onRemove={handleRemoveImage} />
+              </section>
 
-          {/* Processing Section */}
-          {images.length > 0 && (
-            <section className="mt-8">
-              <h2 className="text-xl font-semibold text-white mb-4">Process Images</h2>
-              <CardProcessor images={images} onProcessingComplete={handleProcessingComplete} />
-            </section>
+              {/* Processing Section */}
+              {images.length > 0 && (
+                <section className="mt-8">
+                  <h2 className="text-xl font-semibold text-white mb-4">Process Images</h2>
+                  <CardProcessor images={images} onProcessingComplete={handleProcessingComplete} />
+                </section>
+              )}
+
+              {/* Unmatched Cards Section */}
+              <UnmatchedCards unmatchedCards={unmatchedCards} onCardsMatched={handleCardsMatched} />
+
+              {/* Results Section */}
+              {cards.length > 0 && (
+                <section className="mt-8">
+                  <CollectionSummary cards={cards} />
+                  <ResultsTable cards={cards} onCardUpdate={handleCardUpdate} />
+                  <ExportButtons cards={cards} />
+                </section>
+              )}
+
+              {/* Accuracy Section */}
+              {accuracy && (
+                <section className="mt-8">
+                  <AccuracyMetrics metrics={accuracy} />
+                </section>
+              )}
+
+              {/* Info Section */}
+              {cards.length === 0 && images.length === 0 && (
+                <section className="mt-12 text-center">
+                  <div className="bg-gray-800/50 rounded-lg p-8 max-w-2xl mx-auto border border-gray-700">
+                    <h3 className="text-xl font-semibold text-white mb-4">How It Works</h3>
+                    <ol className="text-left text-gray-300 space-y-2">
+                      <li>1. Upload one or more MTG Arena collection screenshots</li>
+                      <li>2. Click "Process" to extract card names and quantities using OCR + AI</li>
+                      <li>3. Review and edit the results in the interactive table</li>
+                      <li>4. Export to CSV or JSON format</li>
+                      <li>5. (Optional) Load test data to check accuracy against known results</li>
+                    </ol>
+                    <div className="mt-6 text-sm text-gray-500">
+                      <p>Powered by Tesseract.js, Anthropic Claude, and Scryfall API</p>
+                    </div>
+                  </div>
+                </section>
+              )}
+            </>
           )}
 
-          {/* Unmatched Cards Section */}
-          <UnmatchedCards unmatchedCards={unmatchedCards} onCardsMatched={handleCardsMatched} />
-
-          {/* Results Section */}
-          {cards.length > 0 && (
-            <section className="mt-8">
-              <CollectionSummary cards={cards} />
-              <ResultsTable cards={cards} onCardUpdate={handleCardUpdate} />
-              <ExportButtons cards={cards} />
-            </section>
-          )}
-
-          {/* Accuracy Section */}
-          {accuracy && (
-            <section className="mt-8">
-              <AccuracyMetrics metrics={accuracy} />
-            </section>
-          )}
-
-          {/* Info Section */}
-          {cards.length === 0 && images.length === 0 && (
-            <section className="mt-12 text-center">
-              <div className="bg-gray-800/50 rounded-lg p-8 max-w-2xl mx-auto border border-gray-700">
-                <h3 className="text-xl font-semibold text-white mb-4">How It Works</h3>
-                <ol className="text-left text-gray-300 space-y-2">
-                  <li>1. Upload one or more MTG Arena collection screenshots</li>
-                  <li>2. Click "Process" to extract card names and quantities using OCR + AI</li>
-                  <li>3. Review and edit the results in the interactive table</li>
-                  <li>4. Export to CSV or JSON format</li>
-                  <li>5. (Optional) Load test data to check accuracy against known results</li>
-                </ol>
-                <div className="mt-6 text-sm text-gray-500">
-                  <p>Powered by Tesseract.js, Anthropic Claude, and Scryfall API</p>
-                </div>
-              </div>
-            </section>
+          {/* Deck Builder Tab */}
+          {activeTab === 'deckbuilder' && (
+            <DeckBuilder collection={cards} />
           )}
         </div>
       </main>

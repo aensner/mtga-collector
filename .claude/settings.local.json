@@ -24,7 +24,15 @@
       "Bash(npx -y playwright@latest test-app.mjs)",
       "Bash(npx -y @playwright/test@latest:*)",
       "Bash(npm install:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "mcp__mcp-compass__recommend-mcp-servers",
+      "Bash(PORT=5174 npx playwright test:*)",
+      "Bash(TEST_EMAIL=\"adrian.ensner+calibtest@gmail.com\" TEST_PASSWORD=\"Test123!\" PORT=5174 npx playwright test tests/calibration.spec.ts --workers=1 --max-failures=3)",
+      "WebFetch(domain:mtgarena-support.wizards.com)",
+      "WebFetch(domain:draftsim.com)",
+      "Bash(then cat .env)",
+      "Bash(else echo \".env not found\")",
+      "Bash(npm run build)"
     ],
     "deny": [],
     "ask": []

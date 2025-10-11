@@ -89,3 +89,79 @@ If a text is clearly not a card name, return "UNKNOWN" for that line.`
     return ocrTexts.map(text => ({ correctedName: text, confidence: 0.5 }));
   }
 };
+
+interface DeckSuggestionResponse {
+  suggestions: Array<{
+    cardName: string;
+    count: number;
+    reason: string;
+  }>;
+}
+
+export const getAIDeckSuggestions = async (
+  prompt: string,
+  currentDeck: Array<{ name: string; count: number; type?: string; cmc?: number }>,
+  availableCards: Array<{ name: string; type?: string; cmc?: number; colors?: string[]; available: number }>,
+  format: string
+): Promise<DeckSuggestionResponse> => {
+  try {
+    if (!apiKey) {
+      throw new Error('Anthropic API key not configured. Please add your API key to use AI suggestions.');
+    }
+
+    const message = await client.messages.create({
+      model: 'claude-sonnet-4-5-20250929',
+      max_tokens: 2000,
+      messages: [{
+        role: 'user',
+        content: `You are a Magic: The Gathering deck building expert. Help build a ${format} format deck.
+
+USER REQUEST: ${prompt}
+
+CURRENT DECK (${currentDeck.reduce((sum, c) => sum + c.count, 0)} cards):
+${currentDeck.length > 0 ? currentDeck.map(c => `${c.count}x ${c.name} (${c.type}, CMC ${c.cmc})`).join('\n') : 'Empty deck'}
+
+AVAILABLE CARDS FROM COLLECTION:
+${availableCards.slice(0, 100).map(c => `${c.name} (${c.type}, CMC ${c.cmc}, Available: ${c.available})`).join('\n')}
+${availableCards.length > 100 ? `\n...and ${availableCards.length - 100} more cards` : ''}
+
+Please suggest 5-10 cards to add to this deck based on the user's request. Only suggest cards that are in the available collection.
+
+Respond in JSON format:
+{
+  "suggestions": [
+    {
+      "cardName": "Exact card name from available cards",
+      "count": 2,
+      "reason": "Brief explanation of why this card fits"
+    }
+  ]
+}
+
+IMPORTANT:
+- Only suggest cards from the AVAILABLE CARDS list
+- Respect the 4-of limit (except basic lands)
+- Consider mana curve and card synergies
+- Match the user's requested strategy
+- Keep suggestions practical and focused`
+      }]
+    });
+
+    const response = message.content[0].type === 'text'
+      ? message.content[0].text.trim()
+      : '';
+
+    // Extract JSON from response (handle markdown code blocks)
+    let jsonText = response;
+    const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/) || response.match(/```\n([\s\S]*?)\n```/);
+    if (jsonMatch) {
+      jsonText = jsonMatch[1];
+    }
+
+    const parsed = JSON.parse(jsonText);
+    return parsed;
+  } catch (error: any) {
+    console.error('Error getting AI deck suggestions:', error);
+    throw new Error(error?.message || 'Failed to get AI suggestions. Please try again.');
+  }
+};

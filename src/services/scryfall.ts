@@ -29,12 +29,31 @@ export const searchCardByName = async (name: string): Promise<ScryfallCard | nul
 
     const data = await response.json();
 
+    // Handle double-faced cards (use front face data)
+    const cardFace = data.card_faces?.[0] || data;
+
     return {
       id: data.id,
       name: data.name,
-      set: data.set_name,
+      set: data.set, // 3-letter set code (e.g., "grn")
+      set_name: data.set_name, // Full set name
       rarity: data.rarity,
-      image_uris: data.image_uris,
+      collector_number: data.collector_number, // Required for Arena export
+
+      // Gameplay data
+      colors: cardFace.colors,
+      color_identity: data.color_identity,
+      mana_cost: cardFace.mana_cost,
+      cmc: data.cmc,
+      type_line: cardFace.type_line || data.type_line,
+      oracle_text: cardFace.oracle_text || data.oracle_text,
+      power: cardFace.power,
+      toughness: cardFace.toughness,
+      loyalty: cardFace.loyalty || data.loyalty,
+      keywords: data.keywords || [],
+
+      // Image URLs (prefer card_faces for double-faced cards)
+      image_uris: cardFace.image_uris || data.image_uris,
     };
   } catch (error) {
     console.error(`Error searching for card "${name}":`, error);

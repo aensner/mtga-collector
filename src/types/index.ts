@@ -13,12 +13,29 @@ export interface CardData {
 export interface ScryfallCard {
   id: string;
   name: string;
-  set: string;
+  set: string; // 3-letter set code (e.g., "grn", "war")
+  set_name: string; // Full set name
   rarity: string;
+  collector_number: string; // Required for MTG Arena export
+
+  // Gameplay data
+  colors?: string[]; // ["W", "U", "B", "R", "G"]
+  color_identity?: string[];
+  mana_cost?: string; // "{2}{U}{U}"
+  cmc?: number; // Converted mana cost
+  type_line?: string; // "Instant" or "Creature — Human Wizard"
+  oracle_text?: string; // Official rules text
+  power?: string; // Can be "*" or number
+  toughness?: string; // Can be "*" or number
+  loyalty?: string; // Planeswalker loyalty
+  keywords?: string[]; // ["Flying", "Haste"]
+
+  // Image URLs
   image_uris?: {
     small: string;
     normal: string;
     large: string;
+    art_crop?: string; // For modal background
   };
 }
 
@@ -86,11 +103,33 @@ export interface DbCollectionCard {
   scryfall_name?: string;
   set_code?: string;
   rarity?: string;
-  image_url?: string;
+  collector_number?: string; // NEW: For MTG Arena export
+
+  // Gameplay data
+  colors?: string[];
+  color_identity?: string[];
+  mana_cost?: string;
+  cmc?: number;
+  type_line?: string;
+  oracle_text?: string;
+  power?: string;
+  toughness?: string;
+  loyalty?: string;
+  keywords?: string[];
+
+  // Image URLs
+  image_url?: string; // Deprecated, use image_normal
+  image_small?: string;
+  image_normal?: string;
+  image_large?: string;
+  image_art_crop?: string;
+
+  // Position metadata
   page_number?: number;
   position_x?: number;
   position_y?: number;
   confidence?: number;
+
   created_at: string;
   updated_at: string;
 }

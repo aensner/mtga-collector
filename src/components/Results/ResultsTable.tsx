@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { CardData } from '../../types';
+import { CardDetailModal } from './CardDetailModal';
 
 interface ResultsTableProps {
   cards: CardData[];
@@ -9,6 +10,7 @@ interface ResultsTableProps {
 export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate }) => {
   const [editingCell, setEditingCell] = useState<{ row: number; field: keyof CardData } | null>(null);
   const [selectedPage, setSelectedPage] = useState<number | 'all'>('all');
+  const [selectedCard, setSelectedCard] = useState<CardData | null>(null);
 
   const handleEdit = (index: number, field: keyof CardData, value: any) => {
     onCardUpdate(index, field, value);
@@ -111,22 +113,36 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                           if (e.key === 'Enter') {
                             handleEdit(index, 'correctedName', e.currentTarget.value);
                           }
+                          if (e.key === 'Escape') {
+                            setEditingCell(null);
+                          }
                         }}
                         autoFocus
                         className="input px-2 py-1 w-full"
                       />
                     ) : (
-                      <div
-                        onClick={() => setEditingCell({ row: index, field: 'correctedName' })}
-                        className="cursor-pointer hover:bg-bg-muted/40 px-2 py-1 rounded-md transition-fast"
-                      >
-                        <div className="text-sm text-fg-primary font-medium">
-                          {card.correctedName || card.kartenname}
-                        </div>
-                        {card.correctedName && card.correctedName !== card.kartenname && (
-                          <div className="text-xs text-fg-muted line-through">
-                            {card.kartenname}
+                      <div className="flex items-center gap-2">
+                        <div
+                          onClick={() => setEditingCell({ row: index, field: 'correctedName' })}
+                          className="flex-1 cursor-pointer hover:bg-bg-muted/40 px-2 py-1 rounded-md transition-fast"
+                        >
+                          <div className="text-sm text-fg-primary font-medium">
+                            {card.correctedName || card.kartenname}
                           </div>
+                          {card.correctedName && card.correctedName !== card.kartenname && (
+                            <div className="text-xs text-fg-muted line-through">
+                              {card.kartenname}
+                            </div>
+                          )}
+                        </div>
+                        {card.scryfallMatch && (
+                          <button
+                            onClick={() => setSelectedCard(card)}
+                            className="button ghost text-xs px-2 py-1"
+                            title="View card details"
+                          >
+                            🔍
+                          </button>
                         )}
                       </div>
                     )}
@@ -195,6 +211,14 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
           </table>
         </div>
       </div>
+
+      {/* Card Detail Modal */}
+      {selectedCard && (
+        <CardDetailModal
+          card={selectedCard}
+          onClose={() => setSelectedCard(null)}
+        />
+      )}
     </div>
   );
 };

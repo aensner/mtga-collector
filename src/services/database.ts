@@ -1,23 +1,8 @@
 import { supabase } from './supabase';
 import type { CardData, CalibrationSettings, DbCalibrationSettings } from '../types';
 
-export interface DbCollectionCard {
-  id: string;
-  user_id: string;
-  card_name: string;
-  quantity: number;
-  scryfall_id?: string;
-  scryfall_name?: string;
-  set_code?: string;
-  rarity?: string;
-  image_url?: string;
-  page_number?: number;
-  position_x?: number;
-  position_y?: number;
-  confidence?: number;
-  created_at: string;
-  updated_at: string;
-}
+// Import DbCollectionCard from types
+import type { DbCollectionCard } from '../types';
 
 /**
  * Load user's collection from Supabase
@@ -162,12 +147,29 @@ const dbCardToCardData = (dbCard: DbCollectionCard): CardData => {
       id: dbCard.scryfall_id,
       name: dbCard.scryfall_name || dbCard.card_name,
       set: dbCard.set_code || '',
+      set_name: '', // Not stored separately, use set_code
       rarity: dbCard.rarity || '',
-      image_uris: dbCard.image_url ? {
-        small: dbCard.image_url,
-        normal: dbCard.image_url,
-        large: dbCard.image_url
-      } : undefined
+      collector_number: dbCard.collector_number || '',
+
+      // Gameplay data
+      colors: dbCard.colors,
+      color_identity: dbCard.color_identity,
+      mana_cost: dbCard.mana_cost,
+      cmc: dbCard.cmc,
+      type_line: dbCard.type_line,
+      oracle_text: dbCard.oracle_text,
+      power: dbCard.power,
+      toughness: dbCard.toughness,
+      loyalty: dbCard.loyalty,
+      keywords: dbCard.keywords,
+
+      // Image URLs
+      image_uris: {
+        small: dbCard.image_small || dbCard.image_url || '',
+        normal: dbCard.image_normal || dbCard.image_url || '',
+        large: dbCard.image_large || dbCard.image_url || '',
+        art_crop: dbCard.image_art_crop
+      }
     } : undefined
   };
 };
@@ -176,15 +178,38 @@ const dbCardToCardData = (dbCard: DbCollectionCard): CardData => {
  * Helper: Convert CardData to database format
  */
 const cardDataToDb = (card: CardData, userId: string): Partial<DbCollectionCard> => {
+  const match = card.scryfallMatch;
+
   return {
     user_id: userId,
     card_name: card.kartenname,
     quantity: card.anzahl,
-    scryfall_id: card.scryfallMatch?.id,
-    scryfall_name: card.scryfallMatch?.name,
-    set_code: card.scryfallMatch?.set,
-    rarity: card.scryfallMatch?.rarity,
-    image_url: card.scryfallMatch?.image_uris?.normal,
+    scryfall_id: match?.id,
+    scryfall_name: match?.name,
+    set_code: match?.set,
+    rarity: match?.rarity,
+    collector_number: match?.collector_number,
+
+    // Gameplay data
+    colors: match?.colors,
+    color_identity: match?.color_identity,
+    mana_cost: match?.mana_cost,
+    cmc: match?.cmc,
+    type_line: match?.type_line,
+    oracle_text: match?.oracle_text,
+    power: match?.power,
+    toughness: match?.toughness,
+    loyalty: match?.loyalty,
+    keywords: match?.keywords,
+
+    // Image URLs
+    image_url: match?.image_uris?.normal, // Deprecated, keep for backwards compat
+    image_small: match?.image_uris?.small,
+    image_normal: match?.image_uris?.normal,
+    image_large: match?.image_uris?.large,
+    image_art_crop: match?.image_uris?.art_crop,
+
+    // Position metadata
     page_number: card.pageNumber,
     position_x: card.positionX,
     position_y: card.positionY,

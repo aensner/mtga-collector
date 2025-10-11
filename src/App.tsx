@@ -10,6 +10,7 @@ import { AccuracyMetrics } from './components/Results/AccuracyMetrics';
 import { CollectionSummary } from './components/Results/CollectionSummary';
 import { UnmatchedCards } from './components/Results/UnmatchedCards';
 import { DeckBuilder } from './components/DeckBuilder/DeckBuilder';
+import { SettingsModal } from './components/Settings/SettingsModal';
 import type { CardData, ProcessingResult, UploadedImage, SaveStatus, LoadStatus } from './types';
 import { signOut } from './services/supabase';
 import { loadCollection, saveCards, resetCollection, saveScanHistory } from './services/database';
@@ -27,6 +28,7 @@ const MainApp: React.FC = () => {
   const [loadStatus, setLoadStatus] = useState<LoadStatus>('idle');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [activeTab, setActiveTab] = useState<'collection' | 'deckbuilder'>('collection');
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Load collection on mount
   useEffect(() => {
@@ -216,6 +218,13 @@ const MainApp: React.FC = () => {
                 Reset Collection
               </button>
               <button
+                onClick={() => setSettingsOpen(true)}
+                className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-semibold py-2 px-4 rounded-lg transition duration-200"
+                title="Settings"
+              >
+                ⚙️ Settings
+              </button>
+              <button
                 onClick={handleSignOut}
                 className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-semibold py-2 px-4 rounded-lg transition duration-200"
               >
@@ -317,6 +326,9 @@ const MainApp: React.FC = () => {
           )}
         </div>
       </main>
+
+      {/* Settings Modal */}
+      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 };

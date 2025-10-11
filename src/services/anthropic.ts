@@ -1,18 +1,26 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { getAPIKeys } from './settings';
 
-const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+/**
+ * Get Anthropic client with API key from user settings or environment
+ */
+async function getClient(): Promise<Anthropic> {
+  const keys = await getAPIKeys();
+  const apiKey = keys.anthropic;
 
-if (!apiKey) {
-  console.warn('Anthropic API key not found. Card name correction will not work.');
+  if (!apiKey) {
+    throw new Error('⚠️ API Key Missing: Please add your Anthropic API key in Settings (⚙️).');
+  }
+
+  return new Anthropic({
+    apiKey,
+    dangerouslyAllowBrowser: true, // Note: In production, use a backend proxy
+  });
 }
-
-const client = new Anthropic({
-  apiKey: apiKey || '',
-  dangerouslyAllowBrowser: true, // Note: In production, use a backend proxy
-});
 
 export const correctCardName = async (ocrText: string): Promise<{ correctedName: string; confidence: number }> => {
   try {
+    const client = await getClient();
     const message = await client.messages.create({
       model: 'claude-sonnet-4-5-20250929',
       max_tokens: 100,
@@ -42,10 +50,7 @@ Be aware that card names can include special characters, apostrophes, and uncomm
 
 export const correctCardNamesBatch = async (ocrTexts: string[]): Promise<Array<{ correctedName: string; confidence: number }>> => {
   try {
-    // Check if API key is available
-    if (!apiKey) {
-      throw new Error('⚠️ API Key Missing: Please add your Anthropic API key to the .env file (VITE_ANTHROPIC_API_KEY).');
-    }
+    const client = await getClient();
 
     // Limit batch size to avoid token limits
     if (ocrTexts.length > 50) {
@@ -91,7 +96,7 @@ If a text is clearly not a card name, return "UNKNOWN" for that line.`
     } else if (error?.message?.includes('API key') || error?.message?.includes('API Key')) {
       throw error; // Re-throw if it's already formatted
     } else if (error?.status === 401 || error?.message?.includes('authentication')) {
-      throw new Error('⚠️ Authentication Failed: Your API key may be invalid. Please check your Anthropic API key.');
+      throw new Error('⚠️ Authentication Failed: Your API key may be invalid. Please check your Anthropic API key in Settings (⚙️).');
     } else {
       throw new Error(`Failed to correct card names: ${error?.message || 'Unknown error'}`);
     }
@@ -113,9 +118,7 @@ export const getAIDeckSuggestions = async (
   format: string
 ): Promise<DeckSuggestionResponse> => {
   try {
-    if (!apiKey) {
-      throw new Error('Anthropic API key not configured. Please add VITE_ANTHROPIC_API_KEY to your .env file.');
-    }
+    const client = await getClient();
 
     const message = await client.messages.create({
       model: 'claude-sonnet-4-5-20250929',
@@ -174,10 +177,10 @@ Remember: If a card is not in the AVAILABLE CARDS list, you CANNOT suggest it, n
     // Handle specific error types
     if (error?.message?.includes('credit balance is too low')) {
       throw new Error('⚠️ API Credits Low: Your Anthropic API credit balance is too low. Please visit console.anthropic.com to add credits or upgrade your plan.');
-    } else if (error?.message?.includes('API key')) {
-      throw new Error('⚠️ API Key Missing: Please add your Anthropic API key to the .env file (VITE_ANTHROPIC_API_KEY).');
+    } else if (error?.message?.includes('API key') || error?.message?.includes('API Key')) {
+      throw error; // Re-throw if it's already formatted
     } else if (error?.status === 401 || error?.message?.includes('authentication')) {
-      throw new Error('⚠️ Authentication Failed: Your API key may be invalid. Please check your Anthropic API key.');
+      throw new Error('⚠️ Authentication Failed: Your API key may be invalid. Please check your Anthropic API key in Settings (⚙️).');
     } else {
       throw new Error(`Failed to get AI suggestions: ${error?.message || 'Unknown error'}`);
     }

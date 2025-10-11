@@ -2,32 +2,55 @@
  * Unified AI Service
  *
  * Automatically selects between Anthropic and OpenAI based on which API key is configured.
- * Priority: OpenAI > Anthropic (OpenAI is more affordable for this use case)
+ * Priority: User settings > Environment variables
+ * Preference: OpenAI > Anthropic (OpenAI is more affordable for this use case)
  */
 
 import * as anthropic from './anthropic';
 import * as openai from './openai';
+import { getAPIKeys, loadSettings } from './settings';
 
-// Check which API keys are available
-const hasOpenAI = !!import.meta.env.VITE_OPENAI_API_KEY;
-const hasAnthropic = !!import.meta.env.VITE_ANTHROPIC_API_KEY;
+/**
+ * Determine which AI provider to use based on available keys and user preferences
+ */
+async function getAIProvider(): Promise<{ useOpenAI: boolean; useAnthropic: boolean; provider: string }> {
+  // Get API keys from user settings (with fallback to env)
+  const keys = await getAPIKeys();
+  const settings = await loadSettings();
 
-// Determine which provider to use (prefer OpenAI for cost-effectiveness)
-const useOpenAI = hasOpenAI;
-const useAnthropic = !hasOpenAI && hasAnthropic;
+  const hasOpenAI = !!keys.openai;
+  const hasAnthropic = !!keys.anthropic;
 
-if (!hasOpenAI && !hasAnthropic) {
-  console.warn('⚠️ No AI API keys configured. AI features will be disabled.');
-  console.warn('Add VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY to your .env file to enable AI features.');
-} else {
-  const provider = useOpenAI ? 'OpenAI (gpt-4o-mini)' : 'Anthropic (Claude Sonnet 4.5)';
-  console.log(`✅ Using ${provider} for AI features`);
+  // Respect user preference if set
+  const preference = settings.ai_provider_preference || 'auto';
+
+  let useOpenAI = false;
+  let useAnthropic = false;
+
+  if (preference === 'openai' && hasOpenAI) {
+    useOpenAI = true;
+  } else if (preference === 'anthropic' && hasAnthropic) {
+    useAnthropic = true;
+  } else {
+    // Auto mode: prefer OpenAI for cost-effectiveness
+    useOpenAI = hasOpenAI;
+    useAnthropic = !hasOpenAI && hasAnthropic;
+  }
+
+  const provider = useOpenAI
+    ? 'OpenAI (gpt-4o-mini)'
+    : useAnthropic
+    ? 'Anthropic (Claude Sonnet 4.5)'
+    : 'None';
+
+  return { useOpenAI, useAnthropic, provider };
 }
 
 /**
  * Get the name of the currently active AI provider
  */
-export const getActiveProvider = (): 'openai' | 'anthropic' | 'none' => {
+export const getActiveProvider = async (): Promise<'openai' | 'anthropic' | 'none'> => {
+  const { useOpenAI, useAnthropic } = await getAIProvider();
   if (useOpenAI) return 'openai';
   if (useAnthropic) return 'anthropic';
   return 'none';
@@ -37,12 +60,14 @@ export const getActiveProvider = (): 'openai' | 'anthropic' | 'none' => {
  * Correct a single card name using AI
  */
 export const correctCardName = async (ocrText: string): Promise<{ correctedName: string; confidence: number }> => {
+  const { useOpenAI, useAnthropic } = await getAIProvider();
+
   if (useOpenAI) {
     return openai.correctCardName(ocrText);
   } else if (useAnthropic) {
     return anthropic.correctCardName(ocrText);
   } else {
-    throw new Error('⚠️ No AI Provider: Please add VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY to your .env file.');
+    throw new Error('⚠️ API Key Missing: Please add an OpenAI or Anthropic API key in Settings (⚙️) to enable AI features.');
   }
 };
 
@@ -50,12 +75,14 @@ export const correctCardName = async (ocrText: string): Promise<{ correctedName:
  * Correct multiple card names in batch using AI
  */
 export const correctCardNamesBatch = async (ocrTexts: string[]): Promise<Array<{ correctedName: string; confidence: number }>> => {
+  const { useOpenAI, useAnthropic } = await getAIProvider();
+
   if (useOpenAI) {
     return openai.correctCardNamesBatch(ocrTexts);
   } else if (useAnthropic) {
     return anthropic.correctCardNamesBatch(ocrTexts);
   } else {
-    throw new Error('⚠️ No AI Provider: Please add VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY to your .env file.');
+    throw new Error('⚠️ API Key Missing: Please add an OpenAI or Anthropic API key in Settings (⚙️) to enable AI features.');
   }
 };
 
@@ -74,11 +101,13 @@ export const getAIDeckSuggestions = async (
     reason: string;
   }>;
 }> => {
+  const { useOpenAI, useAnthropic } = await getAIProvider();
+
   if (useOpenAI) {
     return openai.getAIDeckSuggestions(prompt, currentDeck, availableCards, format);
   } else if (useAnthropic) {
     return anthropic.getAIDeckSuggestions(prompt, currentDeck, availableCards, format);
   } else {
-    throw new Error('⚠️ No AI Provider: Please add VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY to your .env file.');
+    throw new Error('⚠️ API Key Missing: Please add an OpenAI or Anthropic API key in Settings (⚙️) to enable AI features.');
   }
 };

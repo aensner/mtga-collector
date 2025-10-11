@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import type { CardData } from '../../types';
 
 interface CardDetailModalProps {
@@ -81,13 +82,36 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose 
     return null;
   };
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-      onClick={onClose}
-    >
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999,
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem'
+        }}
+        onClick={onClose}
+      >
       <div
-        className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4"
+        style={{
+          backgroundColor: '#131821',
+          border: '1px solid rgba(19, 185, 213, 0.3)',
+          borderRadius: '12px',
+          maxWidth: '42rem',
+          width: '100%',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8)',
+          color: '#E6EEF7'
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with close button */}
@@ -222,4 +246,6 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose 
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };

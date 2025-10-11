@@ -7,7 +7,7 @@ interface ResultsTableProps {
   onCardUpdate: (index: number, field: keyof CardData, value: any) => void;
 }
 
-type SortField = 'nummer' | 'pageNumber' | 'position' | 'name' | 'type' | 'cmc' | 'pt' | 'quantity' | 'confidence';
+type SortField = 'nummer' | 'pageNumber' | 'position' | 'name' | 'type' | 'cmc' | 'power' | 'toughness' | 'loyalty' | 'quantity' | 'confidence';
 type SortDirection = 'asc' | 'desc' | null;
 
 export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate }) => {
@@ -105,9 +105,17 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
           aVal = a.scryfallMatch?.cmc ?? 0;
           bVal = b.scryfallMatch?.cmc ?? 0;
           break;
-        case 'pt':
-          aVal = a.scryfallMatch?.power ? parseInt(a.scryfallMatch.power) : (a.scryfallMatch?.loyalty ? parseInt(a.scryfallMatch.loyalty) : 0);
-          bVal = b.scryfallMatch?.power ? parseInt(b.scryfallMatch.power) : (b.scryfallMatch?.loyalty ? parseInt(b.scryfallMatch.loyalty) : 0);
+        case 'power':
+          aVal = a.scryfallMatch?.power ? parseFloat(a.scryfallMatch.power) : -999;
+          bVal = b.scryfallMatch?.power ? parseFloat(b.scryfallMatch.power) : -999;
+          break;
+        case 'toughness':
+          aVal = a.scryfallMatch?.toughness ? parseFloat(a.scryfallMatch.toughness) : -999;
+          bVal = b.scryfallMatch?.toughness ? parseFloat(b.scryfallMatch.toughness) : -999;
+          break;
+        case 'loyalty':
+          aVal = a.scryfallMatch?.loyalty ? parseFloat(a.scryfallMatch.loyalty) : -999;
+          bVal = b.scryfallMatch?.loyalty ? parseFloat(b.scryfallMatch.loyalty) : -999;
           break;
         case 'quantity':
           aVal = a.anzahl;
@@ -161,7 +169,9 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                 <SortableHeader field="name">Card Name</SortableHeader>
                 <SortableHeader field="type">Type</SortableHeader>
                 <SortableHeader field="cmc">Mana Value</SortableHeader>
-                <SortableHeader field="pt">P/T</SortableHeader>
+                <SortableHeader field="power">Power</SortableHeader>
+                <SortableHeader field="toughness">Toughness</SortableHeader>
+                <SortableHeader field="loyalty">Loyalty</SortableHeader>
                 <SortableHeader field="quantity">Quantity</SortableHeader>
                 <SortableHeader field="confidence">Confidence</SortableHeader>
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
@@ -247,14 +257,28 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                       <span className="text-fg-muted">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm text-fg-secondary">
-                    {card.scryfallMatch?.power && card.scryfallMatch?.toughness ? (
+                  <td className="px-4 py-3 text-sm text-fg-secondary text-center">
+                    {card.scryfallMatch?.power ? (
                       <span className="badge ok">
-                        {card.scryfallMatch.power}/{card.scryfallMatch.toughness}
+                        {card.scryfallMatch.power}
                       </span>
-                    ) : card.scryfallMatch?.loyalty ? (
+                    ) : (
+                      <span className="text-fg-muted">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-fg-secondary text-center">
+                    {card.scryfallMatch?.toughness ? (
                       <span className="badge ok">
-                        ⚡{card.scryfallMatch.loyalty}
+                        {card.scryfallMatch.toughness}
+                      </span>
+                    ) : (
+                      <span className="text-fg-muted">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-fg-secondary text-center">
+                    {card.scryfallMatch?.loyalty ? (
+                      <span className="badge ok">
+                        {card.scryfallMatch.loyalty}
                       </span>
                     ) : (
                       <span className="text-fg-muted">—</span>

@@ -102,8 +102,8 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
           bVal = b.positionY * 1000 + b.positionX;
           break;
         case 'name':
-          aVal = (a.correctedName || a.kartenname).toLowerCase();
-          bVal = (b.correctedName || b.kartenname).toLowerCase();
+          aVal = (a.scryfallMatch?.name || a.correctedName || a.kartenname).toLowerCase();
+          bVal = (b.scryfallMatch?.name || b.correctedName || b.kartenname).toLowerCase();
           break;
         case 'type':
           aVal = a.scryfallMatch?.type_line?.split('—')[0].trim().toLowerCase() ?? '';
@@ -233,9 +233,9 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                           className="flex-1 cursor-pointer hover:bg-bg-muted/40 px-2 py-1 rounded-md transition-fast"
                         >
                           <div className="text-sm text-fg-primary font-medium">
-                            {card.correctedName || card.kartenname}
+                            {card.scryfallMatch?.name || card.correctedName || card.kartenname}
                           </div>
-                          {card.correctedName && card.correctedName !== card.kartenname && (
+                          {card.scryfallMatch?.name && card.scryfallMatch.name !== card.kartenname && (
                             <div className="text-xs text-fg-muted line-through">
                               {card.kartenname}
                             </div>

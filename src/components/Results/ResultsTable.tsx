@@ -7,14 +7,54 @@ interface ResultsTableProps {
   onCardUpdate: (index: number, field: keyof CardData, value: any) => void;
 }
 
+type SortField = 'nummer' | 'pageNumber' | 'position' | 'name' | 'type' | 'cmc' | 'pt' | 'quantity' | 'confidence';
+type SortDirection = 'asc' | 'desc' | null;
+
 export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate }) => {
   const [editingCell, setEditingCell] = useState<{ row: number; field: keyof CardData } | null>(null);
   const [selectedPage, setSelectedPage] = useState<number | 'all'>('all');
   const [selectedCard, setSelectedCard] = useState<CardData | null>(null);
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   const handleEdit = (index: number, field: keyof CardData, value: any) => {
     onCardUpdate(index, field, value);
     setEditingCell(null);
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Cycle through: asc -> desc -> null
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortDirection(null);
+        setSortField(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortableHeader: React.FC<{ field: SortField; children: React.ReactNode }> = ({ field, children }) => {
+    const isActive = sortField === field;
+    return (
+      <th
+        className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-bg-muted/40 transition-fast select-none"
+        onClick={() => handleSort(field)}
+        title="Click to sort"
+      >
+        <div className="flex items-center gap-1">
+          {children}
+          {isActive && (
+            <span className="text-accent">
+              {sortDirection === 'asc' ? '↑' : '↓'}
+            </span>
+          )}
+        </div>
+      </th>
+    );
   };
 
   if (cards.length === 0) {
@@ -30,9 +70,60 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
   const hasMultiplePages = pages.length > 1;
 
   // Filter cards by selected page
-  const filteredCards = selectedPage === 'all'
+  let filteredCards = selectedPage === 'all'
     ? cards
     : cards.filter(c => c.pageNumber === selectedPage);
+
+  // Sort cards
+  if (sortField && sortDirection) {
+    filteredCards = [...filteredCards].sort((a, b) => {
+      let aVal: any;
+      let bVal: any;
+
+      switch (sortField) {
+        case 'nummer':
+          aVal = a.nummer;
+          bVal = b.nummer;
+          break;
+        case 'pageNumber':
+          aVal = a.pageNumber ?? 0;
+          bVal = b.pageNumber ?? 0;
+          break;
+        case 'position':
+          aVal = a.positionY * 1000 + a.positionX;
+          bVal = b.positionY * 1000 + b.positionX;
+          break;
+        case 'name':
+          aVal = (a.correctedName || a.kartenname).toLowerCase();
+          bVal = (b.correctedName || b.kartenname).toLowerCase();
+          break;
+        case 'type':
+          aVal = a.scryfallMatch?.type_line?.split('—')[0].trim().toLowerCase() ?? '';
+          bVal = b.scryfallMatch?.type_line?.split('—')[0].trim().toLowerCase() ?? '';
+          break;
+        case 'cmc':
+          aVal = a.scryfallMatch?.cmc ?? 0;
+          bVal = b.scryfallMatch?.cmc ?? 0;
+          break;
+        case 'pt':
+          aVal = a.scryfallMatch?.power ? parseInt(a.scryfallMatch.power) : (a.scryfallMatch?.loyalty ? parseInt(a.scryfallMatch.loyalty) : 0);
+          bVal = b.scryfallMatch?.power ? parseInt(b.scryfallMatch.power) : (b.scryfallMatch?.loyalty ? parseInt(b.scryfallMatch.loyalty) : 0);
+          break;
+        case 'quantity':
+          aVal = a.anzahl;
+          bVal = b.anzahl;
+          break;
+        case 'confidence':
+          aVal = a.confidence ?? 0;
+          bVal = b.confidence ?? 0;
+          break;
+      }
+
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
 
   return (
     <div className="mt-8">
@@ -62,35 +153,17 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
           <table className="table">
             <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  #
-                </th>
+                <SortableHeader field="nummer">#</SortableHeader>
                 {hasMultiplePages && (
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    Page
-                  </th>
+                  <SortableHeader field="pageNumber">Page</SortableHeader>
                 )}
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  Position
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  Card Name
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  Mana Value
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  P/T
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  Quantity
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  Confidence
-                </th>
+                <SortableHeader field="position">Position</SortableHeader>
+                <SortableHeader field="name">Card Name</SortableHeader>
+                <SortableHeader field="type">Type</SortableHeader>
+                <SortableHeader field="cmc">Mana Value</SortableHeader>
+                <SortableHeader field="pt">P/T</SortableHeader>
+                <SortableHeader field="quantity">Quantity</SortableHeader>
+                <SortableHeader field="confidence">Confidence</SortableHeader>
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Status
                 </th>

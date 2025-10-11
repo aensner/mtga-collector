@@ -77,6 +77,9 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                   Card Name
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Mana Value
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
@@ -151,6 +154,15 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                           </button>
                         )}
                       </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-fg-secondary">
+                    {card.scryfallMatch?.type_line ? (
+                      <span className="text-xs text-fg-secondary">
+                        {card.scryfallMatch.type_line.split('—')[0].trim()}
+                      </span>
+                    ) : (
+                      <span className="text-fg-muted">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-sm text-fg-secondary">

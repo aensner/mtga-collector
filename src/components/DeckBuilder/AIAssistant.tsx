@@ -69,7 +69,25 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         format
       );
 
-      setSuggestions(response.suggestions);
+      // Validate that all suggested cards are actually in the collection
+      const validSuggestions = response.suggestions.filter(suggestion => {
+        const cardExists = collection.some(c =>
+          (c.scryfallMatch?.name || c.kartenname).toLowerCase() === suggestion.cardName.toLowerCase()
+        );
+
+        if (!cardExists) {
+          console.warn(`⚠️ AI suggested "${suggestion.cardName}" which is not in your collection - filtering out`);
+        }
+
+        return cardExists;
+      });
+
+      if (validSuggestions.length < response.suggestions.length) {
+        const filtered = response.suggestions.length - validSuggestions.length;
+        console.warn(`⚠️ Filtered out ${filtered} suggestions that weren't in your collection`);
+      }
+
+      setSuggestions(validSuggestions);
     } catch (err) {
       console.error('AI suggestion error:', err);
       setError(err instanceof Error ? err.message : 'Failed to get AI suggestions');

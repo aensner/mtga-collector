@@ -123,29 +123,29 @@ USER REQUEST: ${prompt}
 CURRENT DECK (${currentDeck.reduce((sum, c) => sum + c.count, 0)} cards):
 ${currentDeck.length > 0 ? currentDeck.map(c => `${c.count}x ${c.name} (${c.type}, CMC ${c.cmc})`).join('\n') : 'Empty deck'}
 
-AVAILABLE CARDS FROM COLLECTION:
-${availableCards.slice(0, 100).map(c => `${c.name} (${c.type}, CMC ${c.cmc}, Available: ${c.available})`).join('\n')}
-${availableCards.length > 100 ? `\n...and ${availableCards.length - 100} more cards` : ''}
+AVAILABLE CARDS FROM COLLECTION (these are the ONLY cards you can suggest):
+${availableCards.slice(0, 200).map(c => `${c.name} (${c.type}, CMC ${c.cmc}, Available: ${c.available})`).join('\n')}
+${availableCards.length > 200 ? `\n...and ${availableCards.length - 200} more cards in collection` : ''}
 
-Please suggest 5-10 cards to add to this deck based on the user's request. Only suggest cards that are in the available collection.
+CRITICAL RULES:
+1. ONLY suggest cards that appear in the "AVAILABLE CARDS FROM COLLECTION" list above
+2. DO NOT suggest cards that are not in that list, even if they would be perfect for the deck
+3. Use the EXACT card names as shown in the available cards list
+4. Check the "Available" count - don't suggest more copies than are available
+5. Respect the 4-of limit (except basic lands like Plains, Island, Swamp, Mountain, Forest)
 
 Respond in JSON format:
 {
   "suggestions": [
     {
-      "cardName": "Exact card name from available cards",
+      "cardName": "Exact card name from available cards list",
       "count": 2,
       "reason": "Brief explanation of why this card fits"
     }
   ]
 }
 
-IMPORTANT:
-- Only suggest cards from the AVAILABLE CARDS list
-- Respect the 4-of limit (except basic lands)
-- Consider mana curve and card synergies
-- Match the user's requested strategy
-- Keep suggestions practical and focused`
+Remember: If a card is not in the AVAILABLE CARDS list, you CANNOT suggest it, no matter how good it would be.`
       }]
     });
 

@@ -16,9 +16,21 @@ export default defineConfig({
   },
 
   projects: [
+    // Setup project for authentication
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+
+    // Main test project with authentication
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], headless: false },
+      use: {
+        ...devices['Desktop Chrome'],
+        headless: false,
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
   ],
 

@@ -33,7 +33,12 @@
       "Bash(then cat .env)",
       "Bash(else echo \".env not found\")",
       "Bash(npm run build)",
-      "Bash(npx supabase db:*)"
+      "Bash(npx supabase db:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "Bash(PORT=5173 npx playwright test:*)",
+      "Bash(timeout 30 npx playwright test tests/auth.setup.ts --workers=1 --headed)"
     ],
     "deny": [],
     "ask": []

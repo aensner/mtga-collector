@@ -80,6 +80,9 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                   Mana Value
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  P/T
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Quantity
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
@@ -154,6 +157,19 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ cards, onCardUpdate 
                     {card.scryfallMatch?.cmc !== undefined ? (
                       <span className="badge info">
                         {card.scryfallMatch.cmc}
+                      </span>
+                    ) : (
+                      <span className="text-fg-muted">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-fg-secondary">
+                    {card.scryfallMatch?.power && card.scryfallMatch?.toughness ? (
+                      <span className="badge ok">
+                        {card.scryfallMatch.power}/{card.scryfallMatch.toughness}
+                      </span>
+                    ) : card.scryfallMatch?.loyalty ? (
+                      <span className="badge ok">
+                        ⚡{card.scryfallMatch.loyalty}
                       </span>
                     ) : (
                       <span className="text-fg-muted">—</span>

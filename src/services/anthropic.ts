@@ -44,8 +44,7 @@ export const correctCardNamesBatch = async (ocrTexts: string[]): Promise<Array<{
   try {
     // Check if API key is available
     if (!apiKey) {
-      console.warn('Anthropic API key not configured. Skipping AI correction.');
-      return ocrTexts.map(text => ({ correctedName: text, confidence: 0.5 }));
+      throw new Error('⚠️ API Key Missing: Please add your Anthropic API key to the .env file (VITE_ANTHROPIC_API_KEY).');
     }
 
     // Limit batch size to avoid token limits
@@ -85,8 +84,17 @@ If a text is clearly not a card name, return "UNKNOWN" for that line.`
   } catch (error: any) {
     console.error('Error correcting card names in batch:', error);
     console.error('Error details:', error?.message || error);
-    // Return original texts with low confidence on error
-    return ocrTexts.map(text => ({ correctedName: text, confidence: 0.5 }));
+
+    // Handle specific error types
+    if (error?.message?.includes('credit balance is too low')) {
+      throw new Error('⚠️ API Credits Low: Your Anthropic API credit balance is too low. Please visit console.anthropic.com to add credits or upgrade your plan.');
+    } else if (error?.message?.includes('API key') || error?.message?.includes('API Key')) {
+      throw error; // Re-throw if it's already formatted
+    } else if (error?.status === 401 || error?.message?.includes('authentication')) {
+      throw new Error('⚠️ Authentication Failed: Your API key may be invalid. Please check your Anthropic API key.');
+    } else {
+      throw new Error(`Failed to correct card names: ${error?.message || 'Unknown error'}`);
+    }
   }
 };
 
@@ -106,7 +114,7 @@ export const getAIDeckSuggestions = async (
 ): Promise<DeckSuggestionResponse> => {
   try {
     if (!apiKey) {
-      throw new Error('Anthropic API key not configured. Please add your API key to use AI suggestions.');
+      throw new Error('Anthropic API key not configured. Please add VITE_ANTHROPIC_API_KEY to your .env file.');
     }
 
     const message = await client.messages.create({
@@ -162,6 +170,16 @@ IMPORTANT:
     return parsed;
   } catch (error: any) {
     console.error('Error getting AI deck suggestions:', error);
-    throw new Error(error?.message || 'Failed to get AI suggestions. Please try again.');
+
+    // Handle specific error types
+    if (error?.message?.includes('credit balance is too low')) {
+      throw new Error('⚠️ API Credits Low: Your Anthropic API credit balance is too low. Please visit console.anthropic.com to add credits or upgrade your plan.');
+    } else if (error?.message?.includes('API key')) {
+      throw new Error('⚠️ API Key Missing: Please add your Anthropic API key to the .env file (VITE_ANTHROPIC_API_KEY).');
+    } else if (error?.status === 401 || error?.message?.includes('authentication')) {
+      throw new Error('⚠️ Authentication Failed: Your API key may be invalid. Please check your Anthropic API key.');
+    } else {
+      throw new Error(`Failed to get AI suggestions: ${error?.message || 'Unknown error'}`);
+    }
   }
 };

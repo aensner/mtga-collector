@@ -122,8 +122,29 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
 
         {/* Error Display */}
         {error && (
-          <div className="bg-error/20 border border-error rounded p-3 text-sm text-error">
-            {error}
+          <div className="bg-error/20 border border-error rounded p-4 text-sm space-y-2">
+            <div className="text-error font-semibold">{error}</div>
+            {error.includes('credit balance') && (
+              <div className="text-fg-secondary text-xs space-y-1">
+                <p>To continue using AI features:</p>
+                <ol className="list-decimal list-inside ml-2 space-y-1">
+                  <li>Visit <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">console.anthropic.com</a></li>
+                  <li>Go to Plans & Billing</li>
+                  <li>Purchase credits or upgrade your plan</li>
+                </ol>
+                <p className="mt-2 text-fg-muted italic">Note: You can still build decks manually without AI suggestions.</p>
+              </div>
+            )}
+            {error.includes('API Key Missing') && (
+              <div className="text-fg-secondary text-xs space-y-1">
+                <p>To enable AI features:</p>
+                <ol className="list-decimal list-inside ml-2 space-y-1">
+                  <li>Get an API key from <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">console.anthropic.com</a></li>
+                  <li>Add it to your .env file: <code className="bg-bg-muted px-1 py-0.5 rounded">VITE_ANTHROPIC_API_KEY=your_key</code></li>
+                  <li>Restart the development server</li>
+                </ol>
+              </div>
+            )}
           </div>
         )}
 

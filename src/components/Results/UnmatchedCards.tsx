@@ -63,9 +63,21 @@ export const UnmatchedCards: React.FC<UnmatchedCardsProps> = ({ unmatchedCards, 
       setShowResults(true);
 
       console.log('AI correction results:', results);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during AI correction:', error);
-      alert('Error during AI correction. Check console for details.');
+
+      // Show user-friendly error message
+      let errorMessage = 'Error during AI correction.';
+
+      if (error?.message?.includes('credit balance is too low')) {
+        errorMessage = '⚠️ API Credits Low\n\nYour Anthropic API credit balance is too low.\n\nTo continue:\n1. Visit console.anthropic.com\n2. Go to Plans & Billing\n3. Purchase credits or upgrade your plan\n\nNote: You can still use the collection scanner - AI correction is optional.';
+      } else if (error?.message?.includes('API key') || error?.message?.includes('API Key')) {
+        errorMessage = '⚠️ API Key Missing\n\nTo enable AI correction:\n1. Get an API key from console.anthropic.com\n2. Add it to your .env file: VITE_ANTHROPIC_API_KEY=your_key\n3. Restart the development server';
+      } else if (error?.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+
+      alert(errorMessage);
     } finally {
       setCorrecting(false);
     }

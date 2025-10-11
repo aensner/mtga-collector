@@ -9,7 +9,22 @@
       "WebSearch",
       "WebFetch(domain:www.mtggoldfish.com)",
       "Bash(git checkout:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(supabase:*)",
+      "Bash(psql:*)",
+      "Bash(timeout 10 npm run build)",
+      "Bash(if [ -f .env ])",
+      "Bash(then echo \".env exists\")",
+      "Bash(cat:*)",
+      "Bash(else echo \".env file not found\")",
+      "Bash(fi)",
+      "Bash(npm run db:migrate:*)",
+      "Bash(node:*)",
+      "Bash(npx playwright:*)",
+      "Bash(npx -y playwright@latest test-app.mjs)",
+      "Bash(npx -y @playwright/test@latest:*)",
+      "Bash(npm install:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

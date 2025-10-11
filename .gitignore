@@ -27,3 +27,12 @@ dist-ssr
 .env
 .env.local
 nul
+
+# Playwright test results (may contain sensitive test data)
+test-results/
+screenshots/
+playwright-report/
+
+# Supabase CLI temporary files
+supabase/.temp/
+supabase/.branches/

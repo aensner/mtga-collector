@@ -1,4 +1,4 @@
-import Tesseract, { Worker } from 'tesseract.js';
+import Tesseract, { type Worker } from 'tesseract.js';
 import type { OCRResult } from '../types';
 
 let workers: Worker[] = [];
@@ -73,10 +73,10 @@ export const recognizeText = async (
     text: data.text.trim(),
     confidence: data.confidence / 100, // Tesseract returns 0-100, we need 0-1
     bbox: {
-      x0: data.bbox?.x0 || 0,
-      y0: data.bbox?.y0 || 0,
-      x1: data.bbox?.x1 || 0,
-      y1: data.bbox?.y1 || 0,
+      x0: data.box?.x0 || 0,
+      y0: data.box?.y0 || 0,
+      x1: data.box?.x1 || 0,
+      y1: data.box?.y1 || 0,
     },
   };
 };

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { CardData, ProcessingResult, UploadedImage } from '../../types';
+import type { CardData, ProcessingResult, UploadedImage, CalibrationSettings } from '../../types';
 import { initializeOCR, recognizeCardName, terminateOCR, preprocessImage } from '../../services/ocr';
 import { detectCardGrid, detectCardQuantity, isCardSlotEmpty } from '../../services/imageProcessing';
 import { searchCardsBatch } from '../../services/scryfall';
+import { loadCalibrationSettings, saveCalibrationSettings } from '../../services/database';
 import { GridCalibrator } from './GridCalibrator';
 import { QuantityCalibrator } from './QuantityCalibrator';
 
@@ -34,7 +35,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
   const [processingCanvas, setProcessingCanvas] = useState<string | null>(null);
   const [processingProgress, setProcessingProgress] = useState<ProcessingProgress | null>(null);
 
-  // Load calibration from localStorage or use defaults
+  // Load calibration from localStorage or use defaults (fallback)
   const loadCalibration = (key: string, defaultValue: any) => {
     const saved = localStorage.getItem(key);
     return saved ? JSON.parse(saved) : defaultValue;
@@ -95,6 +96,46 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
   // Reference to progress indicator for auto-scrolling
   const progressIndicatorRef = useRef<HTMLDivElement>(null);
 
+  // Load calibration from database on mount
+  useEffect(() => {
+    const loadFromDatabase = async () => {
+      try {
+        const settings = await loadCalibrationSettings();
+        if (settings) {
+          console.log('📐 Loaded calibration settings from database');
+          // Update all calibration states
+          setOcrLeft(settings.ocrLeft);
+          setOcrTop(settings.ocrTop);
+          setOcrWidth(settings.ocrWidth);
+          setOcrHeight(settings.ocrHeight);
+          setGridParams({
+            startX: settings.startX,
+            startY: settings.startY,
+            gridWidth: settings.gridWidth,
+            gridHeight: settings.gridHeight,
+            cardGapX: settings.cardGapX,
+            cardGapY: settings.cardGapY,
+          });
+          setQuantityParams({
+            offsetX: settings.quantityOffsetX,
+            offsetY: settings.quantityOffsetY,
+            width: settings.quantityWidth,
+            height: settings.quantityHeight,
+            brightnessThreshold: settings.brightnessThreshold,
+            saturationThreshold: settings.saturationThreshold,
+            fillRatioThreshold: settings.fillRatioThreshold,
+          });
+        } else {
+          console.log('📐 No saved calibration found, using defaults');
+        }
+      } catch (error) {
+        console.error('Failed to load calibration from database:', error);
+      }
+    };
+
+    loadFromDatabase();
+  }, []); // Only run once on mount
+
   // Update preview when sliders change
   useEffect(() => {
     if (!debugMode || !previewImage || !previewCanvasRef.current) return;
@@ -138,30 +179,46 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     }
   }, [debugMode, ocrLeft, ocrTop, ocrWidth, ocrHeight, previewImage, gridParams]);
 
-  // Save calibration values to localStorage whenever they change
+  // Save calibration values to database whenever they change
+  // Debounce to avoid excessive database calls
   useEffect(() => {
-    localStorage.setItem('ocrLeft', JSON.stringify(ocrLeft));
-  }, [ocrLeft]);
+    const saveTimer = setTimeout(async () => {
+      const settings: CalibrationSettings = {
+        startX: gridParams.startX,
+        startY: gridParams.startY,
+        gridWidth: gridParams.gridWidth,
+        gridHeight: gridParams.gridHeight,
+        cardGapX: gridParams.cardGapX,
+        cardGapY: gridParams.cardGapY,
+        ocrLeft,
+        ocrTop,
+        ocrWidth,
+        ocrHeight,
+        quantityOffsetX: quantityParams.offsetX,
+        quantityOffsetY: quantityParams.offsetY,
+        quantityWidth: quantityParams.width,
+        quantityHeight: quantityParams.height,
+        brightnessThreshold: quantityParams.brightnessThreshold,
+        saturationThreshold: quantityParams.saturationThreshold,
+        fillRatioThreshold: quantityParams.fillRatioThreshold,
+      };
 
-  useEffect(() => {
-    localStorage.setItem('ocrTop', JSON.stringify(ocrTop));
-  }, [ocrTop]);
+      try {
+        await saveCalibrationSettings(settings);
+        // Also save to localStorage as backup
+        localStorage.setItem('ocrLeft', JSON.stringify(ocrLeft));
+        localStorage.setItem('ocrTop', JSON.stringify(ocrTop));
+        localStorage.setItem('ocrWidth', JSON.stringify(ocrWidth));
+        localStorage.setItem('ocrHeight', JSON.stringify(ocrHeight));
+        localStorage.setItem('gridParams', JSON.stringify(gridParams));
+        localStorage.setItem('quantityParams', JSON.stringify(quantityParams));
+      } catch (error) {
+        console.error('Failed to save calibration to database:', error);
+      }
+    }, 1000); // Wait 1 second after last change before saving
 
-  useEffect(() => {
-    localStorage.setItem('ocrWidth', JSON.stringify(ocrWidth));
-  }, [ocrWidth]);
-
-  useEffect(() => {
-    localStorage.setItem('ocrHeight', JSON.stringify(ocrHeight));
-  }, [ocrHeight]);
-
-  useEffect(() => {
-    localStorage.setItem('gridParams', JSON.stringify(gridParams));
-  }, [gridParams]);
-
-  useEffect(() => {
-    localStorage.setItem('quantityParams', JSON.stringify(quantityParams));
-  }, [quantityParams]);
+    return () => clearTimeout(saveTimer);
+  }, [ocrLeft, ocrTop, ocrWidth, ocrHeight, gridParams, quantityParams]);
 
   // Load preview image when first image is uploaded
   useEffect(() => {

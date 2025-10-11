@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider } from './components/Auth/AuthContext';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { ImageDropzone } from './components/Upload/ImageDropzone';
@@ -9,8 +9,9 @@ import { ExportButtons } from './components/Results/ExportButtons';
 import { AccuracyMetrics } from './components/Results/AccuracyMetrics';
 import { CollectionSummary } from './components/Results/CollectionSummary';
 import { UnmatchedCards } from './components/Results/UnmatchedCards';
-import type { CardData, ProcessingResult, UploadedImage } from './types';
+import type { CardData, ProcessingResult, UploadedImage, SaveStatus, LoadStatus } from './types';
 import { signOut } from './services/supabase';
+import { loadCollection, saveCards, resetCollection, saveScanHistory } from './services/database';
 import { parseCSV } from './utils/csvParser';
 import { calculateAccuracy } from './utils/accuracyTester';
 import { useAuth } from './components/Auth/AuthContext';
@@ -20,9 +21,34 @@ const MainApp: React.FC = () => {
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [cards, setCards] = useState<CardData[]>([]);
   const [unmatchedCards, setUnmatchedCards] = useState<CardData[]>([]);
-  const [processingResults, setProcessingResults] = useState<ProcessingResult[]>([]);
   const [testMode, setTestMode] = useState(false);
   const [groundTruth, setGroundTruth] = useState<CardData[]>([]);
+  const [loadStatus, setLoadStatus] = useState<LoadStatus>('idle');
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+
+  // Load collection on mount
+  useEffect(() => {
+    const loadUserCollection = async () => {
+      if (!user) {
+        setCards([]);
+        setLoadStatus('idle');
+        return;
+      }
+
+      setLoadStatus('loading');
+      try {
+        const loadedCards = await loadCollection();
+        setCards(loadedCards);
+        setLoadStatus('loaded');
+        console.log(`📦 Loaded ${loadedCards.length} cards from collection`);
+      } catch (error) {
+        console.error('Failed to load collection:', error);
+        setLoadStatus('error');
+      }
+    };
+
+    loadUserCollection();
+  }, [user?.id]); // Only re-run when user ID changes, not the entire user object
 
   const handleImagesUploaded = (newImages: UploadedImage[]) => {
     setImages([...images, ...newImages]);
@@ -32,8 +58,7 @@ const MainApp: React.FC = () => {
     setImages(images.filter((img) => img.id !== id));
   };
 
-  const handleProcessingComplete = (results: ProcessingResult[]) => {
-    setProcessingResults(results);
+  const handleProcessingComplete = async (results: ProcessingResult[]) => {
 
     // Combine all cards from all results
     const allCards = results.flatMap((r) => r.cards);
@@ -53,11 +78,28 @@ const MainApp: React.FC = () => {
 
     // Mark images as processed
     setImages(images.map((img) => ({ ...img, processed: true })));
+
+    // Auto-save validated cards to database
+    if (validatedCards.length > 0 && user) {
+      setSaveStatus('saving');
+      try {
+        await saveCards(validatedCards);
+        await saveScanHistory(validatedCards.length, results.length);
+        setSaveStatus('saved');
+
+        // Reset save status after 3 seconds
+        setTimeout(() => setSaveStatus('idle'), 3000);
+      } catch (error) {
+        console.error('Failed to auto-save cards:', error);
+        setSaveStatus('error');
+      }
+    }
   };
 
-  const handleCardsMatched = (correctedCards: CardData[]) => {
+  const handleCardsMatched = async (correctedCards: CardData[]) => {
     // Add corrected cards to the main collection
-    setCards([...cards, ...correctedCards]);
+    const updatedCards = [...cards, ...correctedCards];
+    setCards(updatedCards);
 
     // Remove them from unmatched
     const remainingUnmatched = unmatchedCards.filter(
@@ -66,6 +108,19 @@ const MainApp: React.FC = () => {
     setUnmatchedCards(remainingUnmatched);
 
     console.log(`Added ${correctedCards.length} corrected cards to collection`);
+
+    // Auto-save corrected cards
+    if (correctedCards.length > 0 && user) {
+      setSaveStatus('saving');
+      try {
+        await saveCards(correctedCards);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 3000);
+      } catch (error) {
+        console.error('Failed to save corrected cards:', error);
+        setSaveStatus('error');
+      }
+    }
   };
 
   const handleCardUpdate = (index: number, field: keyof CardData, value: any) => {
@@ -89,6 +144,28 @@ const MainApp: React.FC = () => {
     }
   };
 
+  const handleResetCollection = async () => {
+    const confirmed = window.confirm(
+      '⚠️ Are you sure you want to reset your entire collection?\n\nThis will permanently delete all cards from your collection. This action cannot be undone.'
+    );
+
+    if (!confirmed) return;
+
+    setSaveStatus('saving');
+    try {
+      await resetCollection();
+      setCards([]);
+      setUnmatchedCards([]);
+      setSaveStatus('saved');
+      alert('✅ Collection has been reset successfully');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } catch (error) {
+      console.error('Failed to reset collection:', error);
+      setSaveStatus('error');
+      alert('❌ Failed to reset collection. Please try again.');
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
   };
@@ -102,7 +179,24 @@ const MainApp: React.FC = () => {
       {/* Header */}
       <header className="bg-gray-900/50 backdrop-blur border-b border-gray-700">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">MTG Arena Collector</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-white">MTG Arena Collector</h1>
+
+            {/* Status Indicators */}
+            {loadStatus === 'loading' && (
+              <span className="text-sm text-blue-400">📦 Loading collection...</span>
+            )}
+            {saveStatus === 'saving' && (
+              <span className="text-sm text-blue-400">💾 Saving...</span>
+            )}
+            {saveStatus === 'saved' && (
+              <span className="text-sm text-green-400">✅ Saved</span>
+            )}
+            {saveStatus === 'error' && (
+              <span className="text-sm text-red-400">❌ Save failed</span>
+            )}
+          </div>
+
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-400">{user?.email}</span>
             <button
@@ -110,6 +204,13 @@ const MainApp: React.FC = () => {
               className="bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition duration-200"
             >
               Load Test Data
+            </button>
+            <button
+              onClick={handleResetCollection}
+              className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition duration-200"
+              disabled={saveStatus === 'saving'}
+            >
+              Reset Collection
             </button>
             <button
               onClick={handleSignOut}
@@ -185,7 +286,9 @@ const MainApp: React.FC = () => {
 function App() {
   return (
     <AuthProvider>
-      <MainApp />
+      <ProtectedRoute>
+        <MainApp />
+      </ProtectedRoute>
     </AuthProvider>
   );
 }

@@ -314,11 +314,23 @@ export const isCardSlotEmpty = (
 
   const edgeDensity = edgePixels / pixelCount;
 
+  // Increment counter for tracking
+  if (!(window as any)._emptyCheckCounter) {
+    (window as any)._emptyCheckCounter = 0;
+  }
+  (window as any)._emptyCheckCounter++;
+  const checkNum = (window as any)._emptyCheckCounter;
+
   // Empty slot detection criteria:
-  // Primary: Low edge density (no card borders, text, or art details)
-  // Real cards have 9-26% edge density, empty slots have 0-0.04%
-  // Background patterns can have high color variance, so we rely primarily on edges
-  return edgeDensity < opts.edgeThreshold;
+  // Low edge density = no card borders, text, or art details
+  // Real cards: 9-26% edge density
+  // Empty slots: 0-0.04% edge density
+  // Threshold: < 2% = empty
+  const isEmpty = edgeDensity < opts.edgeThreshold;
+
+  console.log(`${isEmpty ? '⬜' : '🟢'} Card ${checkNum}: Edge=${(edgeDensity * 100).toFixed(2)}%, Empty=${isEmpty}`);
+
+  return isEmpty;
 };
 
 /**

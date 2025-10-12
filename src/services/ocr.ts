@@ -98,21 +98,22 @@ export const recognizeCardName = async (
     height: cardBbox.height * params.height,
   };
 
-  // Debug visualization - draw the region being read
-  if (debugVisualize) {
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.strokeStyle = 'red';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(nameRegion.left, nameRegion.top, nameRegion.width, nameRegion.height);
-
-      // Also draw the full card bbox in blue
-      ctx.strokeStyle = 'blue';
-      ctx.strokeRect(cardBbox.x, cardBbox.y, cardBbox.width, cardBbox.height);
-    }
-  }
+  // NOTE: Debug visualization was removed from here because drawing on the canvas
+  // before OCR causes Tesseract to read the debug boxes as text.
+  // Debug visualization should be handled by the CardProcessor drawing on a
+  // separate display canvas, not on the OCR input canvas.
 
   const result = await recognizeText(canvas, nameRegion);
+
+  // Debug: Log OCR results for troubleshooting
+  if (!(window as any)._cardCounter) {
+    (window as any)._cardCounter = 0;
+  }
+  (window as any)._cardCounter++;
+  const cardNum = (window as any)._cardCounter;
+
+  console.log(`OCR Card ${cardNum}: "${result.text}" (confidence: ${(result.confidence * 100).toFixed(1)}%)`);
+
   return {
     text: result.text,
     confidence: result.confidence,

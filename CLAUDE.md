@@ -67,11 +67,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### AI Correction (On-Demand)
 - **Unmatched Cards UI**: Cards not found in Scryfall are shown in a separate section
+  - Displays OCR region image preview for each unmatched card
+  - Shows file name, page number, and position coordinates
+  - OCR region dimensions displayed for debugging
 - **Manual Trigger**: User clicks "✨ Correct All with AI" button to use Anthropic Claude
 - **Smart Correction**: Only sends unmatched cards to AI (saves API credits)
+- **Manual Correction**: Individual cards can be manually corrected
+  - Type correct card name and press Enter or click "Check"
+  - Validates against Scryfall in real-time
+  - Shows success/error feedback immediately
 - **Before/After View**: Shows original OCR text → AI corrected name → Scryfall match status
 - **Selective Addition**: Only successfully matched cards are added to collection
 - **API Cost Control**: AI is never called automatically - only when user requests it
+- **OCR Failure Handling**: Cards where OCR returns empty text get placeholder names
+  - Format: `[OCR Failed - Position X,Y]`
+  - Allows manual correction in Unmatched Cards section
+  - Includes OCR region image for visual reference
 - **Location**: `src/components/Results/UnmatchedCards.tsx`
 
 ### Debug Mode
@@ -240,3 +251,23 @@ When debug mode is enabled, the system displays real-time processing status:
 - **Card numbers** displayed in top-left corner of each card
 - Updates **before each batch** (yellow highlights) and **after each batch** (green/red/gray)
 - Persists final state after completion for review
+
+### Empty Slot Detection
+The system uses edge detection to skip OCR on empty card slots (src/services/imageProcessing.ts):
+- **Algorithm**: Sobel-like gradient calculation on center 70% of card slot
+- **Threshold**: Edge density < 2% = empty slot
+- **Performance**: Detection takes ~5-10ms vs ~1500ms for OCR (99% faster)
+- **Accuracy**: Real cards have 9-26% edge density, empty slots have 0-0.04%
+- **Time Savings**: ~70% faster on partially filled pages (e.g., 26 empty slots × 1.5s = 39s saved)
+- **Logic**: Simple and reliable - no brightness or color variance checks that could cause false positives
+- **Console Logging**:
+  - `⬜ Card N: Edge=X%` = Empty slot detected
+  - `🟢 Card N: Edge=X%` = Card detected
+
+### OCR Failure Handling
+When OCR runs but returns empty text (rare cases like very dark/low-contrast cards):
+- **Detection**: Empty text with any confidence value after passing empty slot check
+- **Behavior**: Create placeholder card entry: `[OCR Failed - Position X,Y]`
+- **Purpose**: Allow manual correction rather than silently dropping the card
+- **UI Integration**: Appears in Unmatched Cards section with OCR region image
+- **Manual Fix**: User can see the image and type the correct card name

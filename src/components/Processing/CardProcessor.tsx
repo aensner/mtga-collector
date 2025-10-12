@@ -24,6 +24,8 @@ interface ProcessingProgress {
   totalBatches: number;
   currentPage?: number;
   totalPages?: number;
+  overallCardsProcessed?: number; // Total cards processed across all pages
+  overallTotalCards?: number; // Total cards across all pages
 }
 
 export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessingComplete }) => {
@@ -304,6 +306,16 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     setProcessing(true);
     setProgress(0);
     setProcessingCanvas(null);
+
+    // Calculate estimated total cards (36 per page is typical)
+    const estimatedCardsPerPage = 36;
+    const estimatedTotalCards = images.length * estimatedCardsPerPage;
+
+    // Helper function to calculate actual total cards dynamically
+    const calculateTotalCards = (results: ProcessingResult[], currentGridLength: number, remainingImages: number) => {
+      return results.reduce((sum, r) => sum + r.totalCards, 0) + currentGridLength + remainingImages * estimatedCardsPerPage;
+    };
+
     setProcessingProgress({
       currentCard: 0,
       totalCards: 36,
@@ -314,6 +326,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       totalBatches: 9,
       currentPage: 1,
       totalPages: images.length,
+      overallCardsProcessed: 0,
+      overallTotalCards: estimatedTotalCards,
     });
     const startTime = Date.now();
 
@@ -323,6 +337,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       await initializeOCR();
 
       const results: ProcessingResult[] = [];
+      let overallCardsProcessed = 0; // Track cards processed across all pages
 
       for (let imgIndex = 0; imgIndex < images.length; imgIndex++) {
         const image = images[imgIndex];
@@ -355,6 +370,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           totalBatches: Math.ceil(grid.length / 4),
           currentPage: pageNumber,
           totalPages: images.length,
+          overallCardsProcessed,
+          overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
         });
 
         // Create a separate canvas from the ORIGINAL image for quantity detection
@@ -412,6 +429,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
             totalBatches: batches.length,
             currentPage: pageNumber,
             totalPages: images.length,
+            overallCardsProcessed: overallCardsProcessed + firstCardIndex + 1,
+            overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
           });
 
           // Update canvas to show processing status
@@ -447,20 +466,45 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
               const cardTime = Date.now() - cardStartTime;
 
-              if (text.trim().length > 0) {
-                return {
-                  nummer: cardIndex + 1,
-                  positionX: cell.x,
-                  positionY: cell.y,
-                  kartenname: text,
-                  anzahl: quantity,
-                  confidence,
-                  cardTime,
-                  pageNumber,
-                };
-              } else {
-                return { empty: true, cardTime };
+              // Calculate OCR region coordinates (always, even if text is empty)
+              const ocrRegion = {
+                x: Math.round(cell.bbox.x + cell.bbox.width * ocrLeft),
+                y: Math.round(cell.bbox.y + cell.bbox.height * ocrTop),
+                width: Math.round(cell.bbox.width * ocrWidth),
+                height: Math.round(cell.bbox.height * ocrHeight),
+              };
+
+              // Extract OCR region image (always, for debugging)
+              const ocrCanvas = document.createElement('canvas');
+              ocrCanvas.width = ocrRegion.width;
+              ocrCanvas.height = ocrRegion.height;
+              const ocrCtx = ocrCanvas.getContext('2d');
+              if (ocrCtx) {
+                ocrCtx.drawImage(
+                  canvas,
+                  ocrRegion.x, ocrRegion.y, ocrRegion.width, ocrRegion.height,
+                  0, 0, ocrRegion.width, ocrRegion.height
+                );
               }
+              const ocrRegionImage = ocrCanvas.toDataURL('image/png');
+
+              // If OCR returned empty text, still create a card entry with a placeholder
+              // This allows it to appear in "Unmatched Cards" for manual correction
+              const cardName = text.trim().length > 0 ? text : `[OCR Failed - Position ${cell.x},${cell.y}]`;
+
+              return {
+                nummer: cardIndex + 1,
+                positionX: cell.x,
+                positionY: cell.y,
+                kartenname: cardName,
+                anzahl: quantity,
+                confidence,
+                cardTime,
+                pageNumber,
+                screenshotFilename: image.file.name,
+                ocrRegion,
+                ocrRegionImage,
+              };
             } catch (error) {
               console.error(`Error processing card at ${cell.x},${cell.y}:`, error);
               return { error: true, cardTime: Date.now() - cardStartTime };
@@ -490,8 +534,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
           // Update progress with last successful card from batch
           if (lastSuccessCard) {
+            const currentCardInPage = batchIdx * BATCH_SIZE + batchResults.length;
             setProcessingProgress({
-              currentCard: batchIdx * BATCH_SIZE + batchResults.length,
+              currentCard: currentCardInPage,
               totalCards: grid.length,
               currentPhase: 'OCR',
               currentCardName: lastSuccessCard.kartenname.length > 25
@@ -502,6 +547,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
               totalBatches: batches.length,
               currentPage: pageNumber,
               totalPages: images.length,
+              overallCardsProcessed: overallCardsProcessed + currentCardInPage,
+              overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
             });
           }
 
@@ -537,6 +584,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           totalBatches: batches.length,
           currentPage: pageNumber,
           totalPages: images.length,
+          overallCardsProcessed: overallCardsProcessed + grid.length,
+          overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
         });
 
         const cardNames = cards.map(c => c.kartenname);
@@ -571,6 +620,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         console.log(`Processing complete in ${totalTime}s - ${cards.length} cards extracted`);
         setCurrentStep(`Complete! Processed ${cards.length} cards in ${totalTime}s`);
 
+        // Update overall cards processed counter
+        overallCardsProcessed += grid.length;
+
         // Update progress to complete
         setProcessingProgress({
           currentCard: cards.length,
@@ -582,6 +634,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           totalBatches: batches.length,
           currentPage: pageNumber,
           totalPages: images.length,
+          overallCardsProcessed,
+          overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
         });
 
         // Save debug canvas if in debug mode
@@ -729,11 +783,57 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       {processingProgress && (
         <div className="mt-4" ref={progressIndicatorRef}>
           <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            {/* Overall Progress Bar (when processing multiple screenshots) */}
+            {processingProgress.totalPages && processingProgress.totalPages > 1 && processingProgress.overallTotalCards && (
+              <div className="mb-4 pb-4 border-b border-gray-700">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-base font-bold text-white">
+                    Overall Progress: {processingProgress.overallCardsProcessed}/{processingProgress.overallTotalCards} cards
+                  </span>
+                  <span className="text-sm text-gray-400">
+                    {Math.round((processingProgress.overallCardsProcessed! / processingProgress.overallTotalCards) * 100)}%
+                  </span>
+                </div>
+                <div
+                  className="w-full rounded-full mb-2"
+                  style={{
+                    backgroundColor: '#1F2937',
+                    height: '16px',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${Math.max(1, (processingProgress.overallCardsProcessed! / processingProgress.overallTotalCards) * 100)}%`,
+                      backgroundColor: '#10B981',
+                      height: '16px',
+                      borderRadius: '9999px',
+                      transition: 'width 0.3s ease-in-out',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-400">
+                    Page {processingProgress.currentPage}/{processingProgress.totalPages}
+                  </span>
+                  <span className="text-xs text-emerald-400 font-medium">
+                    {processingProgress.overallCardsProcessed} of {processingProgress.overallTotalCards} total cards
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Per-Page Progress Bar */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-semibold text-white">
-                    Processing Cards: {processingProgress.currentCard}/{processingProgress.totalCards}
+                    {processingProgress.totalPages && processingProgress.totalPages > 1 ? 'Current Page: ' : 'Processing Cards: '}
+                    {processingProgress.currentCard}/{processingProgress.totalCards}
                   </span>
                   <span className="text-sm text-gray-400">
                     {Math.round((processingProgress.currentCard / processingProgress.totalCards) * 100)}%
@@ -762,14 +862,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
                   />
                 </div>
                 <div className="space-y-1">
-                  {processingProgress.totalPages && processingProgress.totalPages > 1 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-400">Page:</span>
-                      <span className="text-xs font-medium text-green-400">
-                        {processingProgress.currentPage}/{processingProgress.totalPages}
-                      </span>
-                    </div>
-                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">Current Phase:</span>
                     <span className="text-xs font-medium text-blue-400">

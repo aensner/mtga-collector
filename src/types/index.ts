@@ -8,6 +8,14 @@ export interface CardData {
   correctedName?: string;
   scryfallMatch?: ScryfallCard;
   pageNumber?: number; // Which screenshot/page this card came from (1-indexed)
+  screenshotFilename?: string; // Filename of the screenshot
+  ocrRegion?: { // The OCR region coordinates for this card
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  ocrRegionImage?: string; // Base64 data URL of the OCR region
 }
 
 export interface ScryfallCard {

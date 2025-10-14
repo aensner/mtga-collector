@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { CardData } from '../../types';
 import { DeckList } from './DeckList';
 import { CollectionView } from './CollectionView';
@@ -10,13 +10,20 @@ interface DeckCard {
   count: number;
 }
 
-export const DeckBuilder: React.FC<{ collection: CardData[] }> = ({ collection }) => {
+export const DeckBuilder: React.FC<{ collection: CardData[]; deckId?: string }> = ({ collection, deckId }) => {
   const [deckCards, setDeckCards] = useState<DeckCard[]>([]);
   const [deckName, setDeckName] = useState('My Deck');
   const [format, setFormat] = useState<'standard' | 'historic' | 'explorer' | 'casual'>('standard');
-  const [currentDeckId, setCurrentDeckId] = useState<string | undefined>(undefined);
+  const [currentDeckId, setCurrentDeckId] = useState<string | undefined>(deckId);
   const [showSaveLoad, setShowSaveLoad] = useState(false);
   const [savedDecks, setSavedDecks] = useState<SavedDeck[]>(deckStorage.getAllDecks());
+
+  // Load deck if deckId prop is provided
+  useEffect(() => {
+    if (deckId && deckId !== currentDeckId) {
+      loadDeck(deckId);
+    }
+  }, [deckId]);
 
   const addCardToDeck = (card: CardData, count: number = 1) => {
     setDeckCards(prev => {

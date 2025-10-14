@@ -10,6 +10,7 @@ import { AccuracyMetrics } from './components/Results/AccuracyMetrics';
 import { CollectionSummary } from './components/Results/CollectionSummary';
 import { UnmatchedCards } from './components/Results/UnmatchedCards';
 import { DeckBuilder } from './components/DeckBuilder/DeckBuilder';
+import { MyDecks } from './components/Decks/MyDecks';
 import { SettingsModal } from './components/Settings/SettingsModal';
 import type { CardData, ProcessingResult, UploadedImage, SaveStatus, LoadStatus } from './types';
 import { signOut } from './services/supabase';
@@ -27,8 +28,9 @@ const MainApp: React.FC = () => {
   const [groundTruth, setGroundTruth] = useState<CardData[]>([]);
   const [loadStatus, setLoadStatus] = useState<LoadStatus>('idle');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
-  const [activeTab, setActiveTab] = useState<'collection' | 'deckbuilder'>('collection');
+  const [activeTab, setActiveTab] = useState<'mydecks' | 'build' | 'collection'>('mydecks');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [selectedDeckId, setSelectedDeckId] = useState<string | undefined>(undefined);
 
   // Load collection on mount
   useEffect(() => {
@@ -236,6 +238,29 @@ const MainApp: React.FC = () => {
           {/* Tab Navigation */}
           <div className="flex gap-2">
             <button
+              onClick={() => setActiveTab('mydecks')}
+              className={`py-2 px-6 rounded-lg font-semibold text-sm transition duration-200 ${
+                activeTab === 'mydecks'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+              }`}
+            >
+              🏠 My Decks
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('build');
+                setSelectedDeckId(undefined);
+              }}
+              className={`py-2 px-6 rounded-lg font-semibold text-sm transition duration-200 ${
+                activeTab === 'build'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+              }`}
+            >
+              🎴 Build Deck
+            </button>
+            <button
               onClick={() => setActiveTab('collection')}
               className={`py-2 px-6 rounded-lg font-semibold text-sm transition duration-200 ${
                 activeTab === 'collection'
@@ -243,17 +268,7 @@ const MainApp: React.FC = () => {
                   : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
               }`}
             >
-              📷 Collection Scanner
-            </button>
-            <button
-              onClick={() => setActiveTab('deckbuilder')}
-              className={`py-2 px-6 rounded-lg font-semibold text-sm transition duration-200 ${
-                activeTab === 'deckbuilder'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
-              }`}
-            >
-              🎴 Deck Builder
+              📚 Collection
             </button>
           </div>
         </div>
@@ -262,6 +277,26 @@ const MainApp: React.FC = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
+          {/* My Decks Tab (Default) */}
+          {activeTab === 'mydecks' && (
+            <MyDecks
+              collection={cards}
+              onCreateDeck={() => {
+                setSelectedDeckId(undefined);
+                setActiveTab('build');
+              }}
+              onEditDeck={(deckId) => {
+                setSelectedDeckId(deckId);
+                setActiveTab('build');
+              }}
+            />
+          )}
+
+          {/* Build Deck Tab */}
+          {activeTab === 'build' && (
+            <DeckBuilder collection={cards} deckId={selectedDeckId} />
+          )}
+
           {/* Collection Scanner Tab */}
           {activeTab === 'collection' && (
             <>
@@ -320,10 +355,6 @@ const MainApp: React.FC = () => {
             </>
           )}
 
-          {/* Deck Builder Tab */}
-          {activeTab === 'deckbuilder' && (
-            <DeckBuilder collection={cards} />
-          )}
         </div>
       </main>
 

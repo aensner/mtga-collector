@@ -38,7 +38,13 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
       "Bash(PORT=5173 npx playwright test:*)",
-      "Bash(timeout 30 npx playwright test tests/auth.setup.ts --workers=1 --headed)"
+      "Bash(timeout 30 npx playwright test tests/auth.setup.ts --workers=1 --headed)",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_click",
+      "WebFetch(domain:github.com)",
+      "Read(//c/**)",
+      "Bash(npx supabase:*)",
+      "Bash(then grep VITE_SUPABASE_URL .env)"
     ],
     "deny": [],
     "ask": []

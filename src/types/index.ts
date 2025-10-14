@@ -193,3 +193,84 @@ export interface DbCalibrationSettings {
   created_at: string;
   updated_at: string;
 }
+
+// Deck types
+export type DeckFormat = 'standard' | 'historic' | 'explorer' | 'alchemy' | 'timeless' | 'brawl' | 'casual';
+export type DeckArchetype = 'Aggro' | 'Control' | 'Midrange' | 'Combo' | 'Ramp' | 'Tempo' | 'Other';
+
+export interface Deck {
+  id: string;
+  userId: string;
+  name: string;
+  format: DeckFormat;
+  archetype?: DeckArchetype;
+  description?: string;
+  totalCards: number;
+  isValid: boolean; // >= 60 cards
+  cards: DeckCard[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DeckCard {
+  id: string;
+  deckId: string;
+  scryfallId: string;
+  cardName: string;
+  quantity: number;
+
+  // Cached card data for performance
+  manaCost?: string;
+  cmc?: number;
+  typeLine?: string;
+  colors?: string[];
+  rarity?: string;
+  setCode?: string;
+
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Database types (snake_case for Supabase)
+export interface DbDeck {
+  id: string;
+  user_id: string;
+  name: string;
+  format: DeckFormat;
+  archetype?: DeckArchetype;
+  description?: string;
+  total_cards: number;
+  is_valid: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbDeckCard {
+  id: string;
+  deck_id: string;
+  scryfall_id: string;
+  card_name: string;
+  quantity: number;
+  mana_cost?: string;
+  cmc?: number;
+  type_line?: string;
+  colors?: string[];
+  rarity?: string;
+  set_code?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// View model for deck display
+export interface DeckSummary {
+  id: string;
+  name: string;
+  format: DeckFormat;
+  archetype?: DeckArchetype;
+  totalCards: number;
+  isValid: boolean;
+  ownedPercentage: number; // Calculated: % of cards user owns
+  updatedAt: string;
+  colors: string[]; // Deck's color identity
+  primaryType?: string; // Most common card type
+}

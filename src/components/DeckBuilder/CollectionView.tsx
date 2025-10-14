@@ -24,6 +24,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
   const [filterType, setFilterType] = useState<string>('all');
   const [filterColor, setFilterColor] = useState<string>('all');
   const [filterRarity, setFilterRarity] = useState<string>('all');
+  const [filterOwnership, setFilterOwnership] = useState<string>('owned'); // Default to "I Own"
   const [cmcRange, setCmcRange] = useState<[number, number]>([0, 20]);
   const [sortBy, setSortBy] = useState<SortOption>('name');
   const [previewCard, setPreviewCard] = useState<CardData | null>(null);
@@ -59,6 +60,16 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
       if (filterRarity !== 'all') {
         const rarity = card.scryfallMatch?.rarity?.toLowerCase() || '';
         if (rarity !== filterRarity) return false;
+      }
+
+      // Ownership filter
+      if (filterOwnership !== 'all') {
+        const inDeck = deckCards.find(dc => dc.card.scryfallMatch?.id === card.scryfallMatch?.id)?.count || 0;
+        const available = card.anzahl - inDeck;
+
+        if (filterOwnership === 'owned' && available <= 0) return false;
+        if (filterOwnership === 'indeck' && inDeck === 0) return false;
+        if (filterOwnership === 'available' && (available <= 0 || inDeck > 0)) return false;
       }
 
       // CMC filter
@@ -145,6 +156,18 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
             placeholder="Search cards or text..."
             className="input w-full"
           />
+
+          {/* Ownership Filter (Prominent) */}
+          <select
+            value={filterOwnership}
+            onChange={(e) => setFilterOwnership(e.target.value)}
+            className="select font-semibold"
+          >
+            <option value="all">Show All Cards</option>
+            <option value="owned">✓ I Own (Available)</option>
+            <option value="indeck">📋 Already in Deck</option>
+            <option value="available">⭐ Not Yet Added</option>
+          </select>
 
           {/* Filters Row 1 */}
           <div className="grid grid-cols-2 gap-2">
@@ -257,6 +280,12 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
                     <div className="text-fg-primary font-medium truncate flex items-center gap-2">
                       <span>{card.scryfallMatch?.name || card.kartenname}</span>
                       {getColorBadge(card.scryfallMatch?.colors)}
+                      {/* Ownership Badge */}
+                      {card.anzahl > 0 && (
+                        <span className="badge ok text-[10px] px-1.5" title={`You own ${card.anzahl} copies`}>
+                          x{card.anzahl}
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs text-fg-muted flex items-center gap-2">
                       <span>{card.scryfallMatch?.type_line?.split('—')[0].trim()}</span>

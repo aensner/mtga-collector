@@ -4,6 +4,7 @@ import { DeckList } from './DeckList';
 import { CollectionView } from './CollectionView';
 import { AIAssistant } from './AIAssistant';
 import { deckStorage, type SavedDeck } from '../../utils/deckStorage';
+import { loadDeck as loadDeckFromDb, createDeck, saveDeckCards, updateDeckMetadata } from '../../services/deckDatabase';
 
 interface DeckCard {
   card: CardData;
@@ -13,7 +14,7 @@ interface DeckCard {
 export const DeckBuilder: React.FC<{ collection: CardData[]; deckId?: string }> = ({ collection, deckId }) => {
   const [deckCards, setDeckCards] = useState<DeckCard[]>([]);
   const [deckName, setDeckName] = useState('My Deck');
-  const [format, setFormat] = useState<'standard' | 'historic' | 'explorer' | 'casual'>('standard');
+  const [format, setFormat] = useState<'standard' | 'historic' | 'explorer' | 'alchemy' | 'timeless' | 'brawl' | 'casual'>('standard');
   const [currentDeckId, setCurrentDeckId] = useState<string | undefined>(deckId);
   const [showSaveLoad, setShowSaveLoad] = useState(false);
   const [savedDecks, setSavedDecks] = useState<SavedDeck[]>(deckStorage.getAllDecks());
@@ -21,7 +22,7 @@ export const DeckBuilder: React.FC<{ collection: CardData[]; deckId?: string }> 
   // Load deck if deckId prop is provided
   useEffect(() => {
     if (deckId && deckId !== currentDeckId) {
-      loadDeck(deckId);
+      loadDeckFromDatabase(deckId);
     }
   }, [deckId]);
 
@@ -93,18 +94,108 @@ export const DeckBuilder: React.FC<{ collection: CardData[]; deckId?: string }> 
     }
   };
 
-  const saveDeck = () => {
+  const saveDeck = async () => {
     if (!deckName.trim()) {
       alert('Please enter a deck name');
       return;
     }
 
-    const saved = deckStorage.saveDeck(deckName, format, deckCards, currentDeckId);
-    setCurrentDeckId(saved.id);
-    setSavedDecks(deckStorage.getAllDecks());
-    alert(`✅ Deck "${deckName}" saved!`);
+    try {
+      if (currentDeckId) {
+        // Update existing deck
+        await updateDeckMetadata(currentDeckId, { name: deckName, format });
+        await saveDeckCards(
+          currentDeckId,
+          deckCards.map(dc => ({
+            scryfallId: dc.card.scryfallMatch?.id || '',
+            cardName: dc.card.scryfallMatch?.name || dc.card.kartenname,
+            quantity: dc.count,
+            manaCost: dc.card.scryfallMatch?.mana_cost,
+            cmc: dc.card.scryfallMatch?.cmc,
+            typeLine: dc.card.scryfallMatch?.type_line,
+            colors: dc.card.scryfallMatch?.colors,
+            rarity: dc.card.scryfallMatch?.rarity,
+            setCode: dc.card.scryfallMatch?.set
+          }))
+        );
+        alert(`✅ Deck "${deckName}" updated!`);
+      } else {
+        // Create new deck
+        const newDeck = await createDeck(deckName, format);
+        setCurrentDeckId(newDeck.id);
+
+        // Save cards
+        await saveDeckCards(
+          newDeck.id,
+          deckCards.map(dc => ({
+            scryfallId: dc.card.scryfallMatch?.id || '',
+            cardName: dc.card.scryfallMatch?.name || dc.card.kartenname,
+            quantity: dc.count,
+            manaCost: dc.card.scryfallMatch?.mana_cost,
+            cmc: dc.card.scryfallMatch?.cmc,
+            typeLine: dc.card.scryfallMatch?.type_line,
+            colors: dc.card.scryfallMatch?.colors,
+            rarity: dc.card.scryfallMatch?.rarity,
+            setCode: dc.card.scryfallMatch?.set
+          }))
+        );
+        alert(`✅ Deck "${deckName}" created!`);
+      }
+
+      // Also save to localStorage as backup
+      deckStorage.saveDeck(deckName, format, deckCards, currentDeckId);
+      setSavedDecks(deckStorage.getAllDecks());
+    } catch (error) {
+      console.error('Failed to save deck:', error);
+      alert('❌ Failed to save deck. Please try again.');
+    }
   };
 
+  const loadDeckFromDatabase = async (deckId: string) => {
+    try {
+      const deck = await loadDeckFromDb(deckId);
+      if (!deck) {
+        alert('Failed to load deck');
+        return;
+      }
+
+      // Convert deck cards to DeckCard format
+      const restoredCards: DeckCard[] = [];
+      let missingCount = 0;
+
+      for (const deckCard of deck.cards) {
+        // Find card in collection
+        const collectionCard = collection.find(c => c.scryfallMatch?.id === deckCard.scryfallId);
+
+        if (collectionCard) {
+          restoredCards.push({
+            card: collectionCard,
+            count: deckCard.quantity
+          });
+        } else {
+          missingCount++;
+          console.warn(`Card not found in collection: ${deckCard.cardName}`);
+        }
+      }
+
+      setDeckCards(restoredCards);
+      setDeckName(deck.name);
+      setFormat(deck.format);
+      setCurrentDeckId(deck.id);
+      setShowSaveLoad(false);
+
+      if (missingCount > 0) {
+        alert(`⚠️ Loaded deck but ${missingCount} cards were not found in your collection`);
+      } else {
+        alert(`✅ Loaded "${deck.name}"!`);
+      }
+    } catch (error) {
+      console.error('Failed to load deck:', error);
+      alert('❌ Failed to load deck. Please try again.');
+    }
+  };
+
+  // Keep localStorage loadDeck for backward compatibility
   const loadDeck = (deckId: string) => {
     const restored = deckStorage.restoreDeck(deckId, collection);
     if (!restored) {

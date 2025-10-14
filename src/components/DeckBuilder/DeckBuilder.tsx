@@ -3,6 +3,7 @@ import type { CardData } from '../../types';
 import { DeckList } from './DeckList';
 import { CollectionView } from './CollectionView';
 import { AIAssistant } from './AIAssistant';
+import { deckStorage, type SavedDeck } from '../../utils/deckStorage';
 
 interface DeckCard {
   card: CardData;
@@ -13,6 +14,9 @@ export const DeckBuilder: React.FC<{ collection: CardData[] }> = ({ collection }
   const [deckCards, setDeckCards] = useState<DeckCard[]>([]);
   const [deckName, setDeckName] = useState('My Deck');
   const [format, setFormat] = useState<'standard' | 'historic' | 'explorer' | 'casual'>('standard');
+  const [currentDeckId, setCurrentDeckId] = useState<string | undefined>(undefined);
+  const [showSaveLoad, setShowSaveLoad] = useState(false);
+  const [savedDecks, setSavedDecks] = useState<SavedDeck[]>(deckStorage.getAllDecks());
 
   const addCardToDeck = (card: CardData, count: number = 1) => {
     setDeckCards(prev => {
@@ -78,7 +82,68 @@ export const DeckBuilder: React.FC<{ collection: CardData[] }> = ({ collection }
   const clearDeck = () => {
     if (window.confirm('Clear the entire deck?')) {
       setDeckCards([]);
+      setCurrentDeckId(undefined);
     }
+  };
+
+  const saveDeck = () => {
+    if (!deckName.trim()) {
+      alert('Please enter a deck name');
+      return;
+    }
+
+    const saved = deckStorage.saveDeck(deckName, format, deckCards, currentDeckId);
+    setCurrentDeckId(saved.id);
+    setSavedDecks(deckStorage.getAllDecks());
+    alert(`✅ Deck "${deckName}" saved!`);
+  };
+
+  const loadDeck = (deckId: string) => {
+    const restored = deckStorage.restoreDeck(deckId, collection);
+    if (!restored) {
+      alert('Failed to load deck');
+      return;
+    }
+
+    const deck = deckStorage.getDeck(deckId);
+    if (!deck) return;
+
+    setDeckCards(restored);
+    setDeckName(deck.name);
+    setFormat(deck.format as any);
+    setCurrentDeckId(deckId);
+    setShowSaveLoad(false);
+
+    const missingCount = deck.cards.length - restored.length;
+    if (missingCount > 0) {
+      alert(`⚠️ Loaded deck but ${missingCount} cards were not found in your collection`);
+    } else {
+      alert(`✅ Loaded "${deck.name}"!`);
+    }
+  };
+
+  const deleteSavedDeck = (deckId: string) => {
+    const deck = deckStorage.getDeck(deckId);
+    if (!deck) return;
+
+    if (window.confirm(`Delete "${deck.name}"?`)) {
+      deckStorage.deleteDeck(deckId);
+      setSavedDecks(deckStorage.getAllDecks());
+      if (currentDeckId === deckId) {
+        setCurrentDeckId(undefined);
+      }
+    }
+  };
+
+  const createNewDeck = () => {
+    if (deckCards.length > 0 && !window.confirm('Start a new deck? Current deck will be cleared.')) {
+      return;
+    }
+    setDeckCards([]);
+    setDeckName('My Deck');
+    setFormat('standard');
+    setCurrentDeckId(undefined);
+    setShowSaveLoad(false);
   };
 
   const totalCards = deckCards.reduce((sum, dc) => sum + dc.count, 0);
@@ -99,8 +164,8 @@ export const DeckBuilder: React.FC<{ collection: CardData[] }> = ({ collection }
     <div className="mt-8">
       <div className="card mb-4">
         <div className="card-header">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               <input
                 type="text"
                 value={deckName}
@@ -118,15 +183,86 @@ export const DeckBuilder: React.FC<{ collection: CardData[] }> = ({ collection }
                 <option value="explorer">Explorer</option>
                 <option value="casual">Casual</option>
               </select>
+
+              {/* Save/Load Buttons */}
+              <div className="flex gap-2">
+                <button onClick={createNewDeck} className="button ghost text-sm" title="New Deck">
+                  📄 New
+                </button>
+                <button onClick={saveDeck} className="button ok text-sm" disabled={totalCards === 0} title="Save Deck">
+                  💾 Save
+                </button>
+                <button
+                  onClick={() => setShowSaveLoad(!showSaveLoad)}
+                  className="button ghost text-sm"
+                  title="Load Saved Deck"
+                >
+                  📂 Load ({savedDecks.length})
+                </button>
+              </div>
             </div>
+
             <div className="flex items-center gap-2">
               <span className={`text-lg font-semibold ${isValidDeck ? 'text-ok' : 'text-warn'}`}>
                 {totalCards} / 60 cards
               </span>
               {isValidDeck && <span className="badge ok">Valid</span>}
+              {currentDeckId && <span className="badge info text-xs">Saved</span>}
             </div>
           </div>
         </div>
+
+        {/* Save/Load Panel */}
+        {showSaveLoad && (
+          <div className="card-body border-t border-border-separator animate-slideInUp">
+            <h4 className="text-sm font-semibold text-fg-secondary mb-3">Saved Decks</h4>
+            {savedDecks.length === 0 ? (
+              <div className="text-center text-fg-muted py-8">
+                No saved decks yet
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {savedDecks.map(deck => (
+                  <div
+                    key={deck.id}
+                    className={`flex items-center gap-3 p-3 rounded border transition-fast ${
+                      currentDeckId === deck.id
+                        ? 'border-accent bg-accent/10'
+                        : 'border-border-subtle hover:bg-bg-muted/40'
+                    }`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-fg-primary truncate">{deck.name}</div>
+                      <div className="text-xs text-fg-muted flex items-center gap-2">
+                        <span className="capitalize">{deck.format}</span>
+                        <span>•</span>
+                        <span>{deck.totalCards} cards</span>
+                        <span>•</span>
+                        <span>{new Date(deck.updatedAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => loadDeck(deck.id)}
+                        className="button ok text-xs px-3"
+                        title="Load this deck"
+                      >
+                        Load
+                      </button>
+                      <button
+                        onClick={() => deleteSavedDeck(deck.id)}
+                        className="button danger text-xs px-2"
+                        title="Delete this deck"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -160,6 +296,16 @@ export const DeckBuilder: React.FC<{ collection: CardData[] }> = ({ collection }
             collection={collection}
             format={format}
             onAddSuggestion={addCardToDeck}
+            onSaveDeck={(aiDeckName) => {
+              // Update deck name from AI suggestion
+              setDeckName(aiDeckName);
+              // Auto-save after building
+              setTimeout(() => {
+                const saved = deckStorage.saveDeck(aiDeckName, format, deckCards, currentDeckId);
+                setCurrentDeckId(saved.id);
+                setSavedDecks(deckStorage.getAllDecks());
+              }, 100); // Small delay to let cards be added first
+            }}
           />
         </div>
       </div>

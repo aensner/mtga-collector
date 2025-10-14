@@ -153,6 +153,34 @@ h3 { font-size: var(--fs-h3); line-height: var(--lh-tight); margin: var(--space-
   .button { border-color: var(--accent-700); }
   .input, .select, .textarea { border-color: var(--accent-700); }
 }
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-fadeIn { animation: fadeIn var(--motion-base) var(--motion-curve); }
+.animate-scaleIn { animation: scaleIn var(--motion-base) var(--motion-curve); }
+.animate-slideInUp { animation: slideInUp var(--motion-base) var(--motion-curve); }
+.animate-pulse { animation: pulse 2s ease-in-out infinite; }
+
+/* Transition utilities */
+.transition-fast { transition: all var(--motion-fast) var(--motion-curve); }
+.transition-base { transition: all var(--motion-base) var(--motion-curve); }
+.transition-slow { transition: all var(--motion-slow) var(--motion-curve); }
+
 /* Reduce motion */
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 1ms !important; animation-duration: 1ms !important; }

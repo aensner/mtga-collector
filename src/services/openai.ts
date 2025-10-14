@@ -97,6 +97,12 @@ If a text is clearly not a card name, return "UNKNOWN" for that line.`
 };
 
 interface DeckSuggestionResponse {
+  deckName: string;
+  deckDescription: string;
+  keyCard: string;
+  strategy: string;
+  strengths: string[];
+  weaknesses: string[];
   suggestions: Array<{
     cardName: string;
     count: number;
@@ -113,9 +119,22 @@ export const getAIDeckSuggestions = async (
   try {
     const client = await getClient();
 
+    const currentDeckSize = currentDeck.reduce((sum, c) => sum + c.count, 0);
+    const cardsNeeded = Math.max(0, 60 - currentDeckSize);
+
+    // Separate lands and non-lands, prioritize showing lands to AI
+    const lands = availableCards.filter(c => c.type?.includes('Land'));
+    const nonLands = availableCards.filter(c => !c.type?.includes('Land'));
+
+    // Show more cards to AI: all lands + up to 400 non-lands
+    const cardsToShow = [
+      ...lands,
+      ...nonLands.slice(0, 400)
+    ];
+
     const completion = await client.chat.completions.create({
       model: 'gpt-4o-mini',
-      max_tokens: 2000,
+      max_tokens: 4000,
       response_format: { type: "json_object" },
       messages: [{
         role: 'user',
@@ -123,32 +142,57 @@ export const getAIDeckSuggestions = async (
 
 USER REQUEST: ${prompt}
 
-CURRENT DECK (${currentDeck.reduce((sum, c) => sum + c.count, 0)} cards):
+CURRENT DECK (${currentDeckSize} cards):
 ${currentDeck.length > 0 ? currentDeck.map(c => `${c.count}x ${c.name} (${c.type}, CMC ${c.cmc})`).join('\n') : 'Empty deck'}
 
+TARGET: A complete 60-card deck. You need to suggest approximately ${cardsNeeded} more cards to reach 60.
+
 AVAILABLE CARDS FROM COLLECTION (these are the ONLY cards you can suggest):
-${availableCards.slice(0, 200).map(c => `${c.name} (${c.type}, CMC ${c.cmc}, Available: ${c.available})`).join('\n')}
-${availableCards.length > 200 ? `\n...and ${availableCards.length - 200} more cards in collection` : ''}
+${cardsToShow.map(c => `${c.name} (${c.type}, CMC ${c.cmc}, Available: ${c.available})`).join('\n')}
 
 CRITICAL RULES:
 1. ONLY suggest cards that appear in the "AVAILABLE CARDS FROM COLLECTION" list above
-2. DO NOT suggest cards that are not in that list, even if they would be perfect for the deck
-3. Use the EXACT card names as shown in the available cards list
-4. Check the "Available" count - don't suggest more copies than are available
-5. Respect the 4-of limit (except basic lands like Plains, Island, Swamp, Mountain, Forest)
+2. Basic lands (Plains, Island, Swamp, Mountain, Forest) are ALWAYS available in unlimited quantities (MTG Arena feature)
+3. DO NOT suggest non-basic cards that are not in the list - NO EXCEPTIONS
+4. Use the EXACT card names as shown in the available cards list (copy them character-by-character)
+5. Check the "Available" count - don't suggest more copies than are available
+6. Respect the 4-of limit for non-basic cards
+7. You can suggest unlimited basic lands (no 4-of limit applies to Plains, Island, Swamp, Mountain, Forest)
+8. IMPORTANT: Suggest enough cards to build a COMPLETE 60-card deck (approximately ${cardsNeeded} cards needed)
+9. Include 22-26 basic lands for a proper mana base!
 
-Respond in JSON format:
+Respond in JSON format with a COMPLETE deck profile:
 {
+  "deckName": "Creative deck name (e.g., 'Lifegain Swarm', 'Burn Rush', 'Control Tower')",
+  "deckDescription": "1-2 sentence overview of the deck's theme and playstyle",
+  "keyCard": "The strongest/most important card name from the deck",
+  "strategy": "2-3 sentences explaining how to play this deck and win",
+  "strengths": ["strength 1", "strength 2", "strength 3"],
+  "weaknesses": ["weakness 1", "weakness 2"],
   "suggestions": [
     {
       "cardName": "Exact card name from available cards list",
-      "count": 2,
+      "count": 4,
       "reason": "Brief explanation of why this card fits"
-    }
+    },
+    // ... more cards to reach ~60 total cards
   ]
 }
 
-Remember: If a card is not in the AVAILABLE CARDS list, you CANNOT suggest it, no matter how good it would be.`
+STRICT VALIDATION CHECKLIST - Before adding ANY non-basic card to your suggestions:
+✓ Search the AVAILABLE CARDS list for the EXACT card name
+✓ If the card is NOT in the list above AND is not a basic land, DO NOT suggest it
+✓ Double-check you're copying the exact name from the list
+✓ Verify the Available count is sufficient
+✓ Basic lands (Plains, Island, Swamp, Mountain, Forest) are ALWAYS OK to suggest
+
+Example validation:
+✅ "Plains" - ALWAYS available (basic land)
+✅ "Healer's Hawk" - Check if in available cards list
+❌ "Return to Dust" - NOT in available cards list, DON'T suggest it
+
+Build a complete ${cardsNeeded > 0 ? `${cardsNeeded}-card addition to reach 60 total` : '60-card deck'}.
+Include approximately ${Math.floor(cardsNeeded * 0.4)} basic lands for mana base.`
       }]
     });
 

@@ -87,7 +87,7 @@ export const correctCardNamesBatch = async (ocrTexts: string[]): Promise<Array<{
 };
 
 /**
- * Get AI-powered deck building suggestions
+ * Get AI-powered deck building suggestions with full deck profile
  */
 export const getAIDeckSuggestions = async (
   prompt: string,
@@ -95,6 +95,12 @@ export const getAIDeckSuggestions = async (
   availableCards: Array<{ name: string; type?: string; cmc?: number; colors?: string[]; available: number }>,
   format: string
 ): Promise<{
+  deckName: string;
+  deckDescription: string;
+  keyCard: string;
+  strategy: string;
+  strengths: string[];
+  weaknesses: string[];
   suggestions: Array<{
     cardName: string;
     count: number;

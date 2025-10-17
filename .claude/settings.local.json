@@ -60,7 +60,11 @@
       "Bash(npm run test:*)",
       "Bash(curl:*)",
       "Bash(then grep \"TEST_EMAIL\\|TEST_PASSWORD\" .env)",
-      "mcp__playwright__browser_close"
+      "mcp__playwright__browser_close",
+      "Bash(timeout 5 npm run dev)",
+      "Bash(xargs kill:*)",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_snapshot"
     ],
     "deny": [],
     "ask": []

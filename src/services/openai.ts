@@ -64,13 +64,41 @@ export const correctCardNamesBatch = async (ocrTexts: string[]): Promise<Array<{
       max_tokens: 2000,
       messages: [{
         role: 'user',
-        content: `These are Magic: The Gathering card names extracted via OCR. Please correct any OCR errors.
+        content: `Extract the Magic: The Gathering card name from OCR text.
+
+OCR text has 1-3 garbage characters at the start/end. Strip them and extract the real card name.
 
 OCR Results:
 ${ocrTexts.map((text, i) => `${i + 1}. "${text}"`).join('\n')}
 
-Return ONLY the corrected card names, one per line, in the same order. No numbering, no explanations.
-If a text is clearly not a card name, return "UNKNOWN" for that line.`
+SIMPLE RULES:
+1. Remove 1-3 leading characters if they're lowercase letters or "Y"
+   - "za Yjwari Disruption i" → remove "za Y" → "jwari Disruption i"
+2. Remove 1-2 trailing single letters (i, a, etc.)
+   - "jwari Disruption i" → remove "i" → "jwari Disruption"
+3. Capitalize the first letter
+   - "jwari Disruption" → "Jwari Disruption"
+4. If it's a Modal DFC, add the back face
+   - "Jwari Disruption" → "Jwari Disruption // Jwari Ruins"
+
+Common Zendikar Rising MDFCs:
+- Jwari Disruption // Jwari Ruins (blue instant/land)
+- Valakut Awakening // Valakut Stoneforge (red sorcery/land)
+- Agadeem's Awakening // Agadeem, the Undercrypt (black sorcery/land)
+- Vastwood Fortification // Vastwood Thicket (green instant/land)
+- Shatterskull Smashing // Shatterskull, the Hammer Pass (red sorcery/land)
+
+EXAMPLES:
+Input: "za Yjwari Disruption i"
+→ Strip "za Y" and "i" → "jwari Disruption"
+→ Capitalize → "Jwari Disruption"
+→ Add back face → "Jwari Disruption // Jwari Ruins"
+
+Input: "Valakut Awakening"
+→ Already clean
+→ Add back face → "Valakut Awakening // Valakut Stoneforge"
+
+Return ONLY the card names, one per line, no extra formatting.`
       }]
     });
 

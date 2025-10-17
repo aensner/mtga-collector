@@ -3,7 +3,6 @@ import type { CardData } from '../../types';
 import { downloadFile } from '../../utils/csvParser';
 import { exportToArena } from '../../utils/arenaExport';
 import { DeckStatistics } from './DeckStatistics';
-import { CardPreview } from './CardPreview';
 
 interface DeckCard {
   card: CardData;
@@ -34,7 +33,6 @@ export const DeckList: React.FC<DeckListProps> = ({
   const [hoveredCmc, setHoveredCmc] = useState<number | null>(null);
   const [selectedCmc, setSelectedCmc] = useState<number | null>(null);
   const [showStats, setShowStats] = useState(false);
-  const [previewCard, setPreviewCard] = useState<CardData | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'visual'>('list');
   // Group cards by type
   const groupedCards = {
@@ -239,8 +237,7 @@ export const DeckList: React.FC<DeckListProps> = ({
                 return (
                   <div
                     key={uniqueKey}
-                    className="relative group cursor-pointer"
-                    onClick={() => setPreviewCard(dc.card)}
+                    className="relative group"
                     title={`${dc.card.scryfallMatch?.name || dc.card.kartenname} (${dc.count}x)`}
                   >
                     {imageUrl ? (
@@ -311,9 +308,7 @@ export const DeckList: React.FC<DeckListProps> = ({
                       return (
                         <div
                           key={uniqueKey}
-                          className="flex items-center gap-2 text-sm hover:bg-bg-muted/40 px-2 py-1 rounded transition-fast cursor-pointer"
-                          onClick={() => dc.card.scryfallMatch && setPreviewCard(dc.card)}
-                          title="Click to preview"
+                          className="flex items-center gap-2 text-sm hover:bg-bg-muted/40 px-2 py-1 rounded transition-fast"
                         >
                           {/* Card Thumbnail */}
                           {imageUrl && (
@@ -372,13 +367,6 @@ export const DeckList: React.FC<DeckListProps> = ({
       </div>
     </div>
 
-    {/* Card Preview Modal */}
-      {previewCard && (
-        <CardPreview
-          card={previewCard}
-          onClose={() => setPreviewCard(null)}
-        />
-      )}
     </>
   );
 };

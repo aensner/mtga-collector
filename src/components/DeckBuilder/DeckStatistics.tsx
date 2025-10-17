@@ -77,6 +77,29 @@ export const DeckStatistics: React.FC<DeckStatisticsProps> = ({ deckCards, total
   const nonLandCards = cardsWithCmc.reduce((sum, dc) => sum + dc.count, 0);
   const avgCmc = nonLandCards > 0 ? (totalCmc / nonLandCards).toFixed(2) : '0.00';
 
+  // Calculate mana curve
+  const manaCurve: Record<string, number> = {
+    '0': 0,
+    '1': 0,
+    '2': 0,
+    '3': 0,
+    '4': 0,
+    '5': 0,
+    '6': 0,
+    '7+': 0
+  };
+
+  cardsWithCmc.forEach(dc => {
+    const cmc = dc.card.scryfallMatch?.cmc || 0;
+    if (cmc >= 7) {
+      manaCurve['7+'] += dc.count;
+    } else {
+      manaCurve[cmc.toString()] += dc.count;
+    }
+  });
+
+  const maxCurveValue = Math.max(...Object.values(manaCurve), 1);
+
   // Color display config
   const colorConfig = {
     W: { name: 'White', bg: '#F0E68C', text: '#000' },
@@ -136,6 +159,33 @@ export const DeckStatistics: React.FC<DeckStatisticsProps> = ({ deckCards, total
                       backgroundColor: config.bg
                     }}
                   />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mana Curve */}
+      <div>
+        <h4 className="text-sm font-semibold text-fg-secondary mb-2">Mana Curve</h4>
+        <div className="space-y-1">
+          {Object.entries(manaCurve).map(([cmc, count]) => {
+            const percentage = maxCurveValue > 0 ? (count / maxCurveValue) * 100 : 0;
+
+            return (
+              <div key={cmc} className="flex items-center gap-2">
+                <span className="text-xs text-fg-muted w-6 text-right">{cmc}:</span>
+                <div className="flex-1 h-6 bg-bg-base rounded overflow-hidden relative">
+                  <div
+                    className="h-full bg-accent transition-all duration-300"
+                    style={{ width: `${percentage}%` }}
+                  />
+                  {count > 0 && (
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-fg-primary">
+                      {count}
+                    </span>
+                  )}
                 </div>
               </div>
             );

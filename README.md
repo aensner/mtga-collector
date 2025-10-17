@@ -4,6 +4,7 @@ A web application for scanning and digitizing Magic: The Gathering Arena collect
 
 ## Features
 
+### Collection Scanner
 - 📸 **Screenshot Upload** - Drag and drop your MTG Arena collection screenshots
 - 🔍 **OCR Processing** - Automatic card name extraction using Tesseract.js with 4 parallel workers
 - ✅ **Card Validation** - Validates against Scryfall database with fuzzy matching (auto-filters non-matching cards)
@@ -17,6 +18,22 @@ A web application for scanning and digitizing Magic: The Gathering Arena collect
 - 🔍 **Page Filtering** - Filter results by individual pages or view all together
 - 🖼️ **Visual Processing Indicators** - Color-coded overlays showing processing status in debug mode
 - 💾 **Export** - Export to CSV or JSON format
+
+### Deck Builder
+- 🏠 **My Decks Dashboard** - Manage all your decks in one place with deck-first architecture
+- 🎴 **Interactive Deck Building** - Add/remove cards with live mana curve and statistics
+- 📊 **Deck Statistics** - Comprehensive metrics including mana curve, color distribution, type breakdown
+- ✨ **AI Deck Optimization** - Get AI-powered recommendations to improve your deck's competitive performance
+  - Archetype detection (Aggro, Midrange, Control, Combo, Tempo)
+  - Win rate estimation based on card quality and synergy
+  - Consistency scoring (0-100)
+  - Strengths and weaknesses analysis
+  - Smart card suggestions (only from your collection)
+  - One-click apply recommendations
+- 🎯 **AI Assistant** - Quick templates and natural language deck building
+- 💾 **Supabase Integration** - Save and sync decks across devices
+- 🔍 **Advanced Filtering** - Search by name, type, color, rarity, CMC, and ownership status
+- 📱 **Responsive Layout** - Optimized 3-column design (25%/42%/33%) with collapsible filters
 - 🎨 **MTG Arena Design System** - Polished UI with official MTG Arena color palette and components
 
 ## Quick Start
@@ -195,6 +212,14 @@ Grid and OCR calibration values are stored in localStorage and persist across se
 src/
 ├── components/
 │   ├── Auth/              # Supabase authentication
+│   ├── DeckBuilder/
+│   │   ├── DeckBuilder.tsx         # Main deck builder UI
+│   │   ├── CollectionView.tsx      # Card collection browser
+│   │   ├── DeckList.tsx            # Deck card list
+│   │   ├── DeckStatistics.tsx      # Statistics display
+│   │   └── DeckOptimization.tsx    # AI optimization UI
+│   ├── Decks/
+│   │   └── MyDecks.tsx             # Deck dashboard
 │   ├── Processing/
 │   │   ├── CardProcessor.tsx       # Main processing logic
 │   │   ├── GridCalibrator.tsx      # Interactive grid calibration
@@ -205,11 +230,20 @@ src/
 │   ├── ocr.ts            # Tesseract.js OCR
 │   ├── anthropic.ts      # Claude AI correction
 │   ├── scryfall.ts       # Card validation
-│   └── imageProcessing.ts # Grid detection & quantity
+│   ├── imageProcessing.ts # Grid detection & quantity
+│   ├── database.ts       # Collection persistence
+│   ├── deckDatabase.ts   # Deck persistence
+│   └── deckOptimization.ts # AI deck analysis
 ├── utils/
 │   ├── csvParser.ts      # CSV import/export
 │   └── accuracyTester.ts # Accuracy testing
 └── types.ts              # TypeScript interfaces
+
+tests/
+├── app.spec.ts           # E2E app tests
+├── database.spec.ts      # Database integration tests
+├── calibration.spec.ts   # Calibration tests
+└── deckbuilder-layout.spec.ts # Deck builder layout tests
 
 example/
 └── MTG Arena Collection Page 10 - Test data - Tabellenblatt1.csv
@@ -273,6 +307,34 @@ The app uses a custom **MTG Arena Design System** for visual consistency.
 - Keyboard navigation, focus indicators
 - Respects `prefers-reduced-motion`
 
+## Testing
+
+Comprehensive test suite with **105 passing tests**:
+
+```bash
+# Run all unit tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run E2E tests
+npm run test:e2e
+
+# Run specific test suites
+npm run test:db            # Database tests
+npm run test:calibration   # Calibration tests
+```
+
+**Test Coverage:**
+- ✅ 105 unit tests (Vitest)
+- ✅ E2E tests (Playwright)
+- ✅ Performance benchmarks
+- ✅ Database integration tests
+- ✅ Deck builder UI tests
+
+See [TESTING.md](TESTING.md) for detailed testing documentation.
+
 ## Future Enhancements
 
 - Backend proxy for API calls
@@ -280,7 +342,7 @@ The app uses a custom **MTG Arena Design System** for visual consistency.
 - Price tracking integration
 - Multi-language support
 - Mobile app version
-- Deck builder integration
+- Advanced deck analysis (matchup predictions, sideboard suggestions)
 
 ## Contributing
 

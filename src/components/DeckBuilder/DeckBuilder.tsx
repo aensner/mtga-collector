@@ -3,6 +3,8 @@ import type { CardData } from '../../types';
 import { DeckList } from './DeckList';
 import { CollectionView } from './CollectionView';
 import { AIAssistant } from './AIAssistant';
+import { DeckStatistics } from './DeckStatistics';
+import { DeckOptimization } from './DeckOptimization';
 import { deckStorage, type SavedDeck } from '../../utils/deckStorage';
 import { loadDeck as loadDeckFromDb, createDeck, saveDeckCards, updateDeckMetadata } from '../../services/deckDatabase';
 
@@ -18,6 +20,7 @@ export const DeckBuilder: React.FC<{ collection: CardData[]; deckId?: string }> 
   const [currentDeckId, setCurrentDeckId] = useState<string | undefined>(deckId);
   const [showSaveLoad, setShowSaveLoad] = useState(false);
   const [savedDecks, setSavedDecks] = useState<SavedDeck[]>(deckStorage.getAllDecks());
+  const [activeTab, setActiveTab] = useState<'builder' | 'statistics' | 'optimization'>('builder');
 
   // Load deck if deckId prop is provided
   useEffect(() => {
@@ -244,6 +247,20 @@ export const DeckBuilder: React.FC<{ collection: CardData[]; deckId?: string }> 
     setShowSaveLoad(false);
   };
 
+  const handleApplyOptimization = (change: { type: 'add' | 'remove'; cardName: string; count: number }) => {
+    if (change.type === 'add') {
+      const card = collection.find(c => c.scryfallMatch?.name === change.cardName);
+      if (card) {
+        addCardToDeck(card, change.count);
+      }
+    } else {
+      const deckCard = deckCards.find(dc => dc.card.scryfallMatch?.name === change.cardName);
+      if (deckCard) {
+        removeCardFromDeck(deckCard.card, change.count);
+      }
+    }
+  };
+
   const totalCards = deckCards.reduce((sum, dc) => sum + dc.count, 0);
   const isValidDeck = totalCards >= 60;
 
@@ -300,12 +317,13 @@ export const DeckBuilder: React.FC<{ collection: CardData[]; deckId?: string }> 
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className={`text-lg font-semibold ${isValidDeck ? 'text-ok' : 'text-warn'}`}>
-                {totalCards} / 60 cards
+            <div className="flex items-center gap-3">
+              <span className={`text-2xl font-bold ${isValidDeck ? 'text-ok' : 'text-warn'}`}>
+                {totalCards} / 60
               </span>
-              {isValidDeck && <span className="badge ok">Valid</span>}
-              {currentDeckId && <span className="badge info text-xs">Saved</span>}
+              {isValidDeck && <span className="badge ok text-sm">✓ Valid Deck</span>}
+              {!isValidDeck && totalCards > 0 && <span className="badge warn text-sm">Incomplete</span>}
+              {currentDeckId && <span className="badge info text-xs">💾 Saved</span>}
             </div>
           </div>
         </div>
@@ -363,50 +381,142 @@ export const DeckBuilder: React.FC<{ collection: CardData[]; deckId?: string }> 
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Deck List - Left Side */}
-        <div className="lg:col-span-1">
-          <DeckList
-            deckCards={deckCards}
-            deckName={deckName}
-            format={format}
-            manaCurve={manaCurve}
-            totalCards={totalCards}
-            onRemoveCard={removeCardFromDeck}
-            onSetCardCount={setCardCount}
-            onClearDeck={clearDeck}
-          />
-        </div>
-
-        {/* Collection View - Middle */}
-        <div className="lg:col-span-1">
-          <CollectionView
-            collection={collection}
-            deckCards={deckCards}
-            onAddCard={addCardToDeck}
-          />
-        </div>
-
-        {/* AI Assistant - Right Side */}
-        <div className="lg:col-span-1">
-          <AIAssistant
-            deckCards={deckCards}
-            collection={collection}
-            format={format}
-            onAddSuggestion={addCardToDeck}
-            onSaveDeck={(aiDeckName) => {
-              // Update deck name from AI suggestion
-              setDeckName(aiDeckName);
-              // Auto-save after building
-              setTimeout(() => {
-                const saved = deckStorage.saveDeck(aiDeckName, format, deckCards, currentDeckId);
-                setCurrentDeckId(saved.id);
-                setSavedDecks(deckStorage.getAllDecks());
-              }, 100); // Small delay to let cards be added first
-            }}
-          />
+      {/* Tab Navigation - Sticky */}
+      <div className="card mb-4 sticky top-0 z-10 bg-bg-base">
+        <div className="card-body p-0">
+          <div className="flex border-b border-border-separator">
+            <button
+              className={`flex-1 py-3 px-4 text-sm font-semibold transition-all ${
+                activeTab === 'builder'
+                  ? 'text-accent border-b-4 border-accent bg-accent/10'
+                  : 'text-fg-secondary hover:text-fg-primary hover:bg-bg-muted/40 border-b-2 border-transparent'
+              }`}
+              onClick={() => setActiveTab('builder')}
+            >
+              🎯 Deck Builder
+            </button>
+            <button
+              className={`flex-1 py-3 px-4 text-sm font-semibold transition-all ${
+                activeTab === 'statistics'
+                  ? 'text-accent border-b-4 border-accent bg-accent/10'
+                  : 'text-fg-secondary hover:text-fg-primary hover:bg-bg-muted/40 border-b-2 border-transparent'
+              }`}
+              onClick={() => setActiveTab('statistics')}
+            >
+              📊 Statistics
+            </button>
+            <button
+              className={`flex-1 py-3 px-4 text-sm font-semibold transition-all ${
+                activeTab === 'optimization'
+                  ? 'text-accent border-b-4 border-accent bg-accent/10'
+                  : 'text-fg-secondary hover:text-fg-primary hover:bg-bg-muted/40 border-b-2 border-transparent'
+              }`}
+              onClick={() => setActiveTab('optimization')}
+            >
+              ✨ AI Optimization
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Builder Tab */}
+      {activeTab === 'builder' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-4">
+          {/* Deck List - Left Side (Compact) */}
+          <div className="md:col-span-1 xl:col-span-3">
+            <DeckList
+              deckCards={deckCards}
+              deckName={deckName}
+              format={format}
+              manaCurve={manaCurve}
+              totalCards={totalCards}
+              onRemoveCard={removeCardFromDeck}
+              onSetCardCount={setCardCount}
+              onClearDeck={clearDeck}
+            />
+          </div>
+
+          {/* Collection View - Middle (Wider) */}
+          <div className="md:col-span-1 xl:col-span-5">
+            <CollectionView
+              collection={collection}
+              deckCards={deckCards}
+              onAddCard={addCardToDeck}
+            />
+          </div>
+
+          {/* AI Assistant - Right Side */}
+          <div className="md:col-span-2 xl:col-span-4">
+            <AIAssistant
+              deckCards={deckCards}
+              collection={collection}
+              format={format}
+              onAddSuggestion={addCardToDeck}
+              onSaveDeck={(aiDeckName) => {
+                // Update deck name from AI suggestion
+                setDeckName(aiDeckName);
+                // Auto-save after building
+                setTimeout(() => {
+                  const saved = deckStorage.saveDeck(aiDeckName, format, deckCards, currentDeckId);
+                  setCurrentDeckId(saved.id);
+                  setSavedDecks(deckStorage.getAllDecks());
+                }, 100); // Small delay to let cards be added first
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Statistics Tab */}
+      {activeTab === 'statistics' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-4">
+          <div className="md:col-span-1 xl:col-span-8 card">
+            <div className="card-header">
+              <h3 className="text-lg font-bold text-fg-primary">Deck Statistics</h3>
+            </div>
+            <div className="card-body">
+              <DeckStatistics deckCards={deckCards} totalCards={totalCards} />
+            </div>
+          </div>
+          <div className="md:col-span-1 xl:col-span-4">
+            <DeckList
+              deckCards={deckCards}
+              deckName={deckName}
+              format={format}
+              manaCurve={manaCurve}
+              totalCards={totalCards}
+              onRemoveCard={removeCardFromDeck}
+              onSetCardCount={setCardCount}
+              onClearDeck={clearDeck}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Optimization Tab */}
+      {activeTab === 'optimization' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-4">
+          <div className="md:col-span-1 xl:col-span-8">
+            <DeckOptimization
+              deckCards={deckCards}
+              availableCards={collection}
+              onApplyChange={handleApplyOptimization}
+            />
+          </div>
+          <div className="md:col-span-1 xl:col-span-4">
+            <DeckList
+              deckCards={deckCards}
+              deckName={deckName}
+              format={format}
+              manaCurve={manaCurve}
+              totalCards={totalCards}
+              onRemoveCard={removeCardFromDeck}
+              onSetCardCount={setCardCount}
+              onClearDeck={clearDeck}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

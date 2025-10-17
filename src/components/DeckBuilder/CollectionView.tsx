@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import type { CardData } from '../../types';
-import { CardPreview } from './CardPreview';
 
 interface DeckCard {
   card: CardData;
@@ -27,7 +26,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
   const [filterOwnership, setFilterOwnership] = useState<string>('owned'); // Default to "I Own"
   const [cmcRange, setCmcRange] = useState<[number, number]>([0, 20]);
   const [sortBy, setSortBy] = useState<SortOption>('name');
-  const [previewCard, setPreviewCard] = useState<CardData | null>(null);
+  const [selectedCard, setSelectedCard] = useState<CardData | null>(null);
 
   // Filter and sort collection
   const filteredCollection = collection
@@ -147,21 +146,21 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
           <h3 className="text-lg font-semibold">Collection ({filteredCollection.length})</h3>
         </div>
 
-        <div className="card-body space-y-3">
+        <div className="card-body space-y-2">
           {/* Search */}
           <input
             type="text"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             placeholder="Search cards or text..."
-            className="input w-full"
+            className="input w-full text-sm"
           />
 
           {/* Ownership Filter (Prominent) */}
           <select
             value={filterOwnership}
             onChange={(e) => setFilterOwnership(e.target.value)}
-            className="select font-semibold"
+            className="select text-sm font-semibold w-full"
           >
             <option value="all">Show All Cards</option>
             <option value="owned">✓ I Own (Available)</option>
@@ -169,91 +168,100 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
             <option value="available">⭐ Not Yet Added</option>
           </select>
 
-          {/* Filters Row 1 */}
-          <div className="grid grid-cols-2 gap-2">
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="select"
-            >
-              <option value="all">All Types</option>
-              <option value="creature">Creatures</option>
-              <option value="instant">Instants</option>
-              <option value="sorcery">Sorceries</option>
-              <option value="enchantment">Enchantments</option>
-              <option value="artifact">Artifacts</option>
-              <option value="planeswalker">Planeswalkers</option>
-              <option value="land">Lands</option>
-            </select>
+          {/* Compact Filters - Single Row */}
+          <details className="group">
+            <summary className="cursor-pointer text-xs text-fg-secondary hover:text-fg-primary flex items-center gap-1">
+              <span className="group-open:rotate-90 transition-transform">▶</span>
+              More Filters (Type, Color, Rarity, CMC)
+            </summary>
+            <div className="mt-2 space-y-2">
+              {/* Filters Row 1 */}
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="select text-xs"
+                >
+                  <option value="all">All Types</option>
+                  <option value="creature">Creatures</option>
+                  <option value="instant">Instants</option>
+                  <option value="sorcery">Sorceries</option>
+                  <option value="enchantment">Enchantments</option>
+                  <option value="artifact">Artifacts</option>
+                  <option value="planeswalker">Planeswalkers</option>
+                  <option value="land">Lands</option>
+                </select>
 
-            <select
-              value={filterColor}
-              onChange={(e) => setFilterColor(e.target.value)}
-              className="select"
-            >
-              <option value="all">All Colors</option>
-              <option value="W">White</option>
-              <option value="U">Blue</option>
-              <option value="B">Black</option>
-              <option value="R">Red</option>
-              <option value="G">Green</option>
-              <option value="colorless">Colorless</option>
-            </select>
-          </div>
+                <select
+                  value={filterColor}
+                  onChange={(e) => setFilterColor(e.target.value)}
+                  className="select text-xs"
+                >
+                  <option value="all">All Colors</option>
+                  <option value="W">White</option>
+                  <option value="U">Blue</option>
+                  <option value="B">Black</option>
+                  <option value="R">Red</option>
+                  <option value="G">Green</option>
+                  <option value="colorless">Colorless</option>
+                </select>
+              </div>
 
-          {/* Filters Row 2 */}
-          <div className="grid grid-cols-2 gap-2">
-            <select
-              value={filterRarity}
-              onChange={(e) => setFilterRarity(e.target.value)}
-              className="select"
-            >
-              <option value="all">All Rarities</option>
-              <option value="common">Common</option>
-              <option value="uncommon">Uncommon</option>
-              <option value="rare">Rare</option>
-              <option value="mythic">Mythic</option>
-            </select>
+              {/* Filters Row 2 */}
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={filterRarity}
+                  onChange={(e) => setFilterRarity(e.target.value)}
+                  className="select text-xs"
+                >
+                  <option value="all">All Rarities</option>
+                  <option value="common">Common</option>
+                  <option value="uncommon">Uncommon</option>
+                  <option value="rare">Rare</option>
+                  <option value="mythic">Mythic</option>
+                </select>
 
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="select"
-            >
-              <option value="name">Sort: Name</option>
-              <option value="cmc">Sort: CMC</option>
-              <option value="rarity">Sort: Rarity</option>
-              <option value="color">Sort: Color</option>
-            </select>
-          </div>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="select text-xs"
+                >
+                  <option value="name">Sort: Name</option>
+                  <option value="cmc">Sort: CMC</option>
+                  <option value="rarity">Sort: Rarity</option>
+                  <option value="color">Sort: Color</option>
+                </select>
+              </div>
 
-          {/* CMC Range */}
-          <div className="space-y-1">
-            <label className="text-xs text-fg-secondary">
-              Mana Cost: {cmcRange[0]} - {cmcRange[1] === 20 ? '20+' : cmcRange[1]}
-            </label>
-            <div className="flex gap-2 items-center">
-              <input
-                type="range"
-                min="0"
-                max="20"
-                value={cmcRange[0]}
-                onChange={(e) => setCmcRange([parseInt(e.target.value), cmcRange[1]])}
-                className="flex-1"
-              />
-              <input
-                type="range"
-                min="0"
-                max="20"
-                value={cmcRange[1]}
-                onChange={(e) => setCmcRange([cmcRange[0], parseInt(e.target.value)])}
-                className="flex-1"
-              />
+              {/* CMC Range */}
+              <div className="space-y-1">
+                <label className="text-xs text-fg-secondary">
+                  Mana Cost: {cmcRange[0]} - {cmcRange[1] === 20 ? '20+' : cmcRange[1]}
+                </label>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="range"
+                    min="0"
+                    max="20"
+                    value={cmcRange[0]}
+                    onChange={(e) => setCmcRange([parseInt(e.target.value), cmcRange[1]])}
+                    className="flex-1"
+                  />
+                  <input
+                    type="range"
+                    min="0"
+                    max="20"
+                    value={cmcRange[1]}
+                    onChange={(e) => setCmcRange([cmcRange[0], parseInt(e.target.value)])}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
+          </details>
 
           {/* Card List */}
-          <div className="max-h-[600px] overflow-y-auto space-y-1">
+          <div className="max-h-[700px] overflow-y-auto space-y-1">
             {filteredCollection.map((card, index) => {
               const inDeck = getCardCountInDeck(card);
               const available = card.anzahl - inDeck;
@@ -262,10 +270,12 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
               return (
                 <div
                   key={index}
-                  className="flex items-center gap-2 text-sm hover:bg-bg-muted/40 px-2 py-2 rounded transition-fast cursor-pointer"
+                  className={`flex items-center gap-2 text-sm hover:bg-bg-muted/40 px-2 py-2 rounded transition-fast cursor-pointer ${
+                    selectedCard?.scryfallMatch?.id === card.scryfallMatch?.id ? 'bg-accent/20 border-l-4 border-accent' : ''
+                  }`}
                   onDoubleClick={() => available > 0 && onAddCard(card, 1)}
-                  onClick={() => card.scryfallMatch && setPreviewCard(card)}
-                  title="Double-click to add, Click to preview"
+                  onClick={() => card.scryfallMatch && setSelectedCard(card)}
+                  title="Click to view details, Double-click to add"
                 >
                   {/* Card Thumbnail */}
                   {imageUrl && (
@@ -332,12 +342,90 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
         </div>
       </div>
 
-      {/* Card Preview Modal */}
-      {previewCard && (
-        <CardPreview
-          card={previewCard}
-          onClose={() => setPreviewCard(null)}
-        />
+      {/* Card Detail Panel */}
+      {selectedCard && selectedCard.scryfallMatch && (
+        <div className="card mt-4">
+          <div className="card-header flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Card Details</h3>
+            <button
+              onClick={() => setSelectedCard(null)}
+              className="button ghost text-xs px-2"
+              title="Close details"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="card-body">
+            <div className="flex flex-col gap-4">
+              {/* Card Image */}
+              <div className="flex justify-center">
+                <img
+                  src={selectedCard.scryfallMatch.image_uris?.normal || selectedCard.scryfallMatch.image_uris?.small}
+                  alt={selectedCard.scryfallMatch.name}
+                  className="rounded-lg shadow-lg max-w-full h-auto"
+                  style={{ maxWidth: '300px' }}
+                />
+              </div>
+
+              {/* Card Name & Mana Cost */}
+              <div>
+                <h2 className="text-2xl font-bold text-fg-primary">{selectedCard.scryfallMatch.name}</h2>
+                <div className="text-sm text-fg-secondary mt-1">
+                  {selectedCard.scryfallMatch.mana_cost} • {selectedCard.scryfallMatch.type_line}
+                </div>
+                <div className="text-sm text-fg-secondary capitalize mt-1">
+                  {selectedCard.scryfallMatch.rarity} • CMC {selectedCard.scryfallMatch.cmc || 0}
+                </div>
+              </div>
+
+              {/* Oracle Text */}
+              {selectedCard.scryfallMatch.oracle_text && (
+                <div>
+                  <h3 className="text-sm font-semibold text-fg-secondary mb-1">Oracle Text</h3>
+                  <p className="text-fg-primary text-sm whitespace-pre-wrap leading-relaxed">
+                    {selectedCard.scryfallMatch.oracle_text}
+                  </p>
+                </div>
+              )}
+
+              {/* Stats */}
+              {(selectedCard.scryfallMatch.power || selectedCard.scryfallMatch.toughness) && (
+                <div>
+                  <h3 className="text-sm font-semibold text-fg-secondary mb-1">Power / Toughness</h3>
+                  <p className="text-fg-primary text-xl font-bold">
+                    {selectedCard.scryfallMatch.power} / {selectedCard.scryfallMatch.toughness}
+                  </p>
+                </div>
+              )}
+
+              {/* Set Info */}
+              <div className="pt-4 border-t border-border-separator space-y-2 text-sm">
+                <div>
+                  <span className="text-fg-secondary">Set: </span>
+                  <span className="text-fg-primary font-medium">{selectedCard.scryfallMatch.set_name}</span>
+                </div>
+                <div>
+                  <span className="text-fg-secondary">In Collection: </span>
+                  <span className="text-ok font-semibold">{selectedCard.anzahl}x</span>
+                </div>
+                <div>
+                  <span className="text-fg-secondary">In Deck: </span>
+                  <span className="text-accent font-semibold">{getCardCountInDeck(selectedCard)}x</span>
+                </div>
+              </div>
+
+              {/* Add Button */}
+              {selectedCard.anzahl - getCardCountInDeck(selectedCard) > 0 && (
+                <button
+                  onClick={() => onAddCard(selectedCard, 1)}
+                  className="button ok w-full"
+                >
+                  + Add to Deck
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

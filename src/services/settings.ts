@@ -36,7 +36,6 @@ export async function loadSettings(): Promise<UserSettings> {
     const { data, error } = await supabase
       .from('user_settings')
       .select('*')
-      .eq('user_id', user.id)
       .single();
 
     if (error) {
@@ -70,15 +69,13 @@ export async function saveSettings(settings: Partial<UserSettings>): Promise<voi
     const { data: existing } = await supabase
       .from('user_settings')
       .select('id')
-      .eq('user_id', user.id)
       .single();
 
     if (existing) {
       // Update existing settings
       const { error } = await supabase
         .from('user_settings')
-        .update(settings)
-        .eq('user_id', user.id);
+        .update(settings);
 
       if (error) throw error;
     } else {

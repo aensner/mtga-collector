@@ -129,77 +129,79 @@ This document outlines the user experience design for the MTG Arena Deck Builder
 
 **Purpose**: Main workspace for building and editing decks
 
-**Layout**:
+**Layout** (Improved - 3-column responsive grid):
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 🎴 Deck Builder                                                 │
+│ Deck: "Red Aggro" (Standard)  60/60 ✓  [Save] [Load] [Export]  │
+├──────────────┬──────────────────────┬───────────────────────────┤
+│ DECK LIST    │ COLLECTION (979)     │ AI ASSISTANT              │
+│ (Compact)    │ (Full Height)        │ (Collapsible)             │
+├──────────────┤                      │                           │
+│ Creatures 24 │ [🔍 Search cards...] │ 💬 Suggest cards for:     │
+│ Swiftspear×4 │                      │ [Type your goal...]       │
+│ Champion ×4  │ ☑ I Own (Available)  │                           │
+│ Giant ×4     │ ☐ In Deck ☐ Not Add │ 🎯 Or analyze deck:       │
+│ Anax ×4      │                      │ [✨ Optimize Deck]        │
+│              │ [Filters ▼] Sort:▼   │                           │
+│ Spells 14    │                      │ Recent Suggestions:       │
+│ Shock ×4     │ Blood Operative x8   │ None yet                  │
+│ Strike ×4    │ 3 CMC • Creature     │                           │
+│ ...          │ 3 in deck / 8 avail  │                           │
+│              │ [+]                  │                           │
+│ Lands 22     │                      │                           │
+│ Mountain ×22 │ [Click card to       │                           │
+│              │  preview details]    │                           │
+│ [Clear Deck] │                      │                           │
+└──────────────┴──────────────────────┴───────────────────────────┘
+```
+
+**Responsive Breakpoints**:
+- **Desktop (>1280px)**: 3-column layout (25% / 40% / 35%)
+- **Tablet (768-1280px)**: 2-column layout (Deck collapsed, Collection + AI)
+- **Mobile (<768px)**: Single column with tabs
+
+**Card Preview Modal** (Fixed positioning):
 ```
 ┌─────────────────────────────────────────────┐
-│ 🎴 Deck Builder                             │
-│ Deck: "Red Aggro" (Standard) [Save] [Export]│
-├─────────────────┬───────────────────────────┤
-│                 │                           │
-│ CARD BROWSER    │ DECK (38/60 cards)        │
-│                 │                           │
-│ [🔍 Search...]  │ ┌─ Creatures (24) ───┐   │
-│                 │ │ 4x Monastery Swiftsp│   │
-│ Filters:        │ │ 4x Fervent Champion │   │
-│ ☑ I Own (1,247) │ │ 4x Bonecrusher Giant│   │
-│ ☐ Missing (892) │ │ 4x Anax, Hardened  │   │
-│ ☐ Red ☐ Blue    │ │ 2x Phoenix of Ash   │   │
-│                 │ │ + Add Creature      │   │
-│ Sort: [Name ▼]  │ └───────────────────┘   │
-│                 │                           │
-│ Monastery Swi...│ ┌─ Instants (8) ─────┐   │
-│ [●●●●] OWNED    │ │ 4x Shock            │   │
-│ 1 CMC • Creature│ │ 4x Lightning Strike │   │
-│ [+ Add 4]       │ │ + Add Instant       │   │
-│                 │ └───────────────────┘   │
-│ Fervent Champ...│                           │
-│ [●●●●] OWNED    │ ┌─ Statistics ────────┐  │
-│ 1 CMC • Creature│ │ Mana Curve:         │  │
-│ [+ Add 4]       │ │ 1: ████████ (16)    │  │
-│                 │ │ 2: ████ (8)         │  │
-│ Bonecrusher G...│ │ 3: ███ (6)          │  │
-│ [●●●●] OWNED    │ │ 4: ██ (4)           │  │
-│ 3 CMC • Creature│ │ 5+: █ (2)           │  │
-│ [+ Add 4]       │ │                     │  │
-│                 │ │ Avg CMC: 2.1        │  │
-│ [Load More...]  │ │ Lands needed: 22    │  │
-│                 │ └─────────────────────┘ │
-│                 │                           │
-│                 │ 🤖 AI Suggestions         │
-│                 │ ┌─────────────────────┐   │
-│                 │ │ Consider adding:    │   │
-│                 │ │ • Embercleave (2-3x)│   │
-│                 │ │ • Castle Embereth   │   │
-│                 │ │                     │   │
-│                 │ │ [Apply All]         │   │
-│                 │ └─────────────────────┘   │
-└─────────────────┴───────────────────────────┘
+│ [Modal with card image + details]          │
+│ - max-width: 672px (max-w-2xl)             │
+│ - max-height: 90vh (scrollable)            │
+│ - Centered with proper margins             │
+│ - Closes on click outside or Escape key    │
+└─────────────────────────────────────────────┘
 ```
 
-**Key Features**:
-- **Split View**: Browser (left) + Deck (right)
-- **Ownership Filter**: Default to owned cards
-- **Visual Indicators**: ●●●○ shows 3/4 copies owned
-- **Grouped Deck**: By card type (collapsible sections)
-- **Real-Time Stats**: Mana curve updates live
-- **AI Suggestions**: Proactive, contextual recommendations
-- **One-Click Add**: [+ Add 4] buttons
+**Key Features** (2025 Improvements):
+- **Optimized 3-Column Layout**: Compact deck list, full-height collection, collapsible AI
+- **Fixed Card Preview Modal**: No more overflow issues (max-w-2xl, max-h-90vh)
+- **Responsive Grid**: Adapts to viewport (desktop/tablet/mobile breakpoints)
+- **Ownership Filter**: Default to "I Own (Available)"
+- **Visual Indicators**: Ownership badges inline with cards
+- **Grouped Deck List**: Creatures, Spells, Lands with count headers
+- **Collapsible Filters**: Compact filter row in collection
+- **Real-Time Stats**: Live updates in Statistics tab
+- **Sticky Tab Navigation**: Always visible while scrolling
+- **Quick Add Buttons**: [+] buttons on card hover
 
 **Interactions**:
-- Search updates results instantly
+- Search updates results instantly (<100ms)
 - Filter checkboxes toggle immediately
-- [+ Add 4] adds card to deck with animation
-- Click card name → Card detail modal
-- Drag cards between sections to reorder
+- [+] adds single card to deck
+- Single-click card → Card preview modal (fixed positioning)
+- Double-click card → Quick add to deck
+- Tab navigation between Builder/Statistics/AI Optimization
 - Statistics update in real-time as deck changes
-- [Apply All] AI suggestions → Bulk add to deck
-- [Save] → Auto-save with success indicator
-- [Export] → Format selection dropdown
+- [Save] → Database persistence with success indicator
+- [Export] → Format selection dropdown (Arena/MTGGoldfish/CSV)
+- Escape key closes modals
 
-**Mobile Considerations**:
-- Single-column view with tabs (Browser / Deck / Stats)
-- Bottom sheet for card browser
-- Swipe gestures for quick actions
+**Responsive Behavior**:
+- **Desktop (>1280px)**: 3-column layout (25% / 40% / 35%)
+- **Tablet (768-1280px)**: 2-column layout (Deck + Collection/AI tabs)
+- **Mobile (<768px)**: Single column with tab navigation
+- Card preview modal always fits viewport (max-w-2xl, max-h-90vh)
+- Collapsible sections for better mobile space utilization
 
 ---
 

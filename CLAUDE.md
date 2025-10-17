@@ -116,7 +116,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Frontend**: React + TypeScript + Vite
 - **Styling**: Tailwind CSS
 - **OCR**: Tesseract.js (parallel processing with 4 workers)
-- **AI**: Anthropic Claude API (Sonnet 4.5)
+- **AI**: OpenAI (GPT-4o-mini) or Anthropic Claude API (Sonnet 4.5) - auto-selects based on available API key
 - **Card Database**: Scryfall API
 - **Authentication**: Supabase Auth (currently disabled for development)
 
@@ -145,7 +145,9 @@ src/
 │   └── Upload/            # Image upload interface
 ├── services/
 │   ├── ocr.ts            # Tesseract.js OCR
-│   ├── anthropic.ts      # Claude AI correction
+│   ├── ai.ts             # Unified AI service (auto-selects OpenAI or Anthropic)
+│   ├── openai.ts         # OpenAI GPT-4o-mini integration
+│   ├── anthropic.ts      # Anthropic Claude Sonnet 4.5 integration
 │   ├── scryfall.ts       # Card validation
 │   └── imageProcessing.ts # Grid detection & quantity
 ├── utils/
@@ -167,7 +169,11 @@ example/
 
 Create `.env` file:
 ```
-VITE_ANTHROPIC_API_KEY=your_api_key
+# AI Provider (choose one or both - OpenAI preferred for cost)
+VITE_OPENAI_API_KEY=your_openai_api_key
+VITE_ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# Supabase
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_key
 ```

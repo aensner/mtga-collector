@@ -116,6 +116,11 @@
 > versuche ich in Arena noch darauf zu verzichten Geld auszugeben. Das schränkt
 > die Formate schon etwas ein. Das muss aber nicht so bleiben."
 
+**F6: Wie ist die Aufteilung zwischen Arena und Paper?**
+
+> "Das hängt etwas von den Gelegenheiten ab Paper zu spielen. Aber realistisch
+> ist wohl 80/20."
+
 ---
 
 ## 5. Erkenntnisse & Hypothesen
@@ -277,8 +282,26 @@
 ### Offene Fragen (zu klären)
 - [x] Wie werden Paper Cards heute erfasst? → Gar nicht, nur in Deckboxen
 - [x] Welche Formate sind relevant? → Standard, Historic (Draft ausprobiert)
-- [ ] Wie wichtig ist Paper vs. Digital? (50/50? 80/20?)
+- [x] Wie wichtig ist Paper vs. Digital? → **80% Arena / 20% Paper**
 - [ ] Proxy-Druck Workflow: Wie werden Proxies erstellt? Welche Tools?
+
+### Priorisierungs-Implikation
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    PRIORISIERUNG                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   80% Arena  ████████████████████████████████████████  → MVP-Fokus         │
+│   20% Paper  ██████████                                → Phase 2+          │
+│                                                                             │
+│   Empfehlung:                                                               │
+│   • MVP: Arena-Features perfektionieren                                    │
+│   • Later: Paper-Support als Erweiterung                                   │
+│   • Architektur: Von Anfang an für beide planen                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 

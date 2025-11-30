@@ -90,22 +90,91 @@
 
 ### Session 1 - [Datum: 2025-11-30]
 
-**Frage 1:** [Wartet auf Antwort]
+**F1: Was war der ursprüngliche Auslöser für dieses Projekt?**
 
-**Antwort:**
+> "Ich löse in erster Linie ein eigenes Problem. Ich spiele MTG Arena und spiele
+> daneben auch mit Paper Cards. Das Problem ist, dass ich die Karten, ob virtuell
+> oder Paper gerne verwalten möchte. Die Verwaltung ist dabei nur ein Mittel zum
+> Zweck. Es geht mir eigentlich darum mit den Card Collections (virtuell und Paper)
+> optimale aber legale Decks zu bauen. Die Collections verändern sich zudem laufend.
+> Neue Karten kommen hinzu und gewisse werden entweder generell oder nur in
+> spezifischen Formaten gebanned."
 
 ---
 
 ## 5. Erkenntnisse & Hypothesen
 
+### Schlüssel-Erkenntnisse aus Interview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    KERN-ERKENNTNIS #1                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   "Verwaltung ist nur Mittel zum Zweck"                                     │
+│                                                                             │
+│   ┌─────────────────┐         ┌─────────────────────────────────────┐      │
+│   │ Collection      │ ──────► │ OPTIMALE + LEGALE Decks bauen       │      │
+│   │ Management      │  dient  │ (Das eigentliche Ziel!)             │      │
+│   └─────────────────┘         └─────────────────────────────────────┘      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    KERN-ERKENNTNIS #2                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ZWEI Sammlungen - EINE Lösung benötigt                                    │
+│                                                                             │
+│   ┌─────────────────┐         ┌─────────────────┐                          │
+│   │  MTG Arena      │         │  Paper Cards    │                          │
+│   │  (Digital)      │         │  (Physisch)     │                          │
+│   └────────┬────────┘         └────────┬────────┘                          │
+│            │                           │                                    │
+│            └───────────┬───────────────┘                                    │
+│                        ▼                                                    │
+│            ┌─────────────────────┐                                          │
+│            │  Unified Collection │  ◄── Aktuell nur Arena unterstützt!     │
+│            │  Management         │                                          │
+│            └─────────────────────┘                                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    KERN-ERKENNTNIS #3                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Collections sind DYNAMISCH                                                │
+│                                                                             │
+│   Änderungstreiber:                                                         │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │ + Neue Karten       │ Booster, Drafts, Rewards, Käufe          │      │
+│   │ - Banned Karten     │ Generell ODER format-spezifisch          │      │
+│   │ ~ Format-Rotation   │ Standard rotiert Sets raus               │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ──► App muss Legalität pro Format kennen und aktuell halten!             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
 ### Bestätigte Annahmen
-_(Wird während des Interviews befüllt)_
+- [x] Deck-Building ist das primäre Ziel (nicht Collection Management)
+- [x] Collection-Updates sind ein notwendiger aber sekundärer Workflow
 
-### Widerlegte Annahmen
-_(Wird während des Interviews befüllt)_
+### Neue Erkenntnisse (Scope-Erweiterung!)
+- [ ] **Paper Cards Support** - Aktuell nicht unterstützt, aber gewünscht
+- [ ] **Format-Legalität** - Bannings müssen berücksichtigt werden
+- [ ] **Dynamische Updates** - Collection ändert sich regelmäßig
 
-### Neue Erkenntnisse
-_(Wird während des Interviews befüllt)_
+### Offene Fragen (zu klären)
+- [ ] Wie werden Paper Cards heute erfasst? (Manuell? Andere App?)
+- [ ] Welche Formate sind relevant? (Standard, Historic, Pioneer, Modern, etc.)
+- [ ] Wie wichtig ist Paper vs. Digital? (50/50? 80/20?)
 
 ---
 

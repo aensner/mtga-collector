@@ -556,9 +556,53 @@
 
 ---
 
-## 7. Nächste Schritte
+## 7. Session-Zusammenfassung
 
-- [ ] Interview durchführen
+### Session 1 - 2025-11-30 - ABGESCHLOSSEN
+
+**Themen behandelt:**
+- [x] Projekt-Motivation und persönlicher Kontext
+- [x] Paper vs. Digital Spielweise (80/20)
+- [x] Formate (Standard, Historic, Commander)
+- [x] F2P-Constraint und Budget-Bewusstsein
+- [x] Proxy-Tracking Anforderung
+- [x] Externe Tools (Moxfield, Archidekt, YouTube)
+- [x] Idealer Workflow (BUILD → LEARN → UPGRADE)
+- [x] AI Deck-Builder als Kern-Feature
+
+**Offene Themen für nächste Session:**
+- [ ] **Collection-Erstellung**: Wie werden Karten initial erfasst?
+- [ ] **Collection-Aktualisierung**: Wie werden neue Karten hinzugefügt?
+- [ ] **Arena-Import**: Log-Parsing, Screenshot-OCR, manuell?
+- [ ] **Paper-Import**: Wie werden physische Karten erfasst?
+- [ ] **Priorisierung**: MVP-Scope festlegen
+- [ ] **User Story Mapping**: Detaillierte Stories erstellen
+
+### Kern-Erkenntnisse (8 Stück)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ZUSAMMENFASSUNG DER KERN-ERKENNTNISSE                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  #1  Verwaltung ist Mittel zum Zweck → Deck-Building ist das Ziel          │
+│  #2  Zwei Sammlungen: Arena (80%) + Paper (20%)                            │
+│  #3  Collections sind dynamisch (neue Karten, Bans, Rotation)              │
+│  #4  Paper: Original vs. Proxy unterscheiden                               │
+│  #5  Paper-Workflow ist deck-zentriert (Netdecks → anpassen → drucken)     │
+│  #6  F2P macht optimale Deck-Nutzung noch wichtiger                        │
+│  #7  AI Deck-Builder = KERN-FEATURE (Synergie, Abilities, Regeln)          │
+│  #8  Workflow: BUILD → LEARN → UPGRADE (mit Preisen!)                      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 8. Nächste Schritte
+
+- [x] Interview Session 1 durchführen
+- [ ] Interview Session 2: Collection Management
 - [ ] Personas validieren/anpassen
 - [ ] Use Cases priorisieren
 - [ ] User Story Map erstellen

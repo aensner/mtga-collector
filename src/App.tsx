@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider } from './components/Auth/AuthContext';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ImageDropzone } from './components/Upload/ImageDropzone';
 import { ImagePreview } from './components/Upload/ImagePreview';
 import { CardProcessor } from './components/Processing/CardProcessor';
@@ -388,11 +389,13 @@ const MainApp: React.FC = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <ProtectedRoute>
-        <MainApp />
-      </ProtectedRoute>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ProtectedRoute>
+          <MainApp />
+        </ProtectedRoute>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

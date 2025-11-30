@@ -137,7 +137,6 @@ export const detectCardQuantity = (
   const zoneWidth = regionWidth / 4;
 
   let filledCount = 0;
-  const zoneStats = [];
 
   // Analyze each zone
   for (let zone = 0; zone < 4; zone++) {
@@ -264,32 +263,13 @@ export const isCardSlotEmpty = (
   );
 
   const data = imageData.data;
-  const pixelCount = sampleRegion.width * sampleRegion.height;
-
-  // Calculate color variance (standard deviation)
-  let sumR = 0, sumG = 0, sumB = 0;
-  for (let i = 0; i < data.length; i += 4) {
-    sumR += data[i];
-    sumG += data[i + 1];
-    sumB += data[i + 2];
-  }
-  const avgR = sumR / pixelCount;
-  const avgG = sumG / pixelCount;
-  const avgB = sumB / pixelCount;
-
-  let varianceSum = 0;
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    varianceSum += Math.pow(r - avgR, 2) + Math.pow(g - avgG, 2) + Math.pow(b - avgB, 2);
-  }
-  const variance = varianceSum / pixelCount;
-
-  // Calculate edge density using simple Sobel-like edge detection
-  let edgePixels = 0;
   const width = sampleRegion.width;
   const height = sampleRegion.height;
+  const pixelCount = width * height;
+
+  // Calculate edge density using simple Sobel-like edge detection
+  // Edge detection alone provides sufficient accuracy for empty slot detection
+  let edgePixels = 0;
 
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {

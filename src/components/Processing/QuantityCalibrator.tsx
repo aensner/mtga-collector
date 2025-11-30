@@ -114,7 +114,15 @@ export const QuantityCalibrator: React.FC<QuantityCalibratorProps> = ({
     };
 
     if (diamondRegion.y < 0 || diamondRegion.x < 0) {
-      return { goldRatio: 0, detectedQuantity: 1, goldPixels: 0, totalPixels: 0 };
+      return {
+        detectedQuantity: 1,
+        diamondStats: [
+          { filled: false, fillRatio: 0 },
+          { filled: false, fillRatio: 0 },
+          { filled: false, fillRatio: 0 },
+          { filled: false, fillRatio: 0 },
+        ],
+      };
     }
 
     const imageData = ctx.getImageData(
@@ -208,7 +216,7 @@ export const QuantityCalibrator: React.FC<QuantityCalibratorProps> = ({
     const cells = calculateGridCells(image);
 
     // Draw all cards lightly
-    cells.forEach((cell, idx) => {
+    cells.forEach((cell) => {
       ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
       ctx.lineWidth = 1;
       ctx.strokeRect(cell.x, cell.y, cell.width, cell.height);
@@ -278,8 +286,7 @@ export const QuantityCalibrator: React.FC<QuantityCalibratorProps> = ({
               brightness < brightnessThreshold &&
               saturation < saturationThreshold;
 
-            // Determine which zone this pixel is in
-            const zone = Math.floor(x / zoneWidth);
+            // Determine zone border for visualization
             const isZoneBorder = x % Math.floor(zoneWidth) < 2;
 
             if (isZoneBorder) {

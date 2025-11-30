@@ -1,22 +1,26 @@
 import Tesseract, { type Worker } from 'tesseract.js';
 import type { OCRResult } from '../types';
+import { OCR } from '../constants/processing';
+import { ocrLogger } from './logger';
 
 let workers: Worker[] = [];
-const WORKER_POOL_SIZE = 4; // Number of parallel OCR workers
+
+/** Counter for OCR card logging (development only) */
+let cardCounter = 0;
 
 export const initializeOCR = async (): Promise<void> => {
   if (workers.length > 0) return;
 
-  console.log(`Initializing ${WORKER_POOL_SIZE} OCR workers...`);
+  ocrLogger.info(`Initializing ${OCR.WORKER_COUNT} OCR workers...`);
   const workerPromises = [];
 
-  for (let i = 0; i < WORKER_POOL_SIZE; i++) {
+  for (let i = 0; i < OCR.WORKER_COUNT; i++) {
     const workerPromise = Tesseract.createWorker('eng', 1, {
       logger: (m) => {
         if (m.status === 'recognizing text') {
           // Reduce log spam from multiple workers
           if (m.progress === 0 || m.progress === 1) {
-            console.log(`OCR Worker ${i + 1}: ${m.status}`);
+            ocrLogger.debug(`Worker ${i + 1}: ${m.status}`);
           }
         }
       },
@@ -32,14 +36,15 @@ export const initializeOCR = async (): Promise<void> => {
   }
 
   workers = await Promise.all(workerPromises);
-  console.log(`${workers.length} OCR workers initialized`);
+  ocrLogger.info(`${workers.length} OCR workers initialized`);
 };
 
 export const terminateOCR = async (): Promise<void> => {
   if (workers.length > 0) {
-    console.log(`Terminating ${workers.length} OCR workers...`);
+    ocrLogger.info(`Terminating ${workers.length} OCR workers...`);
     await Promise.all(workers.map(w => w.terminate()));
     workers = [];
+    cardCounter = 0; // Reset counter
   }
 };
 
@@ -69,14 +74,17 @@ export const recognizeText = async (
 
   const { data } = await worker.recognize(imageData, rectangle ? { rectangle } : undefined);
 
+  // Extract bounding box from recognized data (Tesseract types are complex)
+  const box = data.box as { x0?: number; y0?: number; x1?: number; y1?: number } | undefined;
+
   return {
     text: data.text.trim(),
     confidence: data.confidence / 100, // Tesseract returns 0-100, we need 0-1
     bbox: {
-      x0: data.box?.x0 || 0,
-      y0: data.box?.y0 || 0,
-      x1: data.box?.x1 || 0,
-      y1: data.box?.y1 || 0,
+      x0: box?.x0 ?? 0,
+      y0: box?.y0 ?? 0,
+      x1: box?.x1 ?? 0,
+      y1: box?.y1 ?? 0,
     },
   };
 };
@@ -84,7 +92,7 @@ export const recognizeText = async (
 export const recognizeCardName = async (
   canvas: HTMLCanvasElement,
   cardBbox: { x: number; y: number; width: number; height: number },
-  debugVisualize: boolean = false,
+  _debugVisualize: boolean = false,
   regionParams?: { left: number; top: number; width: number; height: number }
 ): Promise<{ text: string; confidence: number }> => {
   // Card name is in the top center title bar of the card
@@ -106,13 +114,8 @@ export const recognizeCardName = async (
   const result = await recognizeText(canvas, nameRegion);
 
   // Debug: Log OCR results for troubleshooting
-  if (!(window as any)._cardCounter) {
-    (window as any)._cardCounter = 0;
-  }
-  (window as any)._cardCounter++;
-  const cardNum = (window as any)._cardCounter;
-
-  console.log(`OCR Card ${cardNum}: "${result.text}" (confidence: ${(result.confidence * 100).toFixed(1)}%)`);
+  cardCounter++;
+  ocrLogger.debug(`Card ${cardCounter}: "${result.text}" (confidence: ${(result.confidence * 100).toFixed(1)}%)`);
 
   return {
     text: result.text,
@@ -141,7 +144,7 @@ export const preprocessImage = (
     const data = imageData.data;
 
     // Simple contrast enhancement
-    const factor = 1.5;
+    const factor = OCR.CONTRAST_FACTOR;
     const intercept = 128 * (1 - factor);
 
     for (let i = 0; i < data.length; i += 4) {

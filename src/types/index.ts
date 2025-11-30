@@ -1,3 +1,6 @@
+// Re-export error types
+export * from './errors';
+
 export interface CardData {
   nummer: number;
   positionX: number;

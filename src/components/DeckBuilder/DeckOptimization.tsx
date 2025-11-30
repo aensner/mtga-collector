@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { analyzeDeck, findSubstitutes, type DeckCard, type DeckAnalysis } from '../../services/deckOptimization';
+import { analyzeDeck, type DeckCard, type DeckAnalysis } from '../../services/deckOptimization';
 import type { CardData } from '../../types';
 
 interface DeckOptimizationProps {

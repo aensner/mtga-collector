@@ -135,6 +135,14 @@
 > "Ich verwende moxfield.com und archidekt.com um bestehende Decks abzurufen.
 > Die URLs kommen meist von YouTube Videos, respektive der Video-Beschreibung."
 
+**F9: Wie sieht dein idealer Workflow aus?**
+
+> "Ich finde eine Karten Combo aus 2 Karten, dann möchte ich damit ein neues Deck
+> starten und mir von der KI die dazu passenden Karten aus meiner Kollektion
+> zusammenstellen lassen. Das Deck muss legal und optimal sein. Danach möchte ich
+> Vorschläge zur Spielweise und Kaufempfehlungen (mit Preisen) für weitere, noch
+> bessere Karten Ergänzungen abrufen können."
+
 ---
 
 ## 5. Erkenntnisse & Hypothesen
@@ -362,9 +370,68 @@
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    KERN-ERKENNTNIS #8 - IDEALER WORKFLOW                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   DREI PHASEN im idealen Workflow                                          │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  PHASE 1: DECK ERSTELLEN                                        │      │
+│   │  ═══════════════════════════════════════════════════════════    │      │
+│   │                                                                 │      │
+│   │  ┌───────────────┐                                             │      │
+│   │  │ Karten-Combo  │  "Ich finde 2 Karten die gut                │      │
+│   │  │ (2 Karten)    │   zusammen funktionieren"                   │      │
+│   │  └───────┬───────┘                                             │      │
+│   │          │                                                      │      │
+│   │          ▼                                                      │      │
+│   │  ┌───────────────────────────────────────────────────┐         │      │
+│   │  │  AI baut Deck aus MEINER Kollektion               │         │      │
+│   │  │  • Passende Karten automatisch wählen             │         │      │
+│   │  │  • Constraints: LEGAL + OPTIMAL                   │         │      │
+│   │  └───────────────────────────────────────────────────┘         │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  PHASE 2: SPIELWEISE LERNEN                                     │      │
+│   │  ═══════════════════════════════════════════════════════════    │      │
+│   │                                                                 │      │
+│   │  ┌───────────────────────────────────────────────────┐         │      │
+│   │  │  AI erklärt Spielweise:                           │         │      │
+│   │  │  • Wie spiele ich dieses Deck?                    │         │      │
+│   │  │  • Welche Combos gibt es?                         │         │      │
+│   │  │  • Mulligan-Entscheidungen?                       │         │      │
+│   │  │  • Matchup-Tipps?                                 │         │      │
+│   │  └───────────────────────────────────────────────────┘         │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  PHASE 3: UPGRADE PLANEN                                        │      │
+│   │  ═══════════════════════════════════════════════════════════    │      │
+│   │                                                                 │      │
+│   │  ┌───────────────────────────────────────────────────┐         │      │
+│   │  │  Kaufempfehlungen mit PREISEN:                    │         │      │
+│   │  │  • "Karte X würde Deck verbessern"                │         │      │
+│   │  │  • "Preis: €5.99 bei [Shop]"                      │         │      │
+│   │  │  • "Alternative: Karte Y für €1.99"               │         │      │
+│   │  │  • Priorität: Was bringt am meisten?              │         │      │
+│   │  └───────────────────────────────────────────────────┘         │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ──► Workflow geht über Deck-Building hinaus:                             │
+│       BUILD → LEARN → UPGRADE                                              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
 ### Bestätigte Annahmen
 - [x] Deck-Building ist das primäre Ziel (nicht Collection Management)
 - [x] Collection-Updates sind ein notwendiger aber sekundärer Workflow
+- [x] Workflow hat 3 Phasen: Build → Learn → Upgrade
 
 ### Widerlegte/Angepasste Annahmen
 - [ ] **"Competitive Player" = 80%** - Trifft nicht zu für diesen Nutzer
@@ -385,6 +452,9 @@
 - [ ] **Commander/Combo als Startpunkt** - Deck um Schlüsselkarte(n) herum bauen
 - [ ] **Decklist-Import von URLs** - Moxfield, Archidekt URLs direkt importieren
 - [ ] **YouTube als Discovery** - Deck-Ideen kommen oft von Content Creators
+- [ ] **Spielweise-Guide** - AI erklärt wie man das Deck spielt (Combos, Mulligan, Matchups)
+- [ ] **Kaufempfehlungen** - Upgrade-Vorschläge MIT PREISEN
+- [ ] **Budget-Alternativen** - Günstigere Optionen für teure Karten
 
 ### Tool-Landschaft (Aktuell genutzt)
 

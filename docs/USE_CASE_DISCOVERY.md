@@ -121,6 +121,15 @@
 > "Das hängt etwas von den Gelegenheiten ab Paper zu spielen. Aber realistisch
 > ist wohl 80/20."
 
+**F7: Was ist deine größte Frustration beim Deck-Building?**
+
+> "Ich möchte gerne mit den Karten aus der Collection ein optimales Deck bauen.
+> Als Basis sollte eine Commander Karte oder eine Combo von Karten möglich sein.
+> Mit AI Unterstützung möchte ich dann beispielsweise die besten gültigen Karten
+> finden um schnell die nötigen Mana bekommen oder die Library zu durchsuchen usw.
+> Dazu müssen die Abilities, die Synergien aller Karten in der Collection sowie
+> die aktuellen Regeln verstanden werden."
+
 ---
 
 ## 5. Erkenntnisse & Hypothesen
@@ -261,6 +270,93 @@
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    KERN-ERKENNTNIS #7 (KERN-FEATURE!)                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   AI-GESTÜTZTER DECK-BUILDER mit tiefem MTG-Verständnis                    │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │                      WORKFLOW                                   │      │
+│   │                                                                 │      │
+│   │   ┌─────────────────┐                                          │      │
+│   │   │  STARTPUNKT     │                                          │      │
+│   │   │  • Commander    │                                          │      │
+│   │   │  • Karten-Combo │                                          │      │
+│   │   └────────┬────────┘                                          │      │
+│   │            │                                                    │      │
+│   │            ▼                                                    │      │
+│   │   ┌─────────────────────────────────────────────┐              │      │
+│   │   │         AI ANALYSIERT & EMPFIEHLT           │              │      │
+│   │   │                                             │              │      │
+│   │   │  Input:                                     │              │      │
+│   │   │  • Meine Collection (nur was ich habe!)    │              │      │
+│   │   │  • Abilities aller Karten                  │              │      │
+│   │   │  • Synergien zwischen Karten               │              │      │
+│   │   │  • Aktuelle Regeln & Banlist               │              │      │
+│   │   │                                             │              │      │
+│   │   │  Output:                                    │              │      │
+│   │   │  • Beste Mana-Ramp Karten                  │              │      │
+│   │   │  • Beste Tutors (Library durchsuchen)      │              │      │
+│   │   │  • Beste Removal/Interaction               │              │      │
+│   │   │  • Synergie-Vorschläge                     │              │      │
+│   │   └─────────────────────────────────────────────┘              │      │
+│   │            │                                                    │      │
+│   │            ▼                                                    │      │
+│   │   ┌─────────────────┐                                          │      │
+│   │   │  OPTIMALES DECK │                                          │      │
+│   │   │  (aus meiner    │                                          │      │
+│   │   │   Collection!)  │                                          │      │
+│   │   └─────────────────┘                                          │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ──► Das ist der KERN-VALUE: "Bestes Deck aus MEINEN Karten"              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    AI MUSS VERSTEHEN:                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   1. ABILITIES                                                              │
+│      ┌──────────────────────────────────────────────────────────────┐      │
+│      │ • Keywords (Flying, Trample, Haste, etc.)                    │      │
+│      │ • Activated Abilities (Tap: Draw a card)                     │      │
+│      │ • Triggered Abilities (When X enters, do Y)                  │      │
+│      │ • Static Abilities (All creatures get +1/+1)                 │      │
+│      └──────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   2. SYNERGIEN                                                              │
+│      ┌──────────────────────────────────────────────────────────────┐      │
+│      │ • Tribal (Elves boost other Elves)                           │      │
+│      │ • Mechanics (Tokens + Sacrifice outlets)                     │      │
+│      │ • Combos (Infinite loops, win conditions)                    │      │
+│      │ • Commander synergy (Color identity, theme)                  │      │
+│      └──────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   3. DECK-FUNKTIONEN (was jedes Deck braucht)                              │
+│      ┌──────────────────────────────────────────────────────────────┐      │
+│      │ • Mana Ramp         │ Schneller mehr Mana                   │      │
+│      │ • Card Draw         │ Karten nachziehen                     │      │
+│      │ • Removal           │ Gegner-Karten entfernen               │      │
+│      │ • Tutors            │ Library durchsuchen                   │      │
+│      │ • Win Conditions    │ Wie gewinne ich?                      │      │
+│      │ • Protection        │ Eigene Karten schützen                │      │
+│      └──────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   4. REGELN & LEGALITÄT                                                    │
+│      ┌──────────────────────────────────────────────────────────────┐      │
+│      │ • Format-Regeln (Commander: 100 Karten, Singleton)           │      │
+│      │ • Banned Lists (pro Format unterschiedlich)                  │      │
+│      │ • Color Identity (Commander bestimmt erlaubte Farben)        │      │
+│      └──────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
 ### Bestätigte Annahmen
 - [x] Deck-Building ist das primäre Ziel (nicht Collection Management)
 - [x] Collection-Updates sind ein notwendiger aber sekundärer Workflow
@@ -278,6 +374,10 @@
 - [ ] **Commander-Fokus** - Paper hauptsächlich Commander/EDH Format
 - [ ] **F2P-Optimierung** - Deck-Building unter Budget-Constraints besonders wichtig
 - [ ] **Format-Edukation** - Nutzer lernt Formate noch kennen
+- [ ] **AI Deck-Builder (KERN!)** - Optimales Deck aus Collection mit AI-Unterstützung
+- [ ] **Synergie-Erkennung** - AI muss Karten-Synergien verstehen
+- [ ] **Funktions-Kategorien** - Ramp, Draw, Removal, Tutors, Protection, Win-Cons
+- [ ] **Commander/Combo als Startpunkt** - Deck um Schlüsselkarte(n) herum bauen
 
 ### Offene Fragen (zu klären)
 - [x] Wie werden Paper Cards heute erfasst? → Gar nicht, nur in Deckboxen

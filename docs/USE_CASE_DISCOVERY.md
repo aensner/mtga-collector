@@ -109,6 +109,13 @@
 > Internet heruntergeladen und angepasst. In der Verwaltung wäre es wichtig die
 > Originale von den Proxies unterscheiden zu können."
 
+**F5: Welche Formate spielst du aktiv?**
+
+> "Ich kenne mich mit den Formaten noch nicht gut aus. Ich glaube Standard und
+> Historic. Irgendein Draft-Format habe ich auch schon ausprobiert. Im Moment
+> versuche ich in Arena noch darauf zu verzichten Geld auszugeben. Das schränkt
+> die Formate schon etwas ein. Das muss aber nicht so bleiben."
+
 ---
 
 ## 5. Erkenntnisse & Hypothesen
@@ -220,9 +227,42 @@
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    KERN-ERKENNTNIS #6                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   FREE-TO-PLAY Constraint in MTG Arena                                      │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Aktueller Status:                                              │      │
+│   │  • Kein Geld ausgeben in Arena (F2P)                           │      │
+│   │  • Schränkt verfügbare Karten/Formate ein                      │      │
+│   │  • Könnte sich in Zukunft ändern                               │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   Formate (Arena):                                                          │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ✓ Standard    │ Hauptformat, rotiert jährlich                 │      │
+│   │  ✓ Historic    │ Eternal Format, alle Arena-Karten             │      │
+│   │  ? Draft       │ Limited Format, ausprobiert                   │      │
+│   │  ? Explorer    │ Pioneer-Äquivalent                            │      │
+│   │  ? Brawl       │ Commander-ähnlich (60 Karten)                 │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ──► F2P macht "optimale Decks aus Collection" NOCH wichtiger!            │
+│       (Begrenzte Wildcards = jede Karte zählt)                             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
 ### Bestätigte Annahmen
 - [x] Deck-Building ist das primäre Ziel (nicht Collection Management)
 - [x] Collection-Updates sind ein notwendiger aber sekundärer Workflow
+
+### Widerlegte/Angepasste Annahmen
+- [ ] **"Competitive Player" = 80%** - Trifft nicht zu für diesen Nutzer
+  - Eher: Lernender Spieler, der optimieren will mit begrenzten Ressourcen
 
 ### Neue Erkenntnisse (Scope-Erweiterung!)
 - [ ] **Paper Cards Support** - Aktuell nicht unterstützt, aber gewünscht
@@ -231,10 +271,12 @@
 - [ ] **Proxy-Tracking** - Originale vs. Proxies unterscheiden (für Turnierfähigkeit)
 - [ ] **Decklist-Import** - Netdecks laden und anpassen (EDHREC, Moxfield, etc.)
 - [ ] **Commander-Fokus** - Paper hauptsächlich Commander/EDH Format
+- [ ] **F2P-Optimierung** - Deck-Building unter Budget-Constraints besonders wichtig
+- [ ] **Format-Edukation** - Nutzer lernt Formate noch kennen
 
 ### Offene Fragen (zu klären)
 - [x] Wie werden Paper Cards heute erfasst? → Gar nicht, nur in Deckboxen
-- [ ] Welche Formate sind relevant? (Standard, Historic, Pioneer, Modern, etc.)
+- [x] Welche Formate sind relevant? → Standard, Historic (Draft ausprobiert)
 - [ ] Wie wichtig ist Paper vs. Digital? (50/50? 80/20?)
 - [ ] Proxy-Druck Workflow: Wie werden Proxies erstellt? Welche Tools?
 

@@ -100,6 +100,15 @@
 > Neue Karten kommen hinzu und gewisse werden entweder generell oder nur in
 > spezifischen Formaten gebanned."
 
+**F4: Wie verwaltest du heute deine Paper Cards?**
+
+> "Sie sind noch nicht verwaltet. Ich habe Deckboxen in denen sie zu Decks
+> zusammengestellt sind. Ich spiele physisch hauptsächlich das Commander Format.
+> Dazu habe ich ein paar Precon Sets gekauft. In der Zwischenzeit habe ich
+> angefangen Proxykarten zu drucken. Dazu habe ich teilweise Decklists aus dem
+> Internet heruntergeladen und angepasst. In der Verwaltung wäre es wichtig die
+> Originale von den Proxies unterscheiden zu können."
+
 ---
 
 ## 5. Erkenntnisse & Hypothesen
@@ -162,6 +171,55 @@
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    KERN-ERKENNTNIS #4                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Paper Cards: ORIGINALE vs. PROXIES unterscheiden                         │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │                     Paper Collection                            │      │
+│   │   ┌───────────────────┐     ┌───────────────────┐              │      │
+│   │   │    ORIGINALE      │     │     PROXIES       │              │      │
+│   │   │                   │     │                   │              │      │
+│   │   │ • Gekaufte Karten │     │ • Gedruckte       │              │      │
+│   │   │ • Precon Sets     │     │   Kopien          │              │      │
+│   │   │ • Trade/Tausch    │     │ • Für Casual Play │              │      │
+│   │   │                   │     │ • Deck-Testing    │              │      │
+│   │   │ ► Turnier-legal   │     │ ► NICHT turnier-  │              │      │
+│   │   │                   │     │   legal           │              │      │
+│   │   └───────────────────┘     └───────────────────┘              │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ──► Wichtig für: Turnierfähigkeit, Sammlungswert, Kaufplanung            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    KERN-ERKENNTNIS #5                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Aktueller Paper-Workflow: DECK-ZENTRIERT (nicht Card-zentriert)          │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  1. Decklist aus Internet laden (z.B. EDHREC, Moxfield)        │      │
+│   │                         ▼                                       │      │
+│   │  2. Decklist anpassen (Budget, eigene Ideen)                   │      │
+│   │                         ▼                                       │      │
+│   │  3. Fehlende Karten als Proxies drucken                        │      │
+│   │                         ▼                                       │      │
+│   │  4. Deck in Deckbox aufbewahren                                │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   Paper-Format: Commander (EDH) - 100 Karten Singleton                     │
+│   Quelle: Precon Sets + angepasste Netdecks                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
 ### Bestätigte Annahmen
 - [x] Deck-Building ist das primäre Ziel (nicht Collection Management)
 - [x] Collection-Updates sind ein notwendiger aber sekundärer Workflow
@@ -170,11 +228,15 @@
 - [ ] **Paper Cards Support** - Aktuell nicht unterstützt, aber gewünscht
 - [ ] **Format-Legalität** - Bannings müssen berücksichtigt werden
 - [ ] **Dynamische Updates** - Collection ändert sich regelmäßig
+- [ ] **Proxy-Tracking** - Originale vs. Proxies unterscheiden (für Turnierfähigkeit)
+- [ ] **Decklist-Import** - Netdecks laden und anpassen (EDHREC, Moxfield, etc.)
+- [ ] **Commander-Fokus** - Paper hauptsächlich Commander/EDH Format
 
 ### Offene Fragen (zu klären)
-- [ ] Wie werden Paper Cards heute erfasst? (Manuell? Andere App?)
+- [x] Wie werden Paper Cards heute erfasst? → Gar nicht, nur in Deckboxen
 - [ ] Welche Formate sind relevant? (Standard, Historic, Pioneer, Modern, etc.)
 - [ ] Wie wichtig ist Paper vs. Digital? (50/50? 80/20?)
+- [ ] Proxy-Druck Workflow: Wie werden Proxies erstellt? Welche Tools?
 
 ---
 

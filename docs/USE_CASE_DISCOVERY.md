@@ -130,6 +130,11 @@
 > Dazu müssen die Abilities, die Synergien aller Karten in der Collection sowie
 > die aktuellen Regeln verstanden werden."
 
+**F8: Welche anderen Tools oder Websites nutzt du für MTG?**
+
+> "Ich verwende moxfield.com und archidekt.com um bestehende Decks abzurufen.
+> Die URLs kommen meist von YouTube Videos, respektive der Video-Beschreibung."
+
 ---
 
 ## 5. Erkenntnisse & Hypothesen
@@ -378,6 +383,42 @@
 - [ ] **Synergie-Erkennung** - AI muss Karten-Synergien verstehen
 - [ ] **Funktions-Kategorien** - Ramp, Draw, Removal, Tutors, Protection, Win-Cons
 - [ ] **Commander/Combo als Startpunkt** - Deck um Schlüsselkarte(n) herum bauen
+- [ ] **Decklist-Import von URLs** - Moxfield, Archidekt URLs direkt importieren
+- [ ] **YouTube als Discovery** - Deck-Ideen kommen oft von Content Creators
+
+### Tool-Landschaft (Aktuell genutzt)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    AKTUELLE TOOL-LANDSCHAFT                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   DISCOVERY (Deck-Ideen finden)                                            │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  YouTube Videos                                                 │      │
+│   │  └──► Deck-URLs in Video-Beschreibung                          │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   DECK-HOSTING (Decklists abrufen)                                         │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  • moxfield.com    │ Beliebte Deck-Sharing Plattform           │      │
+│   │  • archidekt.com   │ Alternative Deck-Sharing Plattform        │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   GAP: Kein Tool verbindet Decklist mit MEINER Collection!                 │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Aktuell:                                                       │      │
+│   │  • Manueller Abgleich: Was habe ich? Was fehlt?                │      │
+│   │  • Kein automatischer Ownership-Check                          │      │
+│   │  • Kein "Was kann ich mit meinen Karten bauen?"                │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ──► OPPORTUNITY: Import + Ownership-Abgleich + Substitution              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Offene Fragen (zu klären)
 - [x] Wie werden Paper Cards heute erfasst? → Gar nicht, nur in Deckboxen

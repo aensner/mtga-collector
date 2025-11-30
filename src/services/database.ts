@@ -1,8 +1,6 @@
 import { supabase } from './supabase';
-import type { CardData, CalibrationSettings, DbCalibrationSettings } from '../types';
-
-// Import DbCollectionCard from types
-import type { DbCollectionCard } from '../types';
+import type { CardData, CalibrationSettings, DbCalibrationSettings, DbCollectionCard } from '../types';
+import { dbLogger } from './logger';
 
 /**
  * Load user's collection from Supabase
@@ -12,7 +10,7 @@ export const loadCollection = async (): Promise<CardData[]> => {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      console.warn('No user logged in, cannot load collection');
+      dbLogger.warn('No user logged in, cannot load collection');
       return [];
     }
 
@@ -23,14 +21,14 @@ export const loadCollection = async (): Promise<CardData[]> => {
       .order('created_at', { ascending: true });
 
     if (error) {
-      console.error('Error loading collection:', error);
+      dbLogger.error('Error loading collection', error);
       throw error;
     }
 
     // Convert database format to CardData format
     return (data || []).map(dbCardToCardData);
   } catch (error) {
-    console.error('Failed to load collection:', error);
+    dbLogger.error('Failed to load collection', error);
     return [];
   }
 };
@@ -43,7 +41,7 @@ export const saveCards = async (cards: CardData[]): Promise<void> => {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      console.warn('No user logged in, cannot save cards');
+      dbLogger.warn('No user logged in, cannot save cards');
       throw new Error('User not authenticated');
     }
 
@@ -59,7 +57,7 @@ export const saveCards = async (cards: CardData[]): Promise<void> => {
       });
 
     if (error) {
-      console.error('Error saving cards:', error);
+      dbLogger.error('Error saving cards', error);
       throw error;
     }
 
@@ -73,9 +71,9 @@ export const saveCards = async (cards: CardData[]): Promise<void> => {
         onConflict: 'user_id'
       });
 
-    console.log(`✅ Successfully saved ${cards.length} cards to collection`);
+    dbLogger.info(`Successfully saved ${cards.length} cards to collection`);
   } catch (error) {
-    console.error('Failed to save cards:', error);
+    dbLogger.error('Failed to save cards', error);
     throw error;
   }
 };
@@ -88,7 +86,7 @@ export const resetCollection = async (): Promise<void> => {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      console.warn('No user logged in, cannot reset collection');
+      dbLogger.warn('No user logged in, cannot reset collection');
       throw new Error('User not authenticated');
     }
 
@@ -98,13 +96,13 @@ export const resetCollection = async (): Promise<void> => {
       .eq('user_id', user.id);
 
     if (error) {
-      console.error('Error resetting collection:', error);
+      dbLogger.error('Error resetting collection', error);
       throw error;
     }
 
-    console.log('✅ Collection reset successfully');
+    dbLogger.info('Collection reset successfully');
   } catch (error) {
-    console.error('Failed to reset collection:', error);
+    dbLogger.error('Failed to reset collection', error);
     throw error;
   }
 };
@@ -126,7 +124,7 @@ export const saveScanHistory = async (cardsScanned: number, pagesProcessed: numb
         pages_processed: pagesProcessed
       });
   } catch (error) {
-    console.error('Failed to save scan history:', error);
+    dbLogger.warn('Failed to save scan history', error);
     // Don't throw - this is optional analytics
   }
 };

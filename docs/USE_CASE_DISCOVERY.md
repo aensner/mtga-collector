@@ -781,11 +781,73 @@
 > "Laufen müssten auch Änderungen der Banlists nötige Anpassungen an Decks finden
 > und Alternativen zu Karten finden, die entfernt werden müssen."
 
+**F15: Was möchtest du in deiner Collection suchen und filtern können?**
+
+> Bestätigt:
+> - Alle Karten eines Typs (z.B. "alle Elfen")
+> - Karten mit bestimmten Abilities (z.B. "alle mit Card Draw")
+> - Filter nach Farbe, Manakosten, Seltenheit
+> - Karten mit Duplikaten (mehr als Playset)
+> - Karten die in keinem Deck verwendet werden
+> - **Original vs. Proxy** (explizit genannt!)
+
+**Weitere Suchkriterien-Vorschläge (zu validieren):**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    COLLECTION BROWSE & SEARCH                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   BESTÄTIGT VOM USER:                                                       │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ✓ Kreaturentyp (Tribal)    "Alle Elfen", "Alle Goblins"       │      │
+│   │  ✓ Abilities/Keywords       "Card Draw", "Flying", "Deathtouch"│      │
+│   │  ✓ Farbe                    Mono-Color, Multi-Color, Colorless │      │
+│   │  ✓ Manakosten (CMC)         1-Drop, 2-Drop, etc.               │      │
+│   │  ✓ Seltenheit               Common, Uncommon, Rare, Mythic     │      │
+│   │  ✓ Duplikate                >4 Kopien (Trade-Kandidaten)       │      │
+│   │  ✓ Ungenutzte Karten        In keinem Deck verwendet           │      │
+│   │  ✓ Original / Proxy         Nur echte oder nur Proxies         │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   WEITERE VORSCHLÄGE:                                                       │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ? Set/Edition              "Nur Karten aus Phyrexia Set"      │      │
+│   │  ? Künstler                 Fan eines bestimmten Artists       │      │
+│   │  ? Arena / Paper            Wo besitze ich diese Karte?        │      │
+│   │  ? Format-Legal             "Zeige nur Standard-legale Karten" │      │
+│   │  ? Kürzlich hinzugefügt     "Letzte 7 Tage / Letzter Booster" │      │
+│   │  ? Preis-Range              "Karten über €5 Wert" (Trade!)     │      │
+│   │  ? Power/Toughness          "Alle 4/4 Kreaturen"               │      │
+│   │  ? Kartentyp                Instant, Sorcery, Enchantment...   │      │
+│   │  ? Textsuche                Freitext im Kartentext             │      │
+│   │  ? Combo-Partner            "Karten die mit X gut sind"        │      │
+│   │  ? Favoriten/Tags           Eigene Markierungen                │      │
+│   │  ? Deck-Potenzial           "Fehlt nur 1 Karte für Combo X"   │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   SORTIERUNG:                                                               │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ? Alphabetisch             A-Z, Z-A                           │      │
+│   │  ? Nach CMC                 Günstig → Teuer                    │      │
+│   │  ? Nach Anzahl              Viele → Wenige                     │      │
+│   │  ? Nach Preis/Wert          Wertvollste zuerst                 │      │
+│   │  ? Nach Hinzufügedatum      Neueste zuerst                     │      │
+│   │  ? Nach Set-Nummer          Collector's Number                 │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ANSICHTEN:                                                                │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ? Karten-Grid              Bilder wie in Arena                │      │
+│   │  ? Liste/Tabelle            Kompakt, viele auf einmal          │      │
+│   │  ? Nach Set gruppiert       Expansion-Übersicht                │      │
+│   │  ? Nach Farbe gruppiert     Color Wheel Ansicht                │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
 **Offene Themen für nächste Session:**
-- [ ] **Collection-Erstellung**: Wie werden Karten initial erfasst?
-- [ ] **Collection-Aktualisierung**: Wie werden neue Karten hinzugefügt?
-- [ ] **Arena-Import**: Log-Parsing, Screenshot-OCR, manuell?
-- [ ] **Paper-Import**: Wie werden physische Karten erfasst?
 - [ ] **Priorisierung**: MVP-Scope festlegen
 - [ ] **User Story Mapping**: Detaillierte Stories erstellen
 

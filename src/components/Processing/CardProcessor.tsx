@@ -24,8 +24,8 @@ interface ProcessingProgress {
   totalBatches: number;
   currentPage?: number;
   totalPages?: number;
-  overallCardsProcessed?: number; // Total cards processed across all pages
-  overallTotalCards?: number; // Total cards across all pages
+  overallCardsProcessed?: number;
+  overallTotalCards?: number;
 }
 
 export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessingComplete }) => {
@@ -37,19 +37,16 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
   const [processingCanvas, setProcessingCanvas] = useState<string | null>(null);
   const [processingProgress, setProcessingProgress] = useState<ProcessingProgress | null>(null);
 
-  // Load calibration from localStorage or use defaults (fallback)
   const loadCalibration = (key: string, defaultValue: any) => {
     const saved = localStorage.getItem(key);
     return saved ? JSON.parse(saved) : defaultValue;
   };
 
-  // OCR region calibration parameters
   const [ocrLeft, setOcrLeft] = useState(() => loadCalibration('ocrLeft', 0.05));
   const [ocrTop, setOcrTop] = useState(() => loadCalibration('ocrTop', 0.043));
   const [ocrWidth, setOcrWidth] = useState(() => loadCalibration('ocrWidth', 0.80));
   const [ocrHeight, setOcrHeight] = useState(() => loadCalibration('ocrHeight', 0.075));
 
-  // Grid calibration parameters (from GridCalibrator)
   const [gridParams, setGridParams] = useState(() =>
     loadCalibration('gridParams', {
       startX: 0.027,
@@ -61,14 +58,11 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     })
   );
 
-  // Quantity calibration parameters
   const [quantityParams, setQuantityParams] = useState(() => {
     const saved = localStorage.getItem('quantityParams');
-
     if (saved) {
       try {
         const parsedSaved = JSON.parse(saved);
-        // Validate that saved params have the correct structure
         if ('saturationThreshold' in parsedSaved && 'fillRatioThreshold' in parsedSaved) {
           return parsedSaved;
         }
@@ -76,8 +70,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         console.error('Failed to parse saved quantity params:', e);
       }
     }
-
-    // Use calibrated defaults
     const newDefaults = {
       offsetX: 0.28,
       offsetY: 0.08,
@@ -91,21 +83,15 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     return newDefaults;
   });
 
-  // Preview canvas for real-time visualization
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [previewImage, setPreviewImage] = useState<HTMLImageElement | null>(null);
-
-  // Reference to progress indicator for auto-scrolling
   const progressIndicatorRef = useRef<HTMLDivElement>(null);
 
-  // Load calibration from database on mount
   useEffect(() => {
     const loadFromDatabase = async () => {
       try {
         const settings = await loadCalibrationSettings();
         if (settings) {
-          console.log('📐 Loaded calibration settings from database');
-          // Update all calibration states
           setOcrLeft(settings.ocrLeft);
           setOcrTop(settings.ocrTop);
           setOcrWidth(settings.ocrWidth);
@@ -127,62 +113,41 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
             saturationThreshold: settings.saturationThreshold,
             fillRatioThreshold: settings.fillRatioThreshold,
           });
-        } else {
-          console.log('📐 No saved calibration found, using defaults');
         }
       } catch (error) {
         console.error('Failed to load calibration from database:', error);
       }
     };
-
     loadFromDatabase();
-  }, []); // Only run once on mount
+  }, []);
 
-  // Update preview when sliders change
   useEffect(() => {
     if (!debugMode || !previewImage || !previewCanvasRef.current) return;
-
     const canvas = previewCanvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    // Set canvas size to match image
     canvas.width = previewImage.width;
     canvas.height = previewImage.height;
-
-    // Draw the image
     ctx.drawImage(previewImage, 0, 0);
-
-    // Detect grid and draw overlay with custom parameters
     const grid = detectCardGrid(previewImage, gridParams);
-
-    // Draw only first few cards to avoid clutter
-    const cardsToShow = Math.min(grid.length, 12); // First row
-
+    const cardsToShow = Math.min(grid.length, 12);
     for (let i = 0; i < cardsToShow; i++) {
       const cell = grid[i];
-
-      // Draw full card bbox in blue
       ctx.strokeStyle = 'rgba(0, 100, 255, 0.8)';
       ctx.lineWidth = 2;
       ctx.strokeRect(cell.bbox.x, cell.bbox.y, cell.bbox.width, cell.bbox.height);
-
-      // Draw OCR name region in red
       const nameRegion = {
         left: cell.bbox.x + cell.bbox.width * ocrLeft,
         top: cell.bbox.y + cell.bbox.height * ocrTop,
         width: cell.bbox.width * ocrWidth,
         height: cell.bbox.height * ocrHeight,
       };
-
       ctx.strokeStyle = 'rgba(255, 0, 0, 0.9)';
       ctx.lineWidth = 3;
       ctx.strokeRect(nameRegion.left, nameRegion.top, nameRegion.width, nameRegion.height);
     }
   }, [debugMode, ocrLeft, ocrTop, ocrWidth, ocrHeight, previewImage, gridParams]);
 
-  // Save calibration values to database whenever they change
-  // Debounce to avoid excessive database calls
   useEffect(() => {
     const saveTimer = setTimeout(async () => {
       const settings: CalibrationSettings = {
@@ -204,10 +169,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         saturationThreshold: quantityParams.saturationThreshold,
         fillRatioThreshold: quantityParams.fillRatioThreshold,
       };
-
       try {
         await saveCalibrationSettings(settings);
-        // Also save to localStorage as backup
         localStorage.setItem('ocrLeft', JSON.stringify(ocrLeft));
         localStorage.setItem('ocrTop', JSON.stringify(ocrTop));
         localStorage.setItem('ocrWidth', JSON.stringify(ocrWidth));
@@ -217,12 +180,10 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       } catch (error) {
         console.error('Failed to save calibration to database:', error);
       }
-    }, 1000); // Wait 1 second after last change before saving
-
+    }, 1000);
     return () => clearTimeout(saveTimer);
   }, [ocrLeft, ocrTop, ocrWidth, ocrHeight, gridParams, quantityParams]);
 
-  // Load preview image when first image is uploaded
   useEffect(() => {
     if (images.length > 0 && !previewImage) {
       const img = new Image();
@@ -231,14 +192,12 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     }
   }, [images, previewImage]);
 
-  // Auto-scroll to progress indicator when it appears
   useEffect(() => {
     if (processingProgress && progressIndicatorRef.current) {
       progressIndicatorRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }, [processingProgress]);
 
-  // Function to draw card status overlays on canvas
   const drawCardStatusOverlay = (
     img: HTMLImageElement,
     grid: any[],
@@ -247,56 +206,42 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return '';
-
     canvas.width = img.width;
     canvas.height = img.height;
-
-    // Draw original image
     ctx.drawImage(img, 0, 0);
-
-    // Draw status overlays for each card
     grid.forEach((cell, idx) => {
       const status = cardStatuses.get(idx) || 'pending';
-
-      // Define colors based on status
       let borderColor = '';
       let fillColor = '';
       switch (status) {
         case 'processing':
-          borderColor = 'rgba(255, 215, 0, 0.9)'; // Yellow/Gold
+          borderColor = 'rgba(255, 215, 0, 0.9)';
           fillColor = 'rgba(255, 215, 0, 0.15)';
           break;
         case 'success':
-          borderColor = 'rgba(0, 255, 0, 0.7)'; // Green
+          borderColor = 'rgba(0, 255, 0, 0.7)';
           fillColor = 'rgba(0, 255, 0, 0.1)';
           break;
         case 'error':
-          borderColor = 'rgba(255, 0, 0, 0.8)'; // Red
+          borderColor = 'rgba(255, 0, 0, 0.8)';
           fillColor = 'rgba(255, 0, 0, 0.15)';
           break;
         case 'empty':
-          borderColor = 'rgba(128, 128, 128, 0.6)'; // Gray
+          borderColor = 'rgba(128, 128, 128, 0.6)';
           fillColor = 'rgba(128, 128, 128, 0.1)';
           break;
         default:
-          return; // Don't draw anything for 'pending'
+          return;
       }
-
-      // Draw filled background
       ctx.fillStyle = fillColor;
       ctx.fillRect(cell.bbox.x, cell.bbox.y, cell.bbox.width, cell.bbox.height);
-
-      // Draw border
       ctx.strokeStyle = borderColor;
       ctx.lineWidth = 4;
       ctx.strokeRect(cell.bbox.x, cell.bbox.y, cell.bbox.width, cell.bbox.height);
-
-      // Draw card number
       ctx.fillStyle = borderColor;
       ctx.font = 'bold 20px Arial';
       ctx.fillText(`${idx + 1}`, cell.bbox.x + 8, cell.bbox.y + 25);
     });
-
     return canvas.toDataURL();
   };
 
@@ -307,11 +252,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     setProgress(0);
     setProcessingCanvas(null);
 
-    // Calculate estimated total cards (36 per page is typical)
     const estimatedCardsPerPage = 36;
     const estimatedTotalCards = images.length * estimatedCardsPerPage;
 
-    // Helper function to calculate actual total cards dynamically
     const calculateTotalCards = (results: ProcessingResult[], currentGridLength: number, remainingImages: number) => {
       return results.reduce((sum, r) => sum + r.totalCards, 0) + currentGridLength + remainingImages * estimatedCardsPerPage;
     };
@@ -332,19 +275,17 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     const startTime = Date.now();
 
     try {
-      // Initialize OCR
       setCurrentStep('Initializing OCR...');
       await initializeOCR();
 
       const results: ProcessingResult[] = [];
-      let overallCardsProcessed = 0; // Track cards processed across all pages
+      let overallCardsProcessed = 0;
 
       for (let imgIndex = 0; imgIndex < images.length; imgIndex++) {
         const image = images[imgIndex];
         const pageNumber = imgIndex + 1;
         setCurrentStep(`Processing image ${pageNumber}/${images.length}...`);
 
-        // Load image
         const img = new Image();
         await new Promise((resolve, reject) => {
           img.onload = resolve;
@@ -352,14 +293,10 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           img.src = image.preview;
         });
 
-        // Preprocess and detect grid with custom parameters
         setCurrentStep(`Detecting card grid in image ${imgIndex + 1}...`);
         const canvas = preprocessImage(img);
         const grid = detectCardGrid(img, gridParams);
 
-        // Grid detected
-
-        // Update progress with actual grid size
         setProcessingProgress({
           currentCard: 0,
           totalCards: grid.length,
@@ -374,8 +311,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
         });
 
-        // Create a separate canvas from the ORIGINAL image for quantity detection
-        // (preprocessing changes pixel values which breaks quantity detection)
         const originalCanvas = document.createElement('canvas');
         const originalCtx = originalCanvas.getContext('2d', { willReadFrequently: true });
         if (!originalCtx) {
@@ -385,38 +320,29 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         originalCanvas.height = img.height;
         originalCtx.drawImage(img, 0, 0);
 
-        // Extract cards using parallel processing
         setCurrentStep(`Extracting ${grid.length} cards with 4 parallel workers...`);
         const cards: CardData[] = [];
         const ocrStartTime = Date.now();
-
-        // Track card statuses for visual overlay
         const cardStatuses = new Map<number, CardStatus>();
 
-        // Reset counters before processing
         (window as any)._cardCounter = 0;
         (window as any)._emptyCheckCounter = 0;
 
-        // Process cards in batches of 4 (parallel)
         const BATCH_SIZE = 4;
         const batches = [];
         for (let i = 0; i < grid.length; i += BATCH_SIZE) {
           batches.push(grid.slice(i, i + BATCH_SIZE));
         }
 
-        // Processing cards in batches
-
         for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
           const batch = batches[batchIdx];
           const batchStartTime = Date.now();
 
-          // Mark current batch as processing (yellow)
           for (let cellIdx = 0; cellIdx < batch.length; cellIdx++) {
             const cardIndex = batchIdx * BATCH_SIZE + cellIdx;
             cardStatuses.set(cardIndex, 'processing');
           }
 
-          // Update progress indicator for first card in batch
           const firstCardIndex = batchIdx * BATCH_SIZE;
           const firstCell = batch[0];
           setProcessingProgress({
@@ -433,27 +359,22 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
             overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
           });
 
-          // Update canvas to show processing status
           if (debugMode) {
             const overlayCanvas = drawCardStatusOverlay(img, grid, cardStatuses);
             setProcessingCanvas(overlayCanvas);
           }
 
-          // Process all cards in batch in parallel
           const batchPromises = batch.map(async (cell, cellIdx) => {
             const cardIndex = batchIdx * BATCH_SIZE + cellIdx;
             const cardStartTime = Date.now();
 
             try {
-              // Check if slot is empty BEFORE running OCR
               const isEmpty = isCardSlotEmpty(originalCanvas, cell.bbox);
-
               if (isEmpty) {
                 const cardTime = Date.now() - cardStartTime;
                 return { empty: true, cardTime };
               }
 
-              // OCR card name with custom region parameters (use preprocessed canvas for OCR)
               const { text, confidence } = await recognizeCardName(
                 canvas,
                 cell.bbox,
@@ -461,12 +382,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
                 { left: ocrLeft, top: ocrTop, width: ocrWidth, height: ocrHeight }
               );
 
-              // Detect quantity with custom parameters (use ORIGINAL canvas for quantity)
               const quantity = detectCardQuantity(originalCanvas, cell.bbox, quantityParams);
-
               const cardTime = Date.now() - cardStartTime;
 
-              // Calculate OCR region coordinates (always, even if text is empty)
               const ocrRegion = {
                 x: Math.round(cell.bbox.x + cell.bbox.width * ocrLeft),
                 y: Math.round(cell.bbox.y + cell.bbox.height * ocrTop),
@@ -474,7 +392,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
                 height: Math.round(cell.bbox.height * ocrHeight),
               };
 
-              // Extract OCR region image (always, for debugging)
               const ocrCanvas = document.createElement('canvas');
               ocrCanvas.width = ocrRegion.width;
               ocrCanvas.height = ocrRegion.height;
@@ -487,9 +404,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
                 );
               }
               const ocrRegionImage = ocrCanvas.toDataURL('image/png');
-
-              // If OCR returned empty text, still create a card entry with a placeholder
-              // This allows it to appear in "Unmatched Cards" for manual correction
               const cardName = text.trim().length > 0 ? text : `[OCR Failed - Position ${cell.x},${cell.y}]`;
 
               return {
@@ -511,11 +425,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
             }
           });
 
-          // Wait for all cards in batch to complete
           const batchResults = await Promise.all(batchPromises);
           const batchTime = Date.now() - batchStartTime;
 
-          // Update card statuses based on results
           let lastSuccessCard: any = null;
           batchResults.forEach((result: any, idx) => {
             const cardIndex = batchIdx * BATCH_SIZE + idx;
@@ -523,8 +435,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
               cards.push(result);
               cardStatuses.set(cardIndex, 'success');
               lastSuccessCard = result;
-
-              // Card processed successfully
             } else if (result && result.empty) {
               cardStatuses.set(cardIndex, 'empty');
             } else if (result && result.error) {
@@ -532,7 +442,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
             }
           });
 
-          // Update progress with last successful card from batch
           if (lastSuccessCard) {
             const currentCardInPage = batchIdx * BATCH_SIZE + batchResults.length;
             setProcessingProgress({
@@ -552,13 +461,11 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
             });
           }
 
-          // Update canvas to show completed batch
           if (debugMode) {
             const overlayCanvas = drawCardStatusOverlay(img, grid, cardStatuses);
             setProcessingCanvas(overlayCanvas);
           }
 
-          // Update progress
           const processed = Math.min((batchIdx + 1) * BATCH_SIZE, grid.length);
           setProgress(Math.round((processed / grid.length) * 50));
           setCurrentStep(`Processed batch ${batchIdx + 1}/${batches.length} (${batchTime}ms) - ${cards.length} cards found`);
@@ -569,11 +476,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
         setProgress(75);
 
-        // Validate with Scryfall
         const scryfallStartTime = Date.now();
         setCurrentStep(`Validating ${cards.length} cards with Scryfall...`);
 
-        // Update progress to Scryfall phase
         setProcessingProgress({
           currentCard: cards.length,
           totalCards: grid.length,
@@ -597,11 +502,9 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         cards.forEach((card, i) => {
           if (scryfallResults[i]) {
             card.scryfallMatch = scryfallResults[i] || undefined;
-            // Use Scryfall name as final correction if found
             card.correctedName = scryfallResults[i]!.name;
             scryfallMatches++;
           } else {
-            // Mark unmatched cards
             card.scryfallMatch = undefined;
             unmatchedCards.push(card.kartenname);
           }
@@ -611,7 +514,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         console.log(`Scryfall validation completed in ${scryfallTime}s - ${scryfallMatches}/${cards.length} matches`);
 
         if (unmatchedCards.length > 0) {
-          console.warn(`⚠️ ${unmatchedCards.length} cards not found in Scryfall:`, unmatchedCards);
+          console.warn(`${unmatchedCards.length} cards not found in Scryfall:`, unmatchedCards);
         }
 
         setProgress(100);
@@ -620,10 +523,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         console.log(`Processing complete in ${totalTime}s - ${cards.length} cards extracted`);
         setCurrentStep(`Complete! Processed ${cards.length} cards in ${totalTime}s`);
 
-        // Update overall cards processed counter
         overallCardsProcessed += grid.length;
 
-        // Update progress to complete
         setProcessingProgress({
           currentCard: cards.length,
           totalCards: grid.length,
@@ -638,7 +539,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
         });
 
-        // Save debug canvas if in debug mode
         if (debugMode) {
           setDebugCanvas(canvas.toDataURL());
         }
@@ -651,7 +551,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       }
 
       console.log('Processing complete. Total results:', results);
-
       onProcessingComplete(results);
     } catch (error) {
       console.error('Error processing images:', error);
@@ -661,268 +560,239 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       setProcessing(false);
       setProgress(0);
       setCurrentStep('');
-      // Keep progress visible for a moment, then clear it
       setTimeout(() => setProcessingProgress(null), 2000);
     }
   };
 
+  const getPhaseColor = (phase: string) => {
+    switch (phase) {
+      case 'OCR': return 'var(--accent-primary)';
+      case 'Card Validation': return 'var(--accent-secondary)';
+      case 'Complete': return 'var(--success)';
+      default: return 'var(--text-muted)';
+    }
+  };
+
   return (
-    <div className="mt-6">
-      <div className="mb-4">
-        <label className="flex items-center space-x-2 text-sm text-gray-300">
+    <div className="space-y-4">
+      {/* Debug Mode Toggle */}
+      <label className="flex items-center gap-3 cursor-pointer">
+        <div className="relative">
           <input
             type="checkbox"
             checked={debugMode}
             onChange={(e) => setDebugMode(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
+            className="sr-only peer"
           />
-          <span>Debug Mode (visualize OCR regions)</span>
-        </label>
-      </div>
+          <div className="w-10 h-6 rounded-full peer-focus:ring-2 peer-focus:ring-offset-2 transition-colors"
+               style={{
+                 background: debugMode ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                 borderColor: debugMode ? 'var(--accent-primary)' : 'var(--border-primary)',
+                 border: '1px solid'
+               }}>
+            <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full transition-transform bg-white shadow-sm"
+                 style={{ transform: debugMode ? 'translateX(16px)' : 'translateX(0)' }} />
+          </div>
+        </div>
+        <span className="text-small">Debug Mode (visualize OCR regions)</span>
+      </label>
 
+      {/* Debug Calibration Panel */}
       {debugMode && images.length > 0 && (
-        <div className="mb-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
-          <div className="mb-4">
-            <h2 className="text-lg font-bold text-white mb-2">1. Grid Calibration</h2>
-          </div>
-          <GridCalibrator
-            imageUrl={images[0].preview}
-            onGridParamsChange={setGridParams}
-            initialGridParams={gridParams}
-            ocrParams={{
-              left: ocrLeft,
-              top: ocrTop,
-              width: ocrWidth,
-              height: ocrHeight,
-            }}
-          />
-
-          <hr className="my-4 border-gray-600" />
-
-          <div className="mb-4">
-            <h2 className="text-lg font-bold text-white mb-2">2. OCR Name Region</h2>
-          </div>
-          <h3 className="text-sm font-semibold text-white mb-3">OCR Name Region (Red Boxes)</h3>
-          <p className="text-xs text-gray-400 mb-3">
-            Adjust where OCR reads the card names within each card.
-          </p>
-
-          <div className="space-y-3">
+        <div className="card">
+          <div className="card-body space-y-6">
+            {/* Grid Calibration */}
             <div>
-              <label className="text-xs text-gray-400">Left Offset ({(ocrLeft * 100).toFixed(1)}%)</label>
-              <input
-                type="range"
-                min="0"
-                max="0.3"
-                step="0.01"
-                value={ocrLeft}
-                onChange={(e) => setOcrLeft(parseFloat(e.target.value))}
-                className="w-full"
+              <h3 className="heading-sm mb-4">1. Grid Calibration</h3>
+              <GridCalibrator
+                imageUrl={images[0].preview}
+                onGridParamsChange={setGridParams}
+                initialGridParams={gridParams}
+                ocrParams={{ left: ocrLeft, top: ocrTop, width: ocrWidth, height: ocrHeight }}
               />
             </div>
+
+            <hr style={{ borderColor: 'var(--border-primary)' }} />
+
+            {/* OCR Region */}
             <div>
-              <label className="text-xs text-gray-400">Top Offset ({(ocrTop * 100).toFixed(1)}%)</label>
-              <input
-                type="range"
-                min="0"
-                max="0.1"
-                step="0.001"
-                value={ocrTop}
-                onChange={(e) => setOcrTop(parseFloat(e.target.value))}
-                className="w-full"
-              />
+              <h3 className="heading-sm mb-2">2. OCR Name Region</h3>
+              <p className="text-caption mb-4">Adjust where OCR reads the card names within each card.</p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="form-group">
+                  <label className="form-label">Left Offset ({(ocrLeft * 100).toFixed(1)}%)</label>
+                  <input type="range" min="0" max="0.3" step="0.01" value={ocrLeft}
+                         onChange={(e) => setOcrLeft(parseFloat(e.target.value))}
+                         className="w-full accent-[var(--accent-primary)]" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Top Offset ({(ocrTop * 100).toFixed(1)}%)</label>
+                  <input type="range" min="0" max="0.1" step="0.001" value={ocrTop}
+                         onChange={(e) => setOcrTop(parseFloat(e.target.value))}
+                         className="w-full accent-[var(--accent-primary)]" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Width ({(ocrWidth * 100).toFixed(1)}%)</label>
+                  <input type="range" min="0.4" max="0.95" step="0.01" value={ocrWidth}
+                         onChange={(e) => setOcrWidth(parseFloat(e.target.value))}
+                         className="w-full accent-[var(--accent-primary)]" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Height ({(ocrHeight * 100).toFixed(1)}%)</label>
+                  <input type="range" min="0.02" max="0.15" step="0.001" value={ocrHeight}
+                         onChange={(e) => setOcrHeight(parseFloat(e.target.value))}
+                         className="w-full accent-[var(--accent-primary)]" />
+                </div>
+              </div>
             </div>
+
+            <hr style={{ borderColor: 'var(--border-primary)' }} />
+
+            {/* Quantity Detection */}
             <div>
-              <label className="text-xs text-gray-400">Width ({(ocrWidth * 100).toFixed(1)}%)</label>
-              <input
-                type="range"
-                min="0.4"
-                max="0.95"
-                step="0.01"
-                value={ocrWidth}
-                onChange={(e) => setOcrWidth(parseFloat(e.target.value))}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-400">Height ({(ocrHeight * 100).toFixed(1)}%)</label>
-              <input
-                type="range"
-                min="0.02"
-                max="0.15"
-                step="0.001"
-                value={ocrHeight}
-                onChange={(e) => setOcrHeight(parseFloat(e.target.value))}
-                className="w-full"
+              <h3 className="heading-sm mb-4">3. Quantity Detection</h3>
+              <QuantityCalibrator
+                imageUrl={images[0].preview}
+                gridParams={gridParams}
+                onQuantityParamsChange={setQuantityParams}
+                initialQuantityParams={quantityParams}
               />
             </div>
           </div>
-
-          <hr className="my-4 border-gray-600" />
-
-          <div className="mb-4">
-            <h2 className="text-lg font-bold text-white mb-2">3. Quantity Detection</h2>
-          </div>
-          <QuantityCalibrator
-            imageUrl={images[0].preview}
-            gridParams={gridParams}
-            onQuantityParamsChange={setQuantityParams}
-            initialQuantityParams={quantityParams}
-          />
         </div>
       )}
 
+      {/* Process Button */}
       <button
         onClick={processImages}
         disabled={processing || images.length === 0}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="btn btn-primary w-full py-3"
       >
         {processing ? `Processing... ${progress}%` : `Process ${images.length} Image(s)`}
       </button>
 
+      {/* Progress Indicator */}
       {processingProgress && (
-        <div className="mt-4" ref={progressIndicatorRef}>
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            {/* Overall Progress Bar (when processing multiple screenshots) */}
+        <div ref={progressIndicatorRef} className="card animate-fade-in">
+          <div className="card-body space-y-4">
+            {/* Overall Progress (Multi-page) */}
             {processingProgress.totalPages && processingProgress.totalPages > 1 && processingProgress.overallTotalCards && (
-              <div className="mb-4 pb-4 border-b border-gray-700">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-base font-bold text-white">
-                    Overall Progress: {processingProgress.overallCardsProcessed}/{processingProgress.overallTotalCards} cards
-                  </span>
-                  <span className="text-sm text-gray-400">
+              <div className="pb-4" style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="heading-sm">Overall Progress</span>
+                  <span className="badge badge-success">
                     {Math.round((processingProgress.overallCardsProcessed! / processingProgress.overallTotalCards) * 100)}%
                   </span>
                 </div>
-                <div
-                  className="w-full rounded-full mb-2"
-                  style={{
-                    backgroundColor: '#1F2937',
-                    height: '16px',
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${Math.max(1, (processingProgress.overallCardsProcessed! / processingProgress.overallTotalCards) * 100)}%`,
-                      backgroundColor: '#10B981',
-                      height: '16px',
-                      borderRadius: '9999px',
-                      transition: 'width 0.3s ease-in-out',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0
-                    }}
-                  />
+                <div className="progress mb-2" style={{ height: '10px' }}>
+                  <div className="progress-bar" style={{
+                    width: `${Math.max(1, (processingProgress.overallCardsProcessed! / processingProgress.overallTotalCards) * 100)}%`,
+                    background: 'var(--success)'
+                  }} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400">
-                    Page {processingProgress.currentPage}/{processingProgress.totalPages}
-                  </span>
-                  <span className="text-xs text-emerald-400 font-medium">
-                    {processingProgress.overallCardsProcessed} of {processingProgress.overallTotalCards} total cards
-                  </span>
+                  <span className="text-caption">Page {processingProgress.currentPage}/{processingProgress.totalPages}</span>
+                  <span className="text-caption">{processingProgress.overallCardsProcessed} of {processingProgress.overallTotalCards} cards</span>
                 </div>
               </div>
             )}
 
-            {/* Per-Page Progress Bar */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-semibold text-white">
-                    {processingProgress.totalPages && processingProgress.totalPages > 1 ? 'Current Page: ' : 'Processing Cards: '}
-                    {processingProgress.currentCard}/{processingProgress.totalCards}
-                  </span>
-                  <span className="text-sm text-gray-400">
-                    {Math.round((processingProgress.currentCard / processingProgress.totalCards) * 100)}%
-                  </span>
+            {/* Current Page Progress */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-body font-medium">
+                  {processingProgress.totalPages && processingProgress.totalPages > 1 ? 'Current Page' : 'Progress'}
+                </span>
+                <span className="text-small" style={{ color: 'var(--text-muted)' }}>
+                  {processingProgress.currentCard}/{processingProgress.totalCards} cards
+                </span>
+              </div>
+              <div className="progress mb-3">
+                <div className="progress-bar" style={{
+                  width: `${Math.max(2, (processingProgress.currentCard / processingProgress.totalCards) * 100)}%`
+                }} />
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="stat-card" style={{ padding: '12px' }}>
+                  <p className="text-caption mb-1">Phase</p>
+                  <p className="text-small font-medium" style={{ color: getPhaseColor(processingProgress.currentPhase) }}>
+                    {processingProgress.currentPhase}
+                  </p>
                 </div>
-                <div
-                  className="w-full rounded-full mb-3"
-                  style={{
-                    backgroundColor: '#374151',
-                    height: '12px',
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${Math.max(2, (processingProgress.currentCard / processingProgress.totalCards) * 100)}%`,
-                      backgroundColor: '#3b82f6',
-                      height: '12px',
-                      borderRadius: '9999px',
-                      transition: 'width 0.3s ease-in-out',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0
-                    }}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">Current Phase:</span>
-                    <span className="text-xs font-medium text-blue-400">
-                      {processingProgress.currentPhase}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">Batch:</span>
-                    <span className="text-xs text-gray-300">
-                      {processingProgress.batchNumber}/{processingProgress.totalBatches}
-                    </span>
-                  </div>
-                  {processingProgress.currentCardName && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-400">Card:</span>
-                      <span className="text-xs text-gray-300 font-mono">
-                        "{processingProgress.currentCardName}" (Row {processingProgress.currentPosition.y}, Col {processingProgress.currentPosition.x})
-                      </span>
-                    </div>
-                  )}
+                <div className="stat-card" style={{ padding: '12px' }}>
+                  <p className="text-caption mb-1">Batch</p>
+                  <p className="text-small font-medium">
+                    {processingProgress.batchNumber}/{processingProgress.totalBatches}
+                  </p>
                 </div>
               </div>
+
+              {/* Current Card */}
+              {processingProgress.currentCardName && (
+                <div className="mt-3 p-3 rounded-lg" style={{ background: 'var(--bg-tertiary)' }}>
+                  <p className="text-caption mb-1">Current Card</p>
+                  <p className="text-small font-mono truncate">
+                    "{processingProgress.currentCardName}"
+                  </p>
+                  <p className="text-caption mt-1">
+                    Row {processingProgress.currentPosition.y + 1}, Column {processingProgress.currentPosition.x + 1}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {processing && (
-        <div className="mt-4">
-          <div className="bg-gray-800 rounded-lg p-4">
+      {/* Simple Progress Bar (during processing) */}
+      {processing && currentStep && (
+        <div className="card">
+          <div className="card-body">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-300">{currentStep}</span>
-              <span className="text-sm text-gray-400">{progress}%</span>
+              <span className="text-small">{currentStep}</span>
+              <span className="text-caption">{progress}%</span>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
+            <div className="progress">
+              <div className="progress-bar" style={{ width: `${progress}%` }} />
             </div>
           </div>
         </div>
       )}
 
+      {/* Debug Visualization */}
       {processingCanvas && debugMode && (
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold text-white mb-2">Processing Visualization</h3>
-          <p className="text-sm text-gray-400 mb-2">
-            🟡 Yellow = Processing | 🟢 Green = Success | 🔴 Red = Error | ⚪ Gray = Empty
-          </p>
-          <img src={processingCanvas} alt="Processing visualization" className="w-full border border-gray-700 rounded" />
+        <div className="card">
+          <div className="card-header">
+            <h3 className="heading-sm">Processing Visualization</h3>
+          </div>
+          <div className="card-body">
+            <div className="flex gap-4 mb-3">
+              <span className="badge badge-warning">Processing</span>
+              <span className="badge badge-success">Success</span>
+              <span className="badge badge-error">Error</span>
+              <span className="badge badge-neutral">Empty</span>
+            </div>
+            <img src={processingCanvas} alt="Processing visualization"
+                 className="w-full rounded-lg" style={{ border: '1px solid var(--border-primary)' }} />
+          </div>
         </div>
       )}
 
       {debugCanvas && (
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold text-white mb-2">Debug Visualization</h3>
-          <p className="text-sm text-gray-400 mb-2">
-            Blue boxes = detected card areas | Red boxes = OCR reading regions
-          </p>
-          <img src={debugCanvas} alt="Debug visualization" className="w-full border border-gray-700 rounded" />
+        <div className="card">
+          <div className="card-header">
+            <h3 className="heading-sm">Debug Visualization</h3>
+          </div>
+          <div className="card-body">
+            <p className="text-caption mb-3">
+              Blue boxes = detected card areas | Red boxes = OCR reading regions
+            </p>
+            <img src={debugCanvas} alt="Debug visualization"
+                 className="w-full rounded-lg" style={{ border: '1px solid var(--border-primary)' }} />
+          </div>
         </div>
       )}
     </div>

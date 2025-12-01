@@ -494,7 +494,7 @@
 - [x] Wie werden Paper Cards heute erfasst? → Gar nicht, nur in Deckboxen
 - [x] Welche Formate sind relevant? → Standard, Historic (Draft ausprobiert)
 - [x] Wie wichtig ist Paper vs. Digital? → **80% Arena / 20% Paper**
-- [ ] Proxy-Druck Workflow: Wie werden Proxies erstellt? Welche Tools?
+- [x] Proxy-Kennzeichnung? → **Beim Import-Modus angeben** (nicht pro Karte)
 - [x] Bevorzugte Collection-Import Methode? → Datei-Export (aber Arena unterstützt es nicht)
 - [x] Update-Frequenz? → **Nach jedem Booster-Pack** (häufig!)
 - [x] Paper Card Import? → **Mix aus 4 Methoden** (je nach Situation)
@@ -720,6 +720,10 @@
 > 4. Bulk-Scan - ich habe im Internet gesehen, dass es Leute gibt, die sich
 >    Vorrichtungen gebastelt haben, mit denen sie per Handy viele Karten
 >    einzeln aber schnell nacheinander scannen können."
+
+**F13: Wie soll Original vs. Proxy gekennzeichnet werden?**
+
+> "Beim Import-Modus angeben."
 
 **Offene Themen für nächste Session:**
 - [ ] **Collection-Erstellung**: Wie werden Karten initial erfasst?

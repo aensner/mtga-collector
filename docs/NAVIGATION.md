@@ -2,7 +2,49 @@
 
 > **Status**: Draft
 > **Erstellt**: 2025-12-01
+> **Aktualisiert**: 2025-12-01 (Arena/Paper Trennung)
 > **Basiert auf**: MVP-Scope (5 Use Cases)
+
+---
+
+## 0. Domänenmodell
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         DOMÄNENMODELL                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Arena und Paper sind GETRENNTE WELTEN:                                    │
+│                                                                             │
+│   ┌─────────────────────────────────┐   ┌─────────────────────────────────┐│
+│   │           🎮 ARENA              │   │           🃏 PAPER              ││
+│   │                                 │   │                                 ││
+│   │   Collection                    │   │   Collection                    ││
+│   │   └── Virtuelle Karten          │   │   ├── Originale (turnierfähig)  ││
+│   │       (keine Unterscheidung)    │   │   └── Proxies (casual only)     ││
+│   │                                 │   │                                 ││
+│   │   Decks                         │   │   Decks                         ││
+│   │   └── NUR aus Arena-Karten      │   │   └── Original + Proxy gemischt ││
+│   │                                 │   │                                 ││
+│   │   Formate:                      │   │   Formate:                      ││
+│   │   • Standard                    │   │   • Commander (EDH)             ││
+│   │   • Historic                    │   │   • Modern                      ││
+│   │   • Explorer                    │   │   • Legacy                      ││
+│   │   • Brawl                       │   │   • Vintage                     ││
+│   │   • Draft                       │   │   • Pioneer                     ││
+│   └─────────────────────────────────┘   └─────────────────────────────────┘│
+│                                                                             │
+│   KEINE Mischung möglich:                                                   │
+│   • Arena-Decks können NUR Arena-Karten enthalten                          │
+│   • Paper-Decks können NUR Paper-Karten enthalten                          │
+│                                                                             │
+│   GEMEINSAM:                                                                │
+│   • Scryfall Kartendaten (Regeln, Bilder, Abilities)                       │
+│   • AI Deck-Builder Logik                                                   │
+│   • Banlist-Daten (aber unterschiedliche Formate!)                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -14,25 +56,56 @@
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │   ┌─────────────────────────────────────────────────────────────────┐      │
-│   │  🏠 Home    📚 Collection    🃏 Decks    💡 Empfehlungen    ⚙️   │      │
+│   │  🏠 Home       🎮 Arena       🃏 Paper       ⚙️ Settings         │      │
 │   └─────────────────────────────────────────────────────────────────┘      │
 │                                                                             │
-│   5 Hauptbereiche:                                                          │
+│   4 Hauptbereiche:                                                          │
 │                                                                             │
 │   1. HOME (Dashboard)                                                       │
-│      → Übersicht, Quick Actions, Notifications                             │
+│      → Übersicht beider Welten, Notifications, Quick Actions               │
 │                                                                             │
-│   2. COLLECTION                                                             │
-│      → Browse, Search, Filter, Import                                       │
+│   2. ARENA (80% Nutzung - MVP Fokus)                                       │
+│      → Arena Collection                                                     │
+│      → Arena Decks                                                          │
+│      → Arena Import (Screenshot OCR)                                        │
+│      → Arena Empfehlungen & Banlists                                        │
 │                                                                             │
-│   3. DECKS                                                                  │
-│      → Meine Decks, AI Deck-Builder, Deck-Details                          │
+│   3. PAPER (20% Nutzung - Phase 2)                                         │
+│      → Paper Collection (Original + Proxy)                                  │
+│      → Paper Decks                                                          │
+│      → Paper Import (4 Methoden)                                            │
+│      → Paper Empfehlungen & Preise                                          │
 │                                                                             │
-│   4. EMPFEHLUNGEN                                                           │
-│      → Kaufempfehlungen, Banlist-Alerts, Upgrades                          │
-│                                                                             │
-│   5. SETTINGS (Icon)                                                        │
+│   4. SETTINGS (Icon)                                                        │
 │      → Konfiguration, Import-Settings, Account                             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Sekundäre Navigation (innerhalb Arena/Paper)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│   ARENA / PAPER - SEKUNDÄRE NAVIGATION                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  🎮 Arena                                                        │      │
+│   │  ──────────────────────────────────────────────────────────────  │      │
+│   │  [Collection]  [Decks]  [Empfehlungen]  [Import]                │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  🃏 Paper                                                        │      │
+│   │  ──────────────────────────────────────────────────────────────  │      │
+│   │  [Collection]  [Decks]  [Empfehlungen]  [Import]                │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   Gleiche Struktur, aber unterschiedliche:                                  │
+│   • Filter (Paper: Original/Proxy)                                         │
+│   • Import-Methoden (Arena: OCR, Paper: 4 Methoden)                        │
+│   • Formate (Arena: Standard/Historic, Paper: Commander/Modern)            │
+│   • Empfehlungen (Paper: Preise wichtiger)                                 │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -47,71 +120,117 @@
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │   HOME                                                                      │
-│   ├── Dashboard                        [/]                                  │
-│   │   ├── Collection Stats                                                  │
-│   │   ├── Recent Activity                                                   │
-│   │   ├── Notifications (Bans, Empfehlungen)                               │
-│   │   └── Quick Actions                                                     │
-│   │                                                                         │
-│   COLLECTION                                                                │
-│   ├── Collection Browser               [/collection]                        │
-│   │   ├── Grid View                                                         │
-│   │   ├── List View                                                         │
+│   └── Dashboard                        [/]                                  │
+│       ├── Arena Stats (Karten, Decks)                                      │
+│       ├── Paper Stats (Karten, Decks, Originale/Proxies)                   │
+│       ├── Recent Activity (beide)                                           │
+│       ├── Notifications (Bans, Empfehlungen)                               │
+│       └── Quick Actions                                                     │
+│                                                                             │
+│   ══════════════════════════════════════════════════════════════════════   │
+│   🎮 ARENA                                                                  │
+│   ══════════════════════════════════════════════════════════════════════   │
+│                                                                             │
+│   ARENA > COLLECTION                                                        │
+│   ├── Collection Browser               [/arena/collection]                  │
+│   │   ├── Grid View / List View                                            │
 │   │   ├── Filter Panel                                                      │
+│   │   │   ├── Farbe, CMC, Typ, Seltenheit                                  │
+│   │   │   ├── Set, Keywords, Kreaturentyp                                  │
+│   │   │   ├── Format-Legal (Standard, Historic, etc.)                      │
+│   │   │   └── Textsuche                                                     │
 │   │   └── Search Bar                                                        │
-│   ├── Card Detail                      [/collection/:cardId]                │
-│   │   ├── Card Image                                                        │
-│   │   ├── Card Info (Scryfall)                                             │
-│   │   ├── Ownership (Arena/Paper, Anzahl)                                  │
-│   │   ├── In Decks verwendet                                               │
-│   │   └── Preis-Info                                                        │
-│   └── Import                           [/collection/import]                 │
-│       ├── Screenshot Upload                                                 │
+│   ├── Card Detail                      [/arena/collection/:cardId]          │
+│   │   ├── Card Image + Info                                                 │
+│   │   ├── Anzahl in Collection                                             │
+│   │   ├── In welchen Decks verwendet                                       │
+│   │   └── Format-Legalität                                                  │
+│   └── Import (Screenshot)              [/arena/import]                      │
+│       ├── Drag & Drop Zone                                                  │
 │       ├── OCR Processing                                                    │
 │       └── Review & Confirm                                                  │
 │                                                                             │
-│   DECKS                                                                     │
-│   ├── Deck List                        [/decks]                             │
+│   ARENA > DECKS                                                             │
+│   ├── Deck List                        [/arena/decks]                       │
 │   │   ├── Meine Decks (Grid/List)                                          │
 │   │   └── + Neues Deck                                                      │
-│   ├── Deck Detail                      [/decks/:deckId]                     │
+│   ├── Deck Detail                      [/arena/decks/:deckId]               │
 │   │   ├── Deck Stats (Mana Curve, Colors)                                  │
 │   │   ├── Card List                                                         │
 │   │   ├── Legality Check                                                    │
 │   │   ├── Upgrade Suggestions                                               │
-│   │   └── Export Options                                                    │
-│   ├── Deck Builder                     [/decks/new]                         │
-│   │   ├── Commander/Combo Auswahl                                          │
-│   │   ├── Format Auswahl                                                    │
-│   │   ├── AI Generate Button                                               │
-│   │   └── Manual Edit Mode                                                  │
-│   └── AI Builder                       [/decks/ai-builder]                  │
-│       ├── Input (Commander/Combo)                                          │
-│       ├── Constraints (Format, Budget)                                      │
-│       ├── Generate                                                          │
-│       └── Review Generated Deck                                             │
+│   │   └── Export (Arena Format)                                             │
+│   └── AI Builder                       [/arena/decks/ai-builder]            │
+│       ├── Startpunkt (Combo wählen)                                        │
+│       ├── Format (Standard, Historic, etc.)                                │
+│       ├── Generate → AI arbeitet                                           │
+│       └── Review & Adjust                                                   │
 │                                                                             │
-│   EMPFEHLUNGEN                                                              │
-│   ├── Upgrade Hub                      [/recommendations]                   │
-│   │   ├── Kaufempfehlungen                                                  │
+│   ARENA > EMPFEHLUNGEN                                                      │
+│   ├── Übersicht                        [/arena/recommendations]             │
+│   │   ├── Kaufempfehlungen (Wildcards)                                     │
 │   │   ├── Banlist Alerts                                                    │
 │   │   └── Deck Improvements                                                 │
-│   ├── Purchase Recommendations         [/recommendations/buy]               │
-│   │   ├── Top Upgrades (alle Decks)                                        │
-│   │   ├── Filter by Deck                                                    │
-│   │   ├── Price Comparison                                                  │
-│   │   └── Budget Alternatives                                               │
-│   └── Banlist Monitor                  [/recommendations/bans]              │
-│       ├── Recent Bans                                                       │
+│   └── Banlist Monitor                  [/arena/bans]                        │
+│       ├── Recent Bans (Standard, Historic)                                 │
 │       ├── Affected Decks                                                    │
 │       └── Replacement Suggestions                                           │
 │                                                                             │
+│   ══════════════════════════════════════════════════════════════════════   │
+│   🃏 PAPER (Phase 2)                                                        │
+│   ══════════════════════════════════════════════════════════════════════   │
+│                                                                             │
+│   PAPER > COLLECTION                                                        │
+│   ├── Collection Browser               [/paper/collection]                  │
+│   │   ├── Grid View / List View                                            │
+│   │   ├── Filter Panel                                                      │
+│   │   │   ├── Alle Filter wie Arena PLUS:                                  │
+│   │   │   ├── ★ Original / Proxy Toggle                                    │
+│   │   │   └── ★ Preis-Range                                                │
+│   │   └── Search Bar                                                        │
+│   ├── Card Detail                      [/paper/collection/:cardId]          │
+│   │   ├── Card Image + Info                                                 │
+│   │   ├── ★ Anzahl Originale + Anzahl Proxies                              │
+│   │   ├── In welchen Decks verwendet                                       │
+│   │   ├── ★ Marktpreis                                                      │
+│   │   └── Format-Legalität                                                  │
+│   └── Import                           [/paper/import]                      │
+│       ├── ★ Import-Modus wählen:                                           │
+│       │   ├── Precon/Produkt importieren                                   │
+│       │   ├── Manuell eintippen                                            │
+│       │   ├── Kamera-Scan (einzeln)                                        │
+│       │   └── Bulk-Scan                                                     │
+│       └── ★ Original/Proxy Kennzeichnung                                   │
+│                                                                             │
+│   PAPER > DECKS                                                             │
+│   ├── Deck List                        [/paper/decks]                       │
+│   ├── Deck Detail                      [/paper/decks/:deckId]               │
+│   │   ├── ★ Original vs Proxy Anteil anzeigen                              │
+│   │   └── ★ Turnierfähigkeit prüfen                                        │
+│   └── AI Builder                       [/paper/decks/ai-builder]            │
+│       ├── Startpunkt (Commander wählen)                                    │
+│       └── Format (Commander, Modern, etc.)                                 │
+│                                                                             │
+│   PAPER > EMPFEHLUNGEN                                                      │
+│   ├── Übersicht                        [/paper/recommendations]             │
+│   │   ├── ★ Kaufempfehlungen mit Preisen                                   │
+│   │   ├── ★ Budget-Alternativen                                            │
+│   │   └── Banlist Alerts                                                    │
+│   └── Banlist Monitor                  [/paper/bans]                        │
+│       └── Formate: Commander, Modern, Legacy                               │
+│                                                                             │
+│   ══════════════════════════════════════════════════════════════════════   │
+│                                                                             │
 │   SETTINGS                                                                  │
 │   └── Settings                         [/settings]                          │
-│       ├── Import Settings                                                   │
-│       ├── OCR Calibration                                                   │
+│       ├── Arena Settings                                                    │
+│       │   └── OCR Calibration                                              │
+│       ├── Paper Settings                                                    │
+│       │   └── Default Import Mode                                          │
 │       ├── API Keys                                                          │
 │       └── Account                                                           │
+│                                                                             │
+│   ★ = Paper-spezifisch                                                      │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -316,10 +435,12 @@
 │                                                                             │
 │   DESKTOP (>1024px)                                                         │
 │   ┌─────────────────────────────────────────────────────────────────┐      │
-│   │  ┌──────┐ ┌────────────┐ ┌───────┐ ┌─────────────┐ ┌──┐        │      │
-│   │  │ Logo │ │ Collection │ │ Decks │ │ Empfehlungen│ │⚙️│        │      │
-│   │  └──────┘ └────────────┘ └───────┘ └─────────────┘ └──┘        │      │
+│   │  ┌──────┐  ┌──────┐  ┌─────────┐  ┌─────────┐  ┌──┐ ┌──┐       │      │
+│   │  │ Logo │  │ Home │  │ 🎮 Arena│  │ 🃏 Paper│  │🔔│ │⚙️│       │      │
+│   │  └──────┘  └──────┘  └─────────┘  └─────────┘  └──┘ └──┘       │      │
 │   │  ═══════════════════════════════════════════════════════════    │      │
+│   │  Sekundär: [Collection]  [Decks]  [Empfehlungen]  [Import]      │      │
+│   │  ───────────────────────────────────────────────────────────    │      │
 │   │                                                                 │      │
 │   │                      [ CONTENT AREA ]                           │      │
 │   │                                                                 │      │
@@ -328,39 +449,59 @@
 │   MOBILE (<768px)                                                           │
 │   ┌─────────────────────────────────────────────────────────────────┐      │
 │   │  ┌──────────────────────────────────────────────────────┐      │      │
-│   │  │  ☰  MTGA Collector                              🔔   │      │      │
+│   │  │  ☰  MTGA Collector    [🎮 Arena ▼]             🔔   │      │      │
 │   │  └──────────────────────────────────────────────────────┘      │      │
 │   │                                                                 │      │
 │   │                      [ CONTENT AREA ]                           │      │
 │   │                                                                 │      │
 │   │  ┌──────────────────────────────────────────────────────┐      │      │
-│   │  │  🏠      📚      🃏      💡      ⚙️                   │      │      │
-│   │  │ Home  Collect  Decks  Recs   Settings               │      │      │
+│   │  │  🏠      📚       🃏      💡       📥                │      │      │
+│   │  │ Home  Collect   Decks   Recs    Import              │      │      │
 │   │  └──────────────────────────────────────────────────────┘      │      │
+│   │                                                                 │      │
+│   │  ↑ Bottom Nav passt sich an: Arena oder Paper Kontext          │      │
 │   └─────────────────────────────────────────────────────────────────┘      │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 4.2 Sekundäre Navigation (Beispiel: Collection)
+### 4.2 Sekundäre Navigation (innerhalb Arena/Paper)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│   COLLECTION - SEKUNDÄRE NAVIGATION                                         │
+│   ARENA - SEKUNDÄRE NAVIGATION                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │   ┌─────────────────────────────────────────────────────────────────┐      │
-│   │  Collection                                                      │      │
+│   │  🎮 Arena                                                        │      │
 │   │  ──────────────────────────────────────────────────────────────  │      │
-│   │  [Alle Karten]  [Kürzlich]  [Duplikate]  [Ungenutzt]  [Import]  │      │
+│   │  [Collection]  [Decks]  [Empfehlungen]  [Import]                │      │
 │   └─────────────────────────────────────────────────────────────────┘      │
 │                                                                             │
-│   Tabs/Sections:                                                            │
-│   • Alle Karten      → Vollständige Collection                             │
+│   Collection Tabs:                                                          │
+│   • Alle Karten      → Vollständige Arena-Collection                       │
 │   • Kürzlich         → Letzte 7 Tage hinzugefügt                           │
-│   • Duplikate        → >4 Kopien (Trade-Kandidaten)                        │
+│   • Duplikate        → >4 Kopien                                           │
 │   • Ungenutzt        → In keinem Deck verwendet                            │
-│   • Import           → Neue Karten hinzufügen                              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│   PAPER - SEKUNDÄRE NAVIGATION                                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  🃏 Paper                                                        │      │
+│   │  ──────────────────────────────────────────────────────────────  │      │
+│   │  [Collection]  [Decks]  [Empfehlungen]  [Import]                │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   Collection Tabs (erweitert):                                              │
+│   • Alle Karten      → Vollständige Paper-Collection                       │
+│   • Originale        → Nur echte Karten                                    │
+│   • Proxies          → Nur Proxy-Karten                                    │
+│   • Kürzlich         → Letzte 7 Tage hinzugefügt                           │
+│   • Ungenutzt        → In keinem Deck verwendet                            │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -369,22 +510,44 @@
 
 ## 5. URL-Struktur
 
+### Globale Routes
+
 | Screen | URL | Beschreibung |
 |--------|-----|--------------|
-| Dashboard | `/` | Home, Übersicht |
-| Collection | `/collection` | Alle Karten browsen |
-| Collection Filter | `/collection?color=U&cmc=3` | Mit Filtern |
-| Card Detail | `/collection/cards/:cardId` | Einzelne Karte |
-| Import | `/collection/import` | Screenshots hochladen |
-| Deck List | `/decks` | Alle Decks |
-| Deck Detail | `/decks/:deckId` | Ein Deck anzeigen |
-| Deck Edit | `/decks/:deckId/edit` | Deck bearbeiten |
-| New Deck | `/decks/new` | Neues Deck (manuell) |
-| AI Builder | `/decks/ai-builder` | AI Deck Generator |
-| Recommendations | `/recommendations` | Übersicht |
-| Buy Suggestions | `/recommendations/buy` | Kaufempfehlungen |
-| Banlist | `/recommendations/bans` | Ban-Monitoring |
+| Dashboard | `/` | Home, Übersicht beider Welten |
 | Settings | `/settings` | Einstellungen |
+
+### Arena Routes (MVP)
+
+| Screen | URL | Beschreibung |
+|--------|-----|--------------|
+| Arena Home | `/arena` | Arena Übersicht |
+| Collection | `/arena/collection` | Arena-Karten browsen |
+| Collection Filter | `/arena/collection?color=U&cmc=3` | Mit Filtern |
+| Card Detail | `/arena/collection/:cardId` | Einzelne Karte |
+| Import | `/arena/import` | Screenshots hochladen |
+| Deck List | `/arena/decks` | Arena Decks |
+| Deck Detail | `/arena/decks/:deckId` | Ein Deck anzeigen |
+| Deck Edit | `/arena/decks/:deckId/edit` | Deck bearbeiten |
+| AI Builder | `/arena/decks/ai-builder` | AI Deck Generator |
+| Empfehlungen | `/arena/recommendations` | Upgrades & Alerts |
+| Banlist | `/arena/bans` | Ban-Monitoring |
+
+### Paper Routes (Phase 2)
+
+| Screen | URL | Beschreibung |
+|--------|-----|--------------|
+| Paper Home | `/paper` | Paper Übersicht |
+| Collection | `/paper/collection` | Paper-Karten browsen |
+| Collection Filter | `/paper/collection?type=proxy` | Mit Filtern |
+| Card Detail | `/paper/collection/:cardId` | Einzelne Karte |
+| Import | `/paper/import` | Karten hinzufügen |
+| Import Mode | `/paper/import?mode=precon` | Spezifischer Modus |
+| Deck List | `/paper/decks` | Paper Decks |
+| Deck Detail | `/paper/decks/:deckId` | Ein Deck anzeigen |
+| AI Builder | `/paper/decks/ai-builder` | AI Deck Generator |
+| Empfehlungen | `/paper/recommendations` | Kaufempfehlungen |
+| Banlist | `/paper/bans` | Ban-Monitoring |
 
 ---
 

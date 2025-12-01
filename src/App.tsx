@@ -436,21 +436,13 @@ const MainApp: React.FC = () => {
 
               {/* Unmatched Cards Section */}
               {unmatchedCards.length > 0 && (
-                <section className="card">
-                  <div className="card-body">
-                    <UnmatchedCards unmatchedCards={unmatchedCards} onCardsMatched={handleCardsMatched} />
-                  </div>
-                </section>
+                <UnmatchedCards unmatchedCards={unmatchedCards} onCardsMatched={handleCardsMatched} />
               )}
 
               {/* Results Section */}
               {cards.length > 0 && (
                 <>
-                  <section className="card">
-                    <div className="card-body">
-                      <CollectionSummary cards={cards} />
-                    </div>
-                  </section>
+                  <CollectionSummary cards={cards} />
                   <section className="card">
                     <div className="card-body">
                       <ResultsTable cards={cards} onCardUpdate={handleCardUpdate} />

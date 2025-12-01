@@ -29,7 +29,7 @@ export const CollectionSummary: React.FC<CollectionSummaryProps> = ({ cards }) =
   });
 
   return (
-    <div className="card mt-8">
+    <div className="card">
       <div className="card-header">
         <h3 className="heading-md">Collection Summary</h3>
       </div>

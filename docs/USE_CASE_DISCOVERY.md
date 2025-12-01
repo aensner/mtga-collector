@@ -570,6 +570,12 @@
 - [x] Idealer Workflow (BUILD → LEARN → UPGRADE)
 - [x] AI Deck-Builder als Kern-Feature
 
+---
+
+### Session 2 - 2025-12-01 - Collection Management
+
+**Fokus:** Wie werden Collections erstellt und aktualisiert?
+
 **Offene Themen für nächste Session:**
 - [ ] **Collection-Erstellung**: Wie werden Karten initial erfasst?
 - [ ] **Collection-Aktualisierung**: Wie werden neue Karten hinzugefügt?

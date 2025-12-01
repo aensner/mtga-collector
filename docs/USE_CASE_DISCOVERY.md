@@ -455,6 +455,45 @@
 - [ ] **Spielweise-Guide** - AI erklärt wie man das Deck spielt (Combos, Mulligan, Matchups)
 - [ ] **Kaufempfehlungen** - Upgrade-Vorschläge MIT PREISEN
 - [ ] **Budget-Alternativen** - Günstigere Optionen für teure Karten
+- [ ] **Proaktive Deck-Analyse** - Nach Collection-Update: "Neue Karte X verbessert Deck Y!"
+
+### Proaktive Deck-Optimierung (Neue Erkenntnis!)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    PROAKTIVE DECK-OPTIMIERUNG                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   TRIGGER: Collection wird aktualisiert                                    │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  + Neuer Booster geöffnet                                       │      │
+│   │  + Karte gecraftet                                              │      │
+│   │  + Paper-Karten hinzugefügt                                     │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   AUTOMATISCHE ANALYSE:                                                    │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Für jedes bestehende Deck prüfen:                              │      │
+│   │  • Passt neue Karte besser als eine vorhandene?                │      │
+│   │  • Ermöglicht neue Karte neue Synergien/Combos?                │      │
+│   │  • Verbessert neue Karte die Mana-Kurve?                       │      │
+│   │  • Füllt neue Karte eine Lücke (mehr Removal, Draw, etc.)?     │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   NOTIFICATION:                                                            │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  "Neue Karte 'Lightning Bolt' könnte in deinem                  │      │
+│   │   'Burn Deck' die Karte 'Shock' ersetzen!"                     │      │
+│   │                                                                 │      │
+│   │   [Details anzeigen]  [Änderung übernehmen]  [Ignorieren]      │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ──► Proaktiv statt reaktiv: App findet Verbesserungen automatisch!       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Tool-Landschaft (Aktuell genutzt)
 
@@ -724,6 +763,12 @@
 **F13: Wie soll Original vs. Proxy gekennzeichnet werden?**
 
 > "Beim Import-Modus angeben."
+
+**F14: Weitere Ideen zum Deck Building?**
+
+> "Schön wäre, wenn nach einem Collection Update alle Decks geprüft werden
+> könnten, ob es mit den neuen Karten Sinn macht etwas auszuwechseln. Vielleicht
+> gibt es ja dann plötzlich neues Potenzial, das vorher nicht da war."
 
 **Offene Themen für nächste Session:**
 - [ ] **Collection-Erstellung**: Wie werden Karten initial erfasst?

@@ -791,7 +791,7 @@
 > - Karten die in keinem Deck verwendet werden
 > - **Original vs. Proxy** (explizit genannt!)
 
-**Weitere Suchkriterien-Vorschläge (zu validieren):**
+**Alle Suchkriterien bestätigt:**
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -810,38 +810,38 @@
 │   │  ✓ Original / Proxy         Nur echte oder nur Proxies         │      │
 │   └─────────────────────────────────────────────────────────────────┘      │
 │                                                                             │
-│   WEITERE VORSCHLÄGE:                                                       │
+│   ERWEITERTE FILTER (alle bestätigt):                                      │
 │   ┌─────────────────────────────────────────────────────────────────┐      │
-│   │  ? Set/Edition              "Nur Karten aus Phyrexia Set"      │      │
-│   │  ? Künstler                 Fan eines bestimmten Artists       │      │
-│   │  ? Arena / Paper            Wo besitze ich diese Karte?        │      │
-│   │  ? Format-Legal             "Zeige nur Standard-legale Karten" │      │
-│   │  ? Kürzlich hinzugefügt     "Letzte 7 Tage / Letzter Booster" │      │
-│   │  ? Preis-Range              "Karten über €5 Wert" (Trade!)     │      │
-│   │  ? Power/Toughness          "Alle 4/4 Kreaturen"               │      │
-│   │  ? Kartentyp                Instant, Sorcery, Enchantment...   │      │
-│   │  ? Textsuche                Freitext im Kartentext             │      │
-│   │  ? Combo-Partner            "Karten die mit X gut sind"        │      │
-│   │  ? Favoriten/Tags           Eigene Markierungen                │      │
-│   │  ? Deck-Potenzial           "Fehlt nur 1 Karte für Combo X"   │      │
+│   │  ✓ Set/Edition              "Nur Karten aus Phyrexia Set"      │      │
+│   │  ✓ Künstler                 Fan eines bestimmten Artists       │      │
+│   │  ✓ Arena / Paper            Wo besitze ich diese Karte?        │      │
+│   │  ✓ Format-Legal             "Zeige nur Standard-legale Karten" │      │
+│   │  ✓ Kürzlich hinzugefügt     "Letzte 7 Tage / Letzter Booster" │      │
+│   │  ✓ Preis-Range              "Karten über €5 Wert" (Trade!)     │      │
+│   │  ✓ Power/Toughness          "Alle 4/4 Kreaturen"               │      │
+│   │  ✓ Kartentyp                Instant, Sorcery, Enchantment...   │      │
+│   │  ✓ Textsuche                Freitext im Kartentext             │      │
+│   │  ✓ Combo-Partner            "Karten die mit X gut sind"        │      │
+│   │  ✓ Favoriten/Tags           Eigene Markierungen                │      │
+│   │  ✓ Deck-Potenzial           "Fehlt nur 1 Karte für Combo X"   │      │
 │   └─────────────────────────────────────────────────────────────────┘      │
 │                                                                             │
-│   SORTIERUNG:                                                               │
+│   SORTIERUNG (alle bestätigt):                                             │
 │   ┌─────────────────────────────────────────────────────────────────┐      │
-│   │  ? Alphabetisch             A-Z, Z-A                           │      │
-│   │  ? Nach CMC                 Günstig → Teuer                    │      │
-│   │  ? Nach Anzahl              Viele → Wenige                     │      │
-│   │  ? Nach Preis/Wert          Wertvollste zuerst                 │      │
-│   │  ? Nach Hinzufügedatum      Neueste zuerst                     │      │
-│   │  ? Nach Set-Nummer          Collector's Number                 │      │
+│   │  ✓ Alphabetisch             A-Z, Z-A                           │      │
+│   │  ✓ Nach CMC                 Günstig → Teuer                    │      │
+│   │  ✓ Nach Anzahl              Viele → Wenige                     │      │
+│   │  ✓ Nach Preis/Wert          Wertvollste zuerst                 │      │
+│   │  ✓ Nach Hinzufügedatum      Neueste zuerst                     │      │
+│   │  ✓ Nach Set-Nummer          Collector's Number                 │      │
 │   └─────────────────────────────────────────────────────────────────┘      │
 │                                                                             │
-│   ANSICHTEN:                                                                │
+│   ANSICHTEN (alle bestätigt):                                              │
 │   ┌─────────────────────────────────────────────────────────────────┐      │
-│   │  ? Karten-Grid              Bilder wie in Arena                │      │
-│   │  ? Liste/Tabelle            Kompakt, viele auf einmal          │      │
-│   │  ? Nach Set gruppiert       Expansion-Übersicht                │      │
-│   │  ? Nach Farbe gruppiert     Color Wheel Ansicht                │      │
+│   │  ✓ Karten-Grid              Bilder wie in Arena                │      │
+│   │  ✓ Liste/Tabelle            Kompakt, viele auf einmal          │      │
+│   │  ✓ Nach Set gruppiert       Expansion-Übersicht                │      │
+│   │  ✓ Nach Farbe gruppiert     Color Wheel Ansicht                │      │
 │   └─────────────────────────────────────────────────────────────────┘      │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘

@@ -496,6 +496,39 @@
 - [x] Wie wichtig ist Paper vs. Digital? → **80% Arena / 20% Paper**
 - [ ] Proxy-Druck Workflow: Wie werden Proxies erstellt? Welche Tools?
 - [x] Bevorzugte Collection-Import Methode? → Datei-Export (aber Arena unterstützt es nicht)
+- [x] Update-Frequenz? → **Nach jedem Booster-Pack** (häufig!)
+
+### Update-Frequenz Implikation
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    UPDATE-FREQUENZ: NACH JEDEM BOOSTER                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Häufige, kleine Updates → Prozess muss SCHNELL + EINFACH sein!           │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Screenshot-Workflow wäre zu aufwändig:                         │      │
+│   │  • Arena öffnen                                                 │      │
+│   │  • Zur Collection navigieren                                    │      │
+│   │  • Nach neuen Karten filtern/suchen                            │      │
+│   │  • Screenshots machen                                           │      │
+│   │  • In App hochladen + verarbeiten                              │      │
+│   │  • Fehler korrigieren                                          │      │
+│   │  = 5-10 Minuten für ein paar Karten? Zu viel!                  │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Idealer Workflow:                                              │      │
+│   │  • Booster öffnen in Arena                                      │      │
+│   │  • Collection automatisch aktualisiert                          │      │
+│   │  = 0 Sekunden Aufwand!                                          │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ──► Log-Parsing könnte das ermöglichen (automatischer Sync)              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Arena Collection Import - Technische Optionen
 
@@ -628,6 +661,10 @@
 > weiss nicht, ob das möglich ist. Aktuell habe ich keine andere Möglichkeit
 > gefunden als Variante A (Screenshots). Aber ich will die Lösung nicht
 > vorwegnehmen."
+
+**F11: Wie oft würdest du die Collection aktualisieren wollen?**
+
+> "Nach jedem Booster-Pack. Oder wenn ich eine neue Karte gecraftet habe."
 
 **Offene Themen für nächste Session:**
 - [ ] **Collection-Erstellung**: Wie werden Karten initial erfasst?

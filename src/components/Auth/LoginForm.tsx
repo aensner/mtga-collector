@@ -24,88 +24,138 @@ export const LoginForm: React.FC = () => {
         const { error } = await signIn(email, password);
         if (error) throw error;
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h2 className="text-3xl font-bold text-white mb-6 text-center">
-          MTG Arena Collector
-        </h2>
-        <p className="text-gray-400 mb-6 text-center">
-          {isSignUp ? 'Create an account' : 'Sign in to continue'}
-        </p>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="orb orb-1" />
+        <div className="orb orb-2" />
+        <div className="orb orb-3" />
+      </div>
+      <div className="fixed inset-0 bg-mesh pointer-events-none" />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="you@example.com"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {error && (
-            <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-2 rounded-lg text-sm">
-              {error}
+      {/* Login Card */}
+      <div className="relative z-10 w-full max-w-md px-4">
+        <div className="premium-card">
+          <div className="premium-card-content">
+            {/* Logo */}
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-magic flex items-center justify-center shadow-glow-lg shadow-primary/40">
+                <span className="text-white font-bold text-2xl">M</span>
+              </div>
+              <h1 className="text-2xl font-bold text-text-primary">
+                MTG Collector
+              </h1>
+              <p className="text-text-muted mt-2">
+                {isSignUp ? 'Create your account' : 'Welcome back'}
+              </p>
             </div>
-          )}
 
-          {success && (
-            <div className="bg-green-500/10 border border-green-500 text-green-500 px-4 py-2 rounded-lg text-sm">
-              {success}
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-text-secondary mb-2">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="input"
+                  placeholder="you@example.com"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-text-secondary mb-2">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="input"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-error/10 border border-error/20">
+                  <svg className="w-5 h-5 text-error flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm text-error">{error}</span>
+                </div>
+              )}
+
+              {/* Success Message */}
+              {success && (
+                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-success/10 border border-success/20">
+                  <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm text-success">{success}</span>
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn btn-primary w-full py-3 text-base"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Processing...
+                  </span>
+                ) : (
+                  isSignUp ? 'Create Account' : 'Sign In'
+                )}
+              </button>
+            </form>
+
+            {/* Toggle Sign In/Sign Up */}
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError('');
+                  setSuccess('');
+                }}
+                className="text-text-secondary hover:text-text-primary text-sm transition-colors"
+              >
+                {isSignUp ? (
+                  <>Already have an account? <span className="text-primary font-medium">Sign in</span></>
+                ) : (
+                  <>Don't have an account? <span className="text-primary font-medium">Sign up</span></>
+                )}
+              </button>
             </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Processing...' : (isSignUp ? 'Sign Up' : 'Sign In')}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setError('');
-              setSuccess('');
-            }}
-            className="text-blue-400 hover:text-blue-300 text-sm"
-          >
-            {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-          </button>
+          </div>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-text-muted text-xs mt-6">
+          Powered by Tesseract.js, Anthropic Claude & Scryfall
+        </p>
       </div>
     </div>
   );

@@ -52,14 +52,48 @@ const IconLogout = () => (
   </svg>
 );
 
-const IconSearch = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+const IconSun = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
   </svg>
 );
 
+const IconMoon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+  </svg>
+);
+
+const IconUpload = () => (
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+  </svg>
+);
+
+// Theme Hook
+const useTheme = () => {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
+
+  return { theme, toggleTheme };
+};
+
 const MainApp: React.FC = () => {
   const { user, isDemoMode } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [cards, setCards] = useState<CardData[]>([]);
   const [unmatchedCards, setUnmatchedCards] = useState<CardData[]>([]);
@@ -204,53 +238,36 @@ const MainApp: React.FC = () => {
     ? calculateAccuracy(cards, groundTruth)
     : null;
 
-  const getStatusText = () => {
-    if (loadStatus === 'loading') return 'Loading collection...';
-    if (saveStatus === 'saving') return 'Saving...';
-    if (saveStatus === 'saved') return 'Saved';
-    if (isDemoMode) return 'Demo Mode';
-    return 'Online';
+  const getStatusInfo = () => {
+    if (loadStatus === 'loading') return { text: 'Loading...', type: 'loading' };
+    if (saveStatus === 'saving') return { text: 'Saving...', type: 'loading' };
+    if (saveStatus === 'saved') return { text: 'Saved', type: 'success' };
+    if (isDemoMode) return { text: 'Demo Mode', type: 'demo' };
+    return { text: 'Online', type: 'online' };
   };
 
-  const getStatusColor = () => {
-    if (loadStatus === 'loading' || saveStatus === 'saving') return 'text-warning';
-    if (saveStatus === 'saved') return 'text-success';
-    if (isDemoMode) return 'text-secondary';
-    return 'text-success';
-  };
+  const status = getStatusInfo();
 
   return (
-    <div className="flex h-screen overflow-hidden relative">
-      {/* Animated Background Orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="orb orb-1" />
-        <div className="orb orb-2" />
-        <div className="orb orb-3" />
-      </div>
-
-      {/* Mesh Gradient Overlay */}
-      <div className="fixed inset-0 bg-mesh pointer-events-none" />
-
+    <div className="app-layout">
       {/* Sidebar */}
-      <aside className="sidebar w-72 flex flex-col z-10">
+      <aside className="sidebar">
         {/* Logo */}
-        <div className="p-6 border-b border-glass-border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-magic flex items-center justify-center shadow-glow-sm shadow-primary/50">
-              <span className="text-white font-bold text-lg">M</span>
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-text-primary">MTG Collector</h1>
-              <p className="text-xs text-text-muted">Arena Scanner</p>
+        <div className="sidebar-header">
+          <div className="logo">
+            <div className="logo-icon">M</div>
+            <div className="logo-text">
+              <span className="logo-title">MTG Collector</span>
+              <span className="logo-subtitle">Arena Scanner</span>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
+        <nav className="sidebar-nav custom-scrollbar">
           <button
             onClick={() => setActiveTab('mydecks')}
-            className={`sidebar-item w-full ${activeTab === 'mydecks' ? 'active' : ''}`}
+            className={`nav-item ${activeTab === 'mydecks' ? 'active' : ''}`}
           >
             <IconHome />
             <span>My Decks</span>
@@ -261,7 +278,7 @@ const MainApp: React.FC = () => {
               setActiveTab('build');
               setSelectedDeckId(undefined);
             }}
-            className={`sidebar-item w-full ${activeTab === 'build' ? 'active' : ''}`}
+            className={`nav-item ${activeTab === 'build' ? 'active' : ''}`}
           >
             <IconDeck />
             <span>Build Deck</span>
@@ -269,227 +286,229 @@ const MainApp: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('collection')}
-            className={`sidebar-item w-full ${activeTab === 'collection' ? 'active' : ''}`}
+            className={`nav-item ${activeTab === 'collection' ? 'active' : ''}`}
           >
             <IconScan />
             <span>Collection Scanner</span>
           </button>
 
-          <div className="pt-4 mt-4 border-t border-glass-border">
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="sidebar-item w-full"
-            >
-              <IconSettings />
-              <span>Settings</span>
-            </button>
-          </div>
+          <div className="nav-divider" />
+
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="nav-item"
+          >
+            <IconSettings />
+            <span>Settings</span>
+          </button>
         </nav>
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-glass-border">
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-ocean flex items-center justify-center text-white font-bold shadow-glow-sm shadow-secondary/50">
-                {user?.email?.[0].toUpperCase() || 'U'}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-text-primary truncate">
-                  {user?.email || 'User'}
-                </p>
-                <p className={`text-xs ${getStatusColor()}`}>
-                  {getStatusText()}
-                </p>
-              </div>
+        {/* Footer */}
+        <div className="sidebar-footer">
+          <div className="user-card">
+            <div className="user-avatar">
+              {user?.email?.[0].toUpperCase() || 'U'}
             </div>
-            <button
-              onClick={handleSignOut}
-              className="btn btn-secondary w-full text-sm"
-            >
-              <IconLogout />
-              <span>Sign Out</span>
-            </button>
+            <div className="user-info">
+              <p className="user-name">{user?.email || 'User'}</p>
+              <p className="user-status">
+                <span className={`status-dot ${status.type === 'demo' ? 'demo' : ''}`} />
+                {status.text}
+              </p>
+            </div>
           </div>
+          <button onClick={handleSignOut} className="btn btn-ghost w-full mt-3">
+            <IconLogout />
+            <span>Sign Out</span>
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden z-10">
+      <main className="main-content">
         {/* Header */}
-        <header className="px-8 py-4 border-b border-glass-border backdrop-blur-xl bg-dark-900/50">
-          <div className="flex items-center justify-between">
-            {/* Page Title */}
-            <div>
-              <h2 className="text-2xl font-bold text-text-primary">
+        <header className="main-header">
+          <div className="page-header">
+            <div className="page-header-content">
+              <h1 className="page-title">
                 {activeTab === 'mydecks' && 'My Decks'}
                 {activeTab === 'build' && 'Deck Builder'}
                 {activeTab === 'collection' && 'Collection Scanner'}
-              </h2>
-              <p className="text-sm text-text-muted mt-0.5">
+              </h1>
+              <p className="page-description">
                 {activeTab === 'mydecks' && 'Manage your deck collection'}
                 {activeTab === 'build' && 'Create and optimize your decks'}
-                {activeTab === 'collection' && 'Scan MTG Arena screenshots'}
+                {activeTab === 'collection' && 'Scan MTG Arena screenshots to build your collection'}
               </p>
             </div>
 
-            {/* Search & Actions */}
-            <div className="flex items-center gap-4">
-              {/* Search */}
-              <div className="relative">
-                <IconSearch />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
-                  <IconSearch />
+            <div className="page-actions">
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="theme-toggle"
+                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              >
+                <div className="theme-toggle-thumb">
+                  {theme === 'light' ? <IconSun /> : <IconMoon />}
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search cards..."
-                  className="search-input w-64 pl-10"
-                />
-              </div>
+              </button>
 
               {/* Action Buttons */}
               {activeTab === 'collection' && (
-                <div className="flex items-center gap-2">
-                  <button onClick={handleLoadTestData} className="btn btn-secondary text-sm">
+                <>
+                  <button onClick={handleLoadTestData} className="btn btn-secondary btn-sm">
                     Load Test Data
                   </button>
                   <button
                     onClick={handleResetCollection}
-                    className="btn btn-danger text-sm"
+                    className="btn btn-danger btn-sm"
                     disabled={saveStatus === 'saving'}
                   >
                     Reset Collection
                   </button>
-                </div>
+                </>
+              )}
+
+              {activeTab === 'mydecks' && (
+                <button
+                  onClick={() => {
+                    setSelectedDeckId(undefined);
+                    setActiveTab('build');
+                  }}
+                  className="btn btn-primary btn-sm"
+                >
+                  + New Deck
+                </button>
               )}
             </div>
           </div>
         </header>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="p-8">
-            {/* My Decks Tab */}
-            {activeTab === 'mydecks' && (
-              <div className="animate-fade-in">
-                <MyDecks
-                  collection={cards}
-                  onCreateDeck={() => {
-                    setSelectedDeckId(undefined);
-                    setActiveTab('build');
-                  }}
-                  onEditDeck={(deckId) => {
-                    setSelectedDeckId(deckId);
-                    setActiveTab('build');
-                  }}
-                />
-              </div>
-            )}
+        {/* Content */}
+        <div className="main-body custom-scrollbar">
+          {/* My Decks Tab */}
+          {activeTab === 'mydecks' && (
+            <div className="animate-fade-in">
+              <MyDecks
+                collection={cards}
+                onCreateDeck={() => {
+                  setSelectedDeckId(undefined);
+                  setActiveTab('build');
+                }}
+                onEditDeck={(deckId) => {
+                  setSelectedDeckId(deckId);
+                  setActiveTab('build');
+                }}
+              />
+            </div>
+          )}
 
-            {/* Build Deck Tab */}
-            {activeTab === 'build' && (
-              <div className="animate-fade-in">
-                <DeckBuilder collection={cards} deckId={selectedDeckId} />
-              </div>
-            )}
+          {/* Build Deck Tab */}
+          {activeTab === 'build' && (
+            <div className="animate-fade-in">
+              <DeckBuilder collection={cards} deckId={selectedDeckId} />
+            </div>
+          )}
 
-            {/* Collection Scanner Tab */}
-            {activeTab === 'collection' && (
-              <div className="space-y-8 animate-fade-in">
-                {/* Upload Section */}
-                <section className="glass-card p-6">
-                  <h3 className="text-xl font-semibold text-text-primary mb-4">
-                    Upload Screenshots
-                  </h3>
+          {/* Collection Scanner Tab */}
+          {activeTab === 'collection' && (
+            <div className="animate-fade-in space-y-6">
+              {/* Upload Section */}
+              <section className="card">
+                <div className="card-header">
+                  <h2 className="heading-md">Upload Screenshots</h2>
+                </div>
+                <div className="card-body">
                   <ImageDropzone onImagesUploaded={handleImagesUploaded} />
                   {images.length > 0 && (
                     <div className="mt-6">
                       <ImagePreview images={images} onRemove={handleRemoveImage} />
                     </div>
                   )}
-                </section>
+                </div>
+              </section>
 
-                {/* Processing Section */}
-                {images.length > 0 && (
-                  <section className="glass-card p-6">
-                    <h3 className="text-xl font-semibold text-text-primary mb-4">
-                      Process Images
-                    </h3>
+              {/* Processing Section */}
+              {images.length > 0 && (
+                <section className="card">
+                  <div className="card-header">
+                    <h2 className="heading-md">Process Images</h2>
+                  </div>
+                  <div className="card-body">
                     <CardProcessor images={images} onProcessingComplete={handleProcessingComplete} />
-                  </section>
-                )}
+                  </div>
+                </section>
+              )}
 
-                {/* Unmatched Cards Section */}
-                {unmatchedCards.length > 0 && (
-                  <section className="glass-card p-6">
+              {/* Unmatched Cards Section */}
+              {unmatchedCards.length > 0 && (
+                <section className="card">
+                  <div className="card-body">
                     <UnmatchedCards unmatchedCards={unmatchedCards} onCardsMatched={handleCardsMatched} />
-                  </section>
-                )}
+                  </div>
+                </section>
+              )}
 
-                {/* Results Section */}
-                {cards.length > 0 && (
-                  <section className="space-y-6">
-                    <div className="glass-card p-6">
+              {/* Results Section */}
+              {cards.length > 0 && (
+                <>
+                  <section className="card">
+                    <div className="card-body">
                       <CollectionSummary cards={cards} />
                     </div>
-                    <div className="glass-card p-6">
+                  </section>
+                  <section className="card">
+                    <div className="card-body">
                       <ResultsTable cards={cards} onCardUpdate={handleCardUpdate} />
                     </div>
-                    <div className="glass-card p-6">
+                  </section>
+                  <section className="card">
+                    <div className="card-body">
                       <ExportButtons cards={cards} />
                     </div>
                   </section>
-                )}
+                </>
+              )}
 
-                {/* Accuracy Section */}
-                {accuracy && (
-                  <section className="glass-card p-6">
+              {/* Accuracy Section */}
+              {accuracy && (
+                <section className="card">
+                  <div className="card-body">
                     <AccuracyMetrics metrics={accuracy} />
-                  </section>
-                )}
+                  </div>
+                </section>
+              )}
 
-                {/* Empty State */}
-                {cards.length === 0 && images.length === 0 && (
-                  <section className="premium-card max-w-2xl mx-auto">
-                    <div className="premium-card-content text-center py-12">
-                      <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-magic flex items-center justify-center shadow-glow-lg shadow-primary/30">
-                        <IconScan />
-                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <h3 className="text-2xl font-bold text-text-primary mb-2">
-                        How It Works
-                      </h3>
-                      <p className="text-text-secondary mb-8 max-w-md mx-auto">
-                        Scan your MTG Arena collection screenshots and extract card data automatically.
-                      </p>
-                      <ol className="text-left space-y-4 max-w-md mx-auto">
-                        {[
-                          'Upload MTG Arena collection screenshots',
-                          'Process images with OCR + AI',
-                          'Review and edit results',
-                          'Export to CSV or JSON'
-                        ].map((step, i) => (
-                          <li key={i} className="flex items-start gap-3">
-                            <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-primary/20 text-primary text-sm font-bold flex items-center justify-center">
-                              {i + 1}
-                            </span>
-                            <span className="text-text-secondary pt-0.5">{step}</span>
-                          </li>
-                        ))}
-                      </ol>
-                      <div className="mt-8 pt-6 border-t border-glass-border">
-                        <p className="text-xs text-text-muted">
-                          Powered by Tesseract.js, Anthropic Claude, and Scryfall API
-                        </p>
-                      </div>
+              {/* Empty State */}
+              {cards.length === 0 && images.length === 0 && (
+                <section className="card">
+                  <div className="empty-state">
+                    <div className="empty-state-icon">
+                      <IconUpload />
                     </div>
-                  </section>
-                )}
-              </div>
-            )}
-          </div>
+                    <h3 className="empty-state-title">Start Scanning</h3>
+                    <p className="empty-state-description">
+                      Upload MTG Arena collection screenshots to extract card data automatically using OCR and AI.
+                    </p>
+                    <div className="space-y-3 text-left max-w-xs mx-auto">
+                      {[
+                        'Upload collection screenshots',
+                        'Process with OCR + AI',
+                        'Review and edit results',
+                        'Export to CSV or JSON'
+                      ].map((step, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <span className="badge badge-primary text-xs">{i + 1}</span>
+                          <span className="text-small">{step}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+            </div>
+          )}
         </div>
       </main>
 

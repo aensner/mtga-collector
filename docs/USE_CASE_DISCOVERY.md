@@ -495,6 +495,49 @@
 - [x] Welche Formate sind relevant? → Standard, Historic (Draft ausprobiert)
 - [x] Wie wichtig ist Paper vs. Digital? → **80% Arena / 20% Paper**
 - [ ] Proxy-Druck Workflow: Wie werden Proxies erstellt? Welche Tools?
+- [x] Bevorzugte Collection-Import Methode? → Datei-Export (aber Arena unterstützt es nicht)
+
+### Arena Collection Import - Technische Optionen
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    ARENA COLLECTION IMPORT OPTIONEN                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   OPTION A: Screenshot OCR (aktuell implementiert)                         │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ✓ Funktioniert                                                 │      │
+│   │  ✗ Aufwändig (viele Screenshots nötig)                         │      │
+│   │  ✗ Fehleranfällig (OCR-Genauigkeit)                            │      │
+│   │  ✗ Manuelle Korrekturen nötig                                  │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   OPTION B: Datei-Export (vom User bevorzugt)                              │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ✗ Arena bietet KEINEN Collection-Export                        │      │
+│   │  ? Aber: Log-Dateien könnten Collection enthalten              │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   OPTION C: Log-File Parsing (zu untersuchen!)                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ? Arena schreibt Logs: Player.log, output_log.txt             │      │
+│   │  ? Tools wie MTGA Pro Tracker, 17Lands nutzen diese            │      │
+│   │  ? Collection-Daten könnten enthalten sein                     │      │
+│   │  → RECHERCHE NÖTIG                                              │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   OPTION D: UI-Automatisierung (vom User erwähnt)                          │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ? Arena-UI fernsteuern und auslesen                           │      │
+│   │  ✗ Fragil (UI-Änderungen brechen es)                           │      │
+│   │  ✗ Komplex zu implementieren                                   │      │
+│   │  ✗ Möglicherweise gegen ToS                                    │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ──► EMPFEHLUNG: Option C (Log-Parsing) untersuchen!                      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Priorisierungs-Implikation
 
@@ -575,6 +618,16 @@
 ### Session 2 - 2025-12-01 - Collection Management
 
 **Fokus:** Wie werden Collections erstellt und aktualisiert?
+
+**F10: Wie würdest du am liebsten deine Arena Collection initial erfassen?**
+
+> "Am liebsten B (Datei exportieren). Leider unterstützt Arena nicht den Export
+> der ganzen Collection. Wenn du einen anderen Weg findest, wie du an die
+> Internas kommst, umso besser. Eine weitere Variante könnte sein die Arena
+> Windows Applikation durch browsen des UI ferngesteuert auszulesen. Aber ich
+> weiss nicht, ob das möglich ist. Aktuell habe ich keine andere Möglichkeit
+> gefunden als Variante A (Screenshots). Aber ich will die Lösung nicht
+> vorwegnehmen."
 
 **Offene Themen für nächste Session:**
 - [ ] **Collection-Erstellung**: Wie werden Karten initial erfasst?

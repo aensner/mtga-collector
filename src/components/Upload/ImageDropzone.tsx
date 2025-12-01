@@ -4,9 +4,10 @@ import type { UploadedImage } from '../../types';
 
 interface ImageDropzoneProps {
   onImagesUploaded: (images: UploadedImage[]) => void;
+  compact?: boolean;
 }
 
-export const ImageDropzone: React.FC<ImageDropzoneProps> = ({ onImagesUploaded }) => {
+export const ImageDropzone: React.FC<ImageDropzoneProps> = ({ onImagesUploaded, compact = false }) => {
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newImages: UploadedImage[] = acceptedFiles.map((file) => ({
       id: `${file.name}-${Date.now()}`,
@@ -30,21 +31,24 @@ export const ImageDropzone: React.FC<ImageDropzoneProps> = ({ onImagesUploaded }
     <div
       {...getRootProps()}
       className={`dropzone ${isDragActive ? 'active' : ''}`}
+      style={compact ? { padding: '24px 16px' } : {}}
     >
       <input {...getInputProps()} />
-      <div className="flex flex-col items-center gap-4">
+      <div className={`flex items-center gap-4 ${compact ? 'flex-row' : 'flex-col'}`}>
         {/* Upload Icon */}
-        <div className={`
-          w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300
-          ${isDragActive
-            ? 'bg-primary/20 scale-110'
-            : 'bg-glass-white'
-          }
-        `}>
+        <div
+          className={`
+            rounded-xl flex items-center justify-center transition-all duration-300
+            ${compact ? 'w-12 h-12' : 'w-16 h-16'}
+          `}
+          style={{
+            background: isDragActive ? 'var(--accent-primary-light)' : 'var(--bg-tertiary)',
+            transform: isDragActive ? 'scale(1.1)' : 'scale(1)',
+          }}
+        >
           <svg
-            className={`w-10 h-10 transition-colors duration-300 ${
-              isDragActive ? 'text-primary' : 'text-text-muted'
-            }`}
+            className={`transition-colors duration-300 ${compact ? 'w-6 h-6' : 'w-8 h-8'}`}
+            style={{ color: isDragActive ? 'var(--accent-primary)' : 'var(--text-muted)' }}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -59,30 +63,43 @@ export const ImageDropzone: React.FC<ImageDropzoneProps> = ({ onImagesUploaded }
         </div>
 
         {/* Text Content */}
-        <div className="text-center">
+        <div className={compact ? 'text-left flex-1' : 'text-center'}>
           {isDragActive ? (
-            <p className="text-lg font-semibold text-primary">
+            <p
+              className={`font-semibold ${compact ? 'text-sm' : 'text-lg'}`}
+              style={{ color: 'var(--accent-primary)' }}
+            >
               Drop your screenshots here
             </p>
           ) : (
             <>
-              <p className="text-lg font-semibold text-text-primary">
+              <p
+                className={`font-semibold ${compact ? 'text-sm' : 'text-lg'}`}
+                style={{ color: 'var(--text-primary)' }}
+              >
                 Drag & drop MTG Arena screenshots
               </p>
-              <p className="text-sm text-text-secondary mt-2">
-                or <span className="text-primary cursor-pointer hover:underline">browse files</span>
+              <p
+                className={`${compact ? 'text-xs mt-0.5' : 'text-sm mt-1'}`}
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                or <span style={{ color: 'var(--accent-primary)' }} className="cursor-pointer hover:underline">browse files</span>
               </p>
             </>
           )}
         </div>
 
-        {/* Supported Formats */}
-        {!isDragActive && (
+        {/* Supported Formats - only show when not compact */}
+        {!isDragActive && !compact && (
           <div className="flex items-center gap-2 mt-2">
             {['PNG', 'JPG', 'JPEG', 'WEBP'].map((format) => (
               <span
                 key={format}
-                className="px-2 py-1 text-2xs font-medium text-text-muted bg-glass-white rounded-md"
+                className="px-2 py-1 text-xs font-medium rounded"
+                style={{
+                  background: 'var(--bg-tertiary)',
+                  color: 'var(--text-muted)',
+                }}
               >
                 {format}
               </span>

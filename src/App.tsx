@@ -414,32 +414,25 @@ const MainApp: React.FC = () => {
           {/* Collection Scanner Tab */}
           {activeTab === 'collection' && (
             <div className="animate-fade-in space-y-6">
-              {/* Upload Section */}
+              {/* Upload & Process Section - Combined */}
               <section className="card">
-                <div className="card-header">
-                  <h2 className="heading-md">Upload Screenshots</h2>
-                </div>
-                <div className="card-body">
-                  <ImageDropzone onImagesUploaded={handleImagesUploaded} />
+                <div className="card-body space-y-4">
+                  {/* Dropzone - compact when images already uploaded */}
+                  <ImageDropzone onImagesUploaded={handleImagesUploaded} compact={images.length > 0} />
+
+                  {/* Uploaded Images Preview - compact horizontal strip */}
                   {images.length > 0 && (
-                    <div className="mt-6">
-                      <ImagePreview images={images} onRemove={handleRemoveImage} />
+                    <ImagePreview images={images} onRemove={handleRemoveImage} />
+                  )}
+
+                  {/* Process Controls - directly after images */}
+                  {images.length > 0 && (
+                    <div className="pt-2">
+                      <CardProcessor images={images} onProcessingComplete={handleProcessingComplete} />
                     </div>
                   )}
                 </div>
               </section>
-
-              {/* Processing Section */}
-              {images.length > 0 && (
-                <section className="card">
-                  <div className="card-header">
-                    <h2 className="heading-md">Process Images</h2>
-                  </div>
-                  <div className="card-body">
-                    <CardProcessor images={images} onProcessingComplete={handleProcessingComplete} />
-                  </div>
-                </section>
-              )}
 
               {/* Unmatched Cards Section */}
               {unmatchedCards.length > 0 && (

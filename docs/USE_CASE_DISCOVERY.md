@@ -847,9 +847,110 @@
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Offene Themen für nächste Session:**
-- [ ] **Priorisierung**: MVP-Scope festlegen
-- [ ] **User Story Mapping**: Detaillierte Stories erstellen
+---
+
+## 9. MVP-Scope (Definiert: 2025-12-01)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              MVP SCOPE                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ████████████████████████████████████████████████████████████████████████  │
+│   █                         MVP (5 Use Cases)                            █  │
+│   ████████████████████████████████████████████████████████████████████████  │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  A1  Arena Collection Import (Screenshot OCR)            ✓ MVP │      │
+│   │      → Bereits implementiert! Basis für alles weitere.         │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  A4  Collection Browse & Search                          ✓ MVP │      │
+│   │      → Karten finden, filtern, sortieren (20+ Kriterien)       │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  B1  AI Deck-Builder                                     ✓ MVP │      │
+│   │      → Optimales Deck aus Collection mit AI-Unterstützung      │      │
+│   │      → Startpunkt: Commander oder Karten-Combo                 │      │
+│   │      → Constraint: Legal + Optimal                             │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  C2  Kaufempfehlungen mit Preisen                        ✓ MVP │      │
+│   │      → "Diese Karte würde dein Deck verbessern"                │      │
+│   │      → Preisvergleich von Shops                                │      │
+│   │      → Budget-Alternativen vorschlagen                         │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  C4  Banlist-Monitoring & Alternativen                   ✓ MVP │      │
+│   │      → Bei Ban: betroffene Decks finden                        │      │
+│   │      → Ersatzkarten aus Collection vorschlagen                 │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ════════════════════════════════════════════════════════════════════════  │
+│                                                                             │
+│   NICHT IM MVP (Phase 2+):                                                 │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  A2  Arena Log-Parsing              → Recherche nötig          │      │
+│   │  A3  Paper Collection Import        → 20% Nutzung, später      │      │
+│   │  B2  Deck Import (Moxfield URL)     → Nice-to-have             │      │
+│   │  B3  Deck Export                    → Nice-to-have             │      │
+│   │  B4  Ownership-Check                → Teil von B1?             │      │
+│   │  C1  Spielweise-Guide               → Phase 2                  │      │
+│   │  C3  Proaktive Optimierung          → Phase 2                  │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### MVP User Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           MVP USER FLOW                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   1. IMPORT                                                                 │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Screenshot hochladen → OCR → Collection erstellen              │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   2. BROWSE                                                                 │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Collection durchsuchen → Filter anwenden → Karten finden       │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   3. BUILD                                                                  │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Combo/Commander wählen → AI baut Deck → Review & Adjust        │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   4. UPGRADE                                                                │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Kaufempfehlungen sehen → Preise vergleichen → Entscheiden      │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                         │                                                   │
+│                         ▼                                                   │
+│   5. MAINTAIN                                                               │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Banlist-Check → Betroffene Decks → Alternativen finden         │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Offene Themen:**
+- [ ] **User Story Mapping**: Detaillierte Stories für MVP erstellen
 
 ### Kern-Erkenntnisse (8 Stück)
 
@@ -872,12 +973,12 @@
 
 ---
 
-## 8. Nächste Schritte
+## 10. Nächste Schritte
 
 - [x] Interview Session 1 durchführen
-- [ ] Interview Session 2: Collection Management
+- [x] Interview Session 2: Collection Management
+- [x] Use Cases priorisieren
+- [x] MVP-Scope definieren (5 Use Cases)
 - [ ] Personas validieren/anpassen
-- [ ] Use Cases priorisieren
 - [ ] User Story Map erstellen
-- [ ] MVP-Scope definieren
 

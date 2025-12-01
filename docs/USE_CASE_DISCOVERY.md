@@ -456,6 +456,7 @@
 - [ ] **Kaufempfehlungen** - Upgrade-Vorschläge MIT PREISEN
 - [ ] **Budget-Alternativen** - Günstigere Optionen für teure Karten
 - [ ] **Proaktive Deck-Analyse** - Nach Collection-Update: "Neue Karte X verbessert Deck Y!"
+- [ ] **Banlist-Monitoring** - Bei Banlist-Änderung: betroffene Decks finden + Alternativen vorschlagen
 
 ### Proaktive Deck-Optimierung (Neue Erkenntnis!)
 
@@ -464,11 +465,18 @@
 │                    PROAKTIVE DECK-OPTIMIERUNG                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   TRIGGER: Collection wird aktualisiert                                    │
+│   TRIGGER 1: Collection wird aktualisiert                                  │
 │   ┌─────────────────────────────────────────────────────────────────┐      │
 │   │  + Neuer Booster geöffnet                                       │      │
 │   │  + Karte gecraftet                                              │      │
 │   │  + Paper-Karten hinzugefügt                                     │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   TRIGGER 2: Banlist-Änderung                                              │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ! Karte wurde gebannt in Format X                              │      │
+│   │  → Welche meiner Decks sind betroffen?                          │      │
+│   │  → Welche Alternativen gibt es aus meiner Collection?           │      │
 │   └─────────────────────────────────────────────────────────────────┘      │
 │                         │                                                   │
 │                         ▼                                                   │
@@ -769,6 +777,9 @@
 > "Schön wäre, wenn nach einem Collection Update alle Decks geprüft werden
 > könnten, ob es mit den neuen Karten Sinn macht etwas auszuwechseln. Vielleicht
 > gibt es ja dann plötzlich neues Potenzial, das vorher nicht da war."
+
+> "Laufen müssten auch Änderungen der Banlists nötige Anpassungen an Decks finden
+> und Alternativen zu Karten finden, die entfernt werden müssen."
 
 **Offene Themen für nächste Session:**
 - [ ] **Collection-Erstellung**: Wie werden Karten initial erfasst?

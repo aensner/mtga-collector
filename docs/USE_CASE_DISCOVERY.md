@@ -497,6 +497,51 @@
 - [ ] Proxy-Druck Workflow: Wie werden Proxies erstellt? Welche Tools?
 - [x] Bevorzugte Collection-Import Methode? → Datei-Export (aber Arena unterstützt es nicht)
 - [x] Update-Frequenz? → **Nach jedem Booster-Pack** (häufig!)
+- [x] Paper Card Import? → **Mix aus 4 Methoden** (je nach Situation)
+
+### Paper Collection Import - Optionen
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    PAPER COLLECTION IMPORT OPTIONEN                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   METHODE 1: Fertige Produkte importieren                                  │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  • Precon Decks (Commander Precons)                             │      │
+│   │  • Standard Decks (Challenger Decks, etc.)                      │      │
+│   │  → Produkt auswählen, alle Karten automatisch hinzufügen        │      │
+│   │  ✓ Sehr schnell für bekannte Produkte                           │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   METHODE 2: Manuell eintippen                                             │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  • Kartennamen eintippen                                        │      │
+│   │  • Autocomplete mit Scryfall-Daten                              │      │
+│   │  → Für einzelne Karten oder kleine Mengen                       │      │
+│   │  ✓ Präzise, kein Scan-Equipment nötig                           │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   METHODE 3: Handy-Kamera scannen                                          │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  • Einzelne Karte fotografieren                                 │      │
+│   │  • App erkennt Karte (Image Recognition)                        │      │
+│   │  → Wenn man den Namen nicht kennt                               │      │
+│   │  ? Erfordert gute Image Recognition (Scryfall hat Bilder)       │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   METHODE 4: Bulk-Scan (fortgeschritten)                                   │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  • Vorrichtung für schnelles Durchscannen vieler Karten        │      │
+│   │  • Karten schnell nacheinander vor Kamera halten               │      │
+│   │  → Für große Sammlungen                                         │      │
+│   │  ? Community-Lösungen existieren (DIY Scanning Rigs)            │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ──► Alle 4 Methoden sollten unterstützt werden (je nach Kontext)        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Update-Frequenz Implikation
 
@@ -665,6 +710,16 @@
 **F11: Wie oft würdest du die Collection aktualisieren wollen?**
 
 > "Nach jedem Booster-Pack. Oder wenn ich eine neue Karte gecraftet habe."
+
+**F12: Wie würdest du am liebsten Paper Cards erfassen?**
+
+> "Es ist wohl ein Mix:
+> 1. Die Precon oder einzwei Standard Decks, die ich gekauft habe
+> 2. Manuell eintippen
+> 3. Per Handy-Kamera scannen
+> 4. Bulk-Scan - ich habe im Internet gesehen, dass es Leute gibt, die sich
+>    Vorrichtungen gebastelt haben, mit denen sie per Handy viele Karten
+>    einzeln aber schnell nacheinander scannen können."
 
 **Offene Themen für nächste Session:**
 - [ ] **Collection-Erstellung**: Wie werden Karten initial erfasst?

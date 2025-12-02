@@ -31,7 +31,6 @@ interface ProcessingProgress {
 export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessingComplete }) => {
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState('');
   const [debugMode, setDebugMode] = useState(false);
   const [debugCanvas, setDebugCanvas] = useState<string | null>(null);
   const [processingCanvas, setProcessingCanvas] = useState<string | null>(null);
@@ -275,7 +274,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     const startTime = Date.now();
 
     try {
-      setCurrentStep('Initializing OCR...');
       await initializeOCR();
 
       const results: ProcessingResult[] = [];
@@ -284,7 +282,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       for (let imgIndex = 0; imgIndex < images.length; imgIndex++) {
         const image = images[imgIndex];
         const pageNumber = imgIndex + 1;
-        setCurrentStep(`Processing image ${pageNumber}/${images.length}...`);
 
         const img = new Image();
         await new Promise((resolve, reject) => {
@@ -293,7 +290,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           img.src = image.preview;
         });
 
-        setCurrentStep(`Detecting card grid in image ${imgIndex + 1}...`);
         const canvas = preprocessImage(img);
         const grid = detectCardGrid(img, gridParams);
 
@@ -320,7 +316,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         originalCanvas.height = img.height;
         originalCtx.drawImage(img, 0, 0);
 
-        setCurrentStep(`Extracting ${grid.length} cards with 4 parallel workers...`);
         const cards: CardData[] = [];
         const ocrStartTime = Date.now();
         const cardStatuses = new Map<number, CardStatus>();
@@ -336,7 +331,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
         for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
           const batch = batches[batchIdx];
-          const batchStartTime = Date.now();
 
           for (let cellIdx = 0; cellIdx < batch.length; cellIdx++) {
             const cardIndex = batchIdx * BATCH_SIZE + cellIdx;
@@ -426,7 +420,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           });
 
           const batchResults = await Promise.all(batchPromises);
-          const batchTime = Date.now() - batchStartTime;
 
           let lastSuccessCard: any = null;
           batchResults.forEach((result: any, idx) => {
@@ -468,7 +461,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
           const processed = Math.min((batchIdx + 1) * BATCH_SIZE, grid.length);
           setProgress(Math.round((processed / grid.length) * 50));
-          setCurrentStep(`Processed batch ${batchIdx + 1}/${batches.length} (${batchTime}ms) - ${cards.length} cards found`);
         }
 
         const ocrTotalTime = ((Date.now() - ocrStartTime) / 1000).toFixed(1);
@@ -477,7 +469,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         setProgress(75);
 
         const scryfallStartTime = Date.now();
-        setCurrentStep(`Validating ${cards.length} cards with Scryfall...`);
 
         setProcessingProgress({
           currentCard: cards.length,
@@ -521,7 +512,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
         const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
         console.log(`Processing complete in ${totalTime}s - ${cards.length} cards extracted`);
-        setCurrentStep(`Complete! Processed ${cards.length} cards in ${totalTime}s`);
 
         overallCardsProcessed += grid.length;
 
@@ -559,7 +549,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       await terminateOCR();
       setProcessing(false);
       setProgress(0);
-      setCurrentStep('');
       setTimeout(() => setProcessingProgress(null), 2000);
     }
   };
@@ -674,90 +663,94 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
       {/* Progress Indicator */}
       {processingProgress && (
-        <div ref={progressIndicatorRef} className="card animate-fade-in">
-          <div className="card-body space-y-6">
-            {/* Overall Progress (Multi-page) */}
-            {processingProgress.totalPages && processingProgress.totalPages > 1 && processingProgress.overallTotalCards && (
-              <div className="pb-4" style={{ borderBottom: '1px solid var(--border-primary)' }}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="heading-sm">Overall Progress</span>
-                  <span className="badge badge-success">
-                    {Math.round((processingProgress.overallCardsProcessed! / processingProgress.overallTotalCards) * 100)}%
-                  </span>
-                </div>
-                <div className="progress mb-2" style={{ height: '10px' }}>
-                  <div className="progress-bar" style={{
-                    width: `${Math.max(1, (processingProgress.overallCardsProcessed! / processingProgress.overallTotalCards) * 100)}%`,
-                    background: 'var(--success)'
-                  }} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-caption">Page {processingProgress.currentPage}/{processingProgress.totalPages}</span>
-                  <span className="text-caption">{processingProgress.overallCardsProcessed} of {processingProgress.overallTotalCards} cards</span>
-                </div>
-              </div>
-            )}
-
-            {/* Current Page Progress */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-body font-medium">
-                  {processingProgress.totalPages && processingProgress.totalPages > 1 ? 'Current Page' : 'Progress'}
+        <div ref={progressIndicatorRef} className="animate-fade-in">
+          {/* Main Progress Bar */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <span
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-small font-bold"
+                  style={{
+                    background: `linear-gradient(135deg, ${getPhaseColor(processingProgress.currentPhase)}, ${getPhaseColor(processingProgress.currentPhase)}88)`,
+                    color: 'white',
+                    boxShadow: `0 0 12px ${getPhaseColor(processingProgress.currentPhase)}40`
+                  }}
+                >
+                  {processingProgress.currentPhase === 'Complete' ? '✓' :
+                   processingProgress.currentPhase === 'OCR' ? '◎' : '⬡'}
                 </span>
-                <span className="text-small" style={{ color: 'var(--text-muted)' }}>
-                  {processingProgress.currentCard}/{processingProgress.totalCards} cards
-                </span>
-              </div>
-              <div className="progress mb-3">
-                <div className="progress-bar" style={{
-                  width: `${Math.max(2, (processingProgress.currentCard / processingProgress.totalCards) * 100)}%`
-                }} />
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="stat-card" style={{ padding: '16px' }}>
-                  <p className="text-caption mb-1">Phase</p>
-                  <p className="text-small font-medium" style={{ color: getPhaseColor(processingProgress.currentPhase) }}>
+                <div>
+                  <span className="text-body font-medium" style={{ color: getPhaseColor(processingProgress.currentPhase) }}>
                     {processingProgress.currentPhase}
-                  </p>
-                </div>
-                <div className="stat-card" style={{ padding: '16px' }}>
-                  <p className="text-caption mb-1">Batch</p>
-                  <p className="text-small font-medium">
-                    {processingProgress.batchNumber}/{processingProgress.totalBatches}
-                  </p>
+                  </span>
+                  {processingProgress.totalPages && processingProgress.totalPages > 1 && (
+                    <span className="text-caption ml-3" style={{ color: 'var(--text-muted)' }}>
+                      Page {processingProgress.currentPage}/{processingProgress.totalPages}
+                    </span>
+                  )}
                 </div>
               </div>
+              <div className="text-right">
+                <span className="text-body font-medium">
+                  {processingProgress.overallTotalCards && processingProgress.totalPages && processingProgress.totalPages > 1
+                    ? Math.round((processingProgress.overallCardsProcessed! / processingProgress.overallTotalCards) * 100)
+                    : Math.round((processingProgress.currentCard / processingProgress.totalCards) * 100)}%
+                </span>
+              </div>
+            </div>
 
-              {/* Current Card */}
-              {processingProgress.currentCardName && (
-                <div className="mt-4 p-4 rounded-lg" style={{ background: 'var(--bg-tertiary)' }}>
-                  <p className="text-caption mb-2">Current Card</p>
-                  <p className="text-small font-mono truncate">
-                    "{processingProgress.currentCardName}"
-                  </p>
-                  <p className="text-caption mt-2">
-                    Row {processingProgress.currentPosition.y + 1}, Column {processingProgress.currentPosition.x + 1}
-                  </p>
+            {/* Progress Bar */}
+            <div className="progress" style={{ height: '8px' }}>
+              <div
+                className="progress-bar transition-all duration-300"
+                style={{
+                  width: `${Math.max(2, processingProgress.overallTotalCards && processingProgress.totalPages && processingProgress.totalPages > 1
+                    ? (processingProgress.overallCardsProcessed! / processingProgress.overallTotalCards) * 100
+                    : (processingProgress.currentCard / processingProgress.totalCards) * 100)}%`,
+                  background: `linear-gradient(90deg, ${getPhaseColor(processingProgress.currentPhase)}, ${getPhaseColor(processingProgress.currentPhase)}cc)`
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Status Row */}
+          <div
+            className="flex items-center justify-between px-4 py-3 rounded-lg"
+            style={{ background: 'var(--bg-tertiary)' }}
+          >
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="text-caption" style={{ color: 'var(--text-muted)' }}>Cards:</span>
+                <span className="text-small font-medium">
+                  {processingProgress.currentCard}/{processingProgress.totalCards}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-caption" style={{ color: 'var(--text-muted)' }}>Batch:</span>
+                <span className="text-small font-medium">
+                  {processingProgress.batchNumber}/{processingProgress.totalBatches}
+                </span>
+              </div>
+              {processingProgress.currentPosition.x > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-caption" style={{ color: 'var(--text-muted)' }}>Position:</span>
+                  <span className="text-small font-medium">
+                    R{processingProgress.currentPosition.y + 1}C{processingProgress.currentPosition.x + 1}
+                  </span>
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Simple Progress Bar (during processing) */}
-      {processing && currentStep && (
-        <div className="card">
-          <div className="card-body">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-small">{currentStep}</span>
-              <span className="text-caption">{progress}%</span>
-            </div>
-            <div className="progress">
-              <div className="progress-bar" style={{ width: `${progress}%` }} />
-            </div>
+            {processingProgress.currentCardName && processingProgress.currentPhase !== 'Complete' && (
+              <div className="flex items-center gap-2 max-w-xs">
+                <span className="text-caption" style={{ color: 'var(--text-muted)' }}>Reading:</span>
+                <span className="text-small font-mono truncate" style={{ color: 'var(--text-secondary)' }}>
+                  {processingProgress.currentCardName}
+                </span>
+              </div>
+            )}
+            {processingProgress.currentPhase === 'Complete' && (
+              <span className="badge badge-success">Done</span>
+            )}
           </div>
         </div>
       )}

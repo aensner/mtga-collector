@@ -847,6 +847,73 @@
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+**F16: Wie soll ein Deck visuell dargestellt werden?**
+
+> Anforderungen:
+> - Farben des Decks auf einen Blick erkennbar
+> - Strategien/Archetypen des Decks sichtbar
+> - Titelbild für jedes Deck:
+>   - Commander-Deck: Commander-Karte als Bild
+>   - Standard-Deck: Stärkste Karte ODER generiertes Bild aus Hauptfarben
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    DECK VISUALISIERUNG                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   DECK-KARTE (in Deck-Liste)                                                │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ┌─────────────────────────────────────────┐                    │      │
+│   │  │                                         │                    │      │
+│   │  │         TITELBILD                       │                    │      │
+│   │  │  (Commander / Stärkste Karte / Gen.)    │                    │      │
+│   │  │                                         │                    │      │
+│   │  └─────────────────────────────────────────┘                    │      │
+│   │  "Gruul Aggro"                          ⚪⚪🔴🟢⚪              │      │
+│   │  Standard · 60 Karten                   ─────────               │      │
+│   │  [Aggro] [Midrange]                     Mana Pie                │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   FARB-INDIKATOREN                                                          │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ⚪ = Weiß (W)     Anzeige-Optionen:                            │      │
+│   │  🔵 = Blau (U)     • Mana-Symbole (WUBRG)                       │      │
+│   │  ⚫ = Schwarz (B)  • Farbiger Balken/Pie                        │      │
+│   │  🔴 = Rot (R)      • Prozentuale Verteilung                     │      │
+│   │  🟢 = Grün (G)     • MTG Color Wheel Style                      │      │
+│   │  ◇ = Farblos (C)                                                │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   STRATEGIE-TAGS (automatisch erkannt oder manuell)                        │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Archetypen:                                                    │      │
+│   │  • [Aggro]        → Schnelle Kreaturen, niedrige Kurve         │      │
+│   │  • [Control]      → Viel Removal, Counter, wenig Kreaturen     │      │
+│   │  • [Midrange]     → Ausgewogene Kurve, Value-Karten            │      │
+│   │  • [Combo]        → Spezifische Win-Condition Kombination      │      │
+│   │  • [Ramp]         → Mana-Beschleunigung, große Kreaturen       │      │
+│   │  • [Tribal]       → Fokus auf Kreaturentyp (Elves, Goblins)    │      │
+│   │  • [Tokens]       → Token-Generierung + Verstärkung            │      │
+│   │  • [Reanimator]   → Friedhof-Strategien                        │      │
+│   │  • [Mill]         → Gegner decken                              │      │
+│   │  • [Burn]         → Direkter Schaden                           │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   TITELBILD-LOGIK                                                           │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Commander-Deck:                                                │      │
+│   │  └── Commander-Karte automatisch als Titelbild                 │      │
+│   │                                                                 │      │
+│   │  Standard/Historic/etc.:                                        │      │
+│   │  ├── Option 1: Stärkste Karte (höchste CMC? Mythic?)           │      │
+│   │  ├── Option 2: Manuell gewählte "Feature Card"                 │      │
+│   │  └── Option 3: Generiertes Bild aus Deck-Farben                │      │
+│   │      (z.B. Farbverlauf, MTG-Mana-Symbole, Abstract Art)        │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## 9. MVP-Scope (Definiert: 2025-12-01)

@@ -574,7 +574,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Debug Mode Toggle */}
       <label className="flex items-center gap-3 cursor-pointer">
         <div className="relative">
@@ -675,7 +675,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       {/* Progress Indicator */}
       {processingProgress && (
         <div ref={progressIndicatorRef} className="card animate-fade-in">
-          <div className="card-body space-y-4">
+          <div className="card-body space-y-6">
             {/* Overall Progress (Multi-page) */}
             {processingProgress.totalPages && processingProgress.totalPages > 1 && processingProgress.overallTotalCards && (
               <div className="pb-4" style={{ borderBottom: '1px solid var(--border-primary)' }}>
@@ -715,14 +715,14 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="stat-card" style={{ padding: '12px' }}>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="stat-card" style={{ padding: '16px' }}>
                   <p className="text-caption mb-1">Phase</p>
                   <p className="text-small font-medium" style={{ color: getPhaseColor(processingProgress.currentPhase) }}>
                     {processingProgress.currentPhase}
                   </p>
                 </div>
-                <div className="stat-card" style={{ padding: '12px' }}>
+                <div className="stat-card" style={{ padding: '16px' }}>
                   <p className="text-caption mb-1">Batch</p>
                   <p className="text-small font-medium">
                     {processingProgress.batchNumber}/{processingProgress.totalBatches}
@@ -732,12 +732,12 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
               {/* Current Card */}
               {processingProgress.currentCardName && (
-                <div className="mt-3 p-3 rounded-lg" style={{ background: 'var(--bg-tertiary)' }}>
-                  <p className="text-caption mb-1">Current Card</p>
+                <div className="mt-4 p-4 rounded-lg" style={{ background: 'var(--bg-tertiary)' }}>
+                  <p className="text-caption mb-2">Current Card</p>
                   <p className="text-small font-mono truncate">
                     "{processingProgress.currentCardName}"
                   </p>
-                  <p className="text-caption mt-1">
+                  <p className="text-caption mt-2">
                     Row {processingProgress.currentPosition.y + 1}, Column {processingProgress.currentPosition.x + 1}
                   </p>
                 </div>

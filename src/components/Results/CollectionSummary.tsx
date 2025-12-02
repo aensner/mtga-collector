@@ -35,7 +35,7 @@ export const CollectionSummary: React.FC<CollectionSummaryProps> = ({ cards }) =
       </div>
 
       <div className="card-body">
-        <div className="stats-grid mb-6">
+        <div className="stats-grid mb-8">
           <div className="stat-card">
             <div className="stat-label">Total Cards</div>
             <div className="stat-value">{totalCards}</div>
@@ -61,12 +61,12 @@ export const CollectionSummary: React.FC<CollectionSummaryProps> = ({ cards }) =
                 <h4 className="heading-sm">Per-Page Breakdown</h4>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {pageStats.map(stat => (
                 <div
                   key={stat.page}
                   className="stat-card"
-                  style={{ padding: '12px 16px' }}
+                  style={{ padding: '16px 20px' }}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-caption">Page {stat.page}</span>
@@ -74,7 +74,7 @@ export const CollectionSummary: React.FC<CollectionSummaryProps> = ({ cards }) =
                       {stat.cardCount} cards
                     </span>
                   </div>
-                  <div className="text-caption mt-1">Qty: {stat.totalQuantity}</div>
+                  <div className="text-caption mt-2">Qty: {stat.totalQuantity}</div>
                 </div>
               ))}
             </div>
@@ -82,7 +82,7 @@ export const CollectionSummary: React.FC<CollectionSummaryProps> = ({ cards }) =
         )}
 
         <div
-          className="flex items-center justify-between text-small pt-4"
+          className="flex items-center justify-between text-small pt-6"
           style={{ borderTop: '1px solid var(--border-primary)' }}
         >
           <div>

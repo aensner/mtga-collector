@@ -273,7 +273,7 @@ export const UnmatchedCards: React.FC<UnmatchedCardsProps> = ({ unmatchedCards, 
         </p>
 
         {/* Cards List */}
-        <div className="space-y-4 max-h-96 overflow-y-auto custom-scrollbar pr-2">
+        <div className="space-y-5 max-h-96 overflow-y-auto custom-scrollbar pr-2">
           {unmatchedCards.map((card, index) => {
             const manualCorrection = manualCorrections[index];
             const isManuallyMatched = manualCorrection?.result !== null;
@@ -286,7 +286,7 @@ export const UnmatchedCards: React.FC<UnmatchedCardsProps> = ({ unmatchedCards, 
                   borderLeft: `4px solid ${isManuallyMatched ? 'var(--success)' : 'var(--warning)'}`,
                 }}
               >
-                <div className="flex gap-4">
+                <div className="flex gap-5">
                   {/* OCR Region Image */}
                   {card.ocrRegionImage && (
                     <div className="flex-shrink-0">
@@ -305,12 +305,12 @@ export const UnmatchedCards: React.FC<UnmatchedCardsProps> = ({ unmatchedCards, 
                   )}
 
                   {/* Card Details */}
-                  <div className="flex-1 space-y-3">
+                  <div className="flex-1 space-y-4">
                     {/* Card Name */}
                     <div className="flex items-center gap-3">
                       <span className="badge badge-neutral">{index + 1}</span>
                       <code
-                        className="text-small px-3 py-1.5 rounded-md flex-1"
+                        className="text-small px-4 py-2 rounded-md flex-1"
                         style={{ background: 'var(--bg-tertiary)', fontFamily: 'monospace' }}
                       >
                         "{card.kartenname}"
@@ -320,20 +320,20 @@ export const UnmatchedCards: React.FC<UnmatchedCardsProps> = ({ unmatchedCards, 
                     {/* Metadata */}
                     <div className="text-caption" style={{ color: 'var(--text-muted)' }}>
                       <span>File: {card.screenshotFilename || 'Unknown'}</span>
-                      <span className="mx-2">|</span>
+                      <span className="mx-3">|</span>
                       <span>Page {card.pageNumber || '?'}, Row {card.positionY}, Col {card.positionX}</span>
                       {card.ocrRegion && (
                         <>
-                          <span className="mx-2">|</span>
+                          <span className="mx-3">|</span>
                           <span>{card.ocrRegion.width}×{card.ocrRegion.height}px</span>
                         </>
                       )}
                     </div>
 
                     {/* Manual Correction Input */}
-                    <div className="pt-2">
+                    <div className="pt-3">
                       <label className="form-label mb-2 block">Manual Correction:</label>
-                      <div className="flex gap-2">
+                      <div className="flex gap-3">
                         <input
                           type="text"
                           placeholder="Enter correct card name..."

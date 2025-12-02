@@ -413,10 +413,10 @@ const MainApp: React.FC = () => {
 
           {/* Collection Scanner Tab */}
           {activeTab === 'collection' && (
-            <div className="animate-fade-in space-y-6">
+            <div className="animate-fade-in space-y-8">
               {/* Upload & Process Section - Combined */}
               <section className="card">
-                <div className="card-body space-y-4">
+                <div className="card-body space-y-6">
                   {/* Dropzone - compact when images already uploaded */}
                   <ImageDropzone onImagesUploaded={handleImagesUploaded} compact={images.length > 0} />
 

@@ -667,8 +667,8 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           {/* Centered Circular Progress */}
           <div className="flex flex-col items-center justify-center">
             {/* Circular Progress Ring */}
-            <div className="relative mb-6">
-              <svg width="120" height="120" className="transform -rotate-90">
+            <div className="relative mb-6" style={{ width: '120px', height: '120px' }}>
+              <svg width="120" height="120" className="transform -rotate-90 absolute inset-0">
                 {/* Background circle */}
                 <circle
                   cx="60"

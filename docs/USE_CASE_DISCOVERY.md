@@ -1040,7 +1040,67 @@
 
 ---
 
-## 10. Nächste Schritte
+## 10. Non-Functional Requirements (NFRs)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    NON-FUNCTIONAL REQUIREMENTS                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   CONNECTIVITY                                                              │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ✓ Online-Only                                                  │      │
+│   │    → Keine Offline-Funktionalität erforderlich                 │      │
+│   │    → Scryfall API, AI, Preisdaten benötigen Internet           │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   PLATTFORM                                                                 │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ✓ Desktop-First                                                │      │
+│   │    → Primäre Nutzung am Desktop (neben Arena)                  │      │
+│   │    → Responsive Design für Tablet/Mobile als Bonus             │      │
+│   │    → Mindestauflösung: 1024px Breite                           │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   PERFORMANCE                                                               │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ✓ Wichtig!                                                     │      │
+│   │    → Große Collections (1000+ Karten) performant               │      │
+│   │    → Schnelles Filtern & Suchen                                │      │
+│   │    → Lazy Loading / Virtualisierung für Listen                 │      │
+│   │    → OCR-Verarbeitung mit Progress-Feedback                    │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   SICHERHEIT & DATENSCHUTZ                                                 │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  ✓ Daten nicht offen im Netz                                   │      │
+│   │    → Authentifizierung erforderlich                            │      │
+│   │    → Nutzerdaten geschützt speichern                           │      │
+│   │    → HTTPS für alle Verbindungen                               │      │
+│   │                                                                 │      │
+│   │  ? Mandantenfähigkeit (Multi-Tenancy)                          │      │
+│   │    → Erwünscht, aber noch nicht wichtig                        │      │
+│   │    → Jeder User sieht nur seine Daten                          │      │
+│   │    → Später: Sharing/Social Features möglich                   │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│   ZUSAMMENFASSUNG                                                           │
+│   ┌─────────────────────────────────────────────────────────────────┐      │
+│   │  Prio │ NFR                │ Status                            │      │
+│   │  ─────┼────────────────────┼─────────────────────────────────── │      │
+│   │   1   │ Performance        │ Wichtig für MVP                   │      │
+│   │   2   │ Datenschutz        │ Wichtig für MVP                   │      │
+│   │   3   │ Desktop-First      │ Wichtig für MVP                   │      │
+│   │   4   │ Online-Only        │ Vereinfacht MVP                   │      │
+│   │   5   │ Multi-Tenancy      │ Nice-to-have (Phase 2)            │      │
+│   └─────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 11. Nächste Schritte
 
 - [x] Interview Session 1 durchführen
 - [x] Interview Session 2: Collection Management

@@ -4,8 +4,8 @@ import type { UploadedImage } from '../../types';
 interface ImagePreviewProps {
   images: UploadedImage[];
   onRemove: (id: string) => void;
-  processingIndex?: number; // Which image is currently being processed (-1 = none)
-  processingProgress?: number; // 0-100 progress for current image
+  processingIndex?: number;
+  processingProgress?: number;
 }
 
 export const ImagePreview: React.FC<ImagePreviewProps> = ({
@@ -17,67 +17,86 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
   if (images.length === 0) return null;
 
   return (
-    <div className="flex-1">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="heading-sm">Uploaded files</h3>
-      </div>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <h3 className="heading-sm mb-4">Uploaded files</h3>
 
-      <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar pr-2">
+      <div style={{ maxHeight: '300px', overflowY: 'auto' }} className="space-y-2 pr-2">
         {images.map((image, index) => {
           const isProcessing = index === processingIndex;
           const isProcessed = image.processed;
-          const isPending = !isProcessed && index > processingIndex;
 
           return (
             <div
               key={image.id}
-              className="flex items-center gap-3 p-2 rounded-lg transition-colors"
+              className="flex items-center gap-3"
               style={{
+                padding: '8px',
+                borderRadius: '8px',
                 background: isProcessing ? 'var(--bg-tertiary)' : 'transparent',
               }}
             >
-              {/* Thumbnail */}
+              {/* Small Thumbnail - 40x40px fixed */}
               <div
-                className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0"
-                style={{ border: '1px solid var(--border-primary)' }}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  minWidth: '40px',
+                  borderRadius: '6px',
+                  overflow: 'hidden',
+                  border: '1px solid var(--border-primary)',
+                }}
               >
                 <img
                   src={image.preview}
-                  alt={image.file.name}
-                  className="w-full h-full object-cover"
+                  alt=""
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    objectFit: 'cover',
+                    display: 'block',
+                  }}
                 />
               </div>
 
-              {/* File Info & Progress */}
-              <div className="flex-1 min-w-0">
+              {/* File Info */}
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <p
-                  className="text-small truncate mb-1"
-                  style={{ color: 'var(--text-primary)' }}
+                  style={{
+                    fontSize: '14px',
+                    color: 'var(--text-primary)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    marginBottom: '4px',
+                  }}
                   title={image.file.name}
                 >
                   {image.file.name}
                 </p>
 
-                {/* Progress Bar */}
-                {isProcessing && (
-                  <div className="progress" style={{ height: '4px' }}>
+                {/* Progress Bar when processing */}
+                {isProcessing ? (
+                  <div
+                    style={{
+                      height: '4px',
+                      background: 'var(--bg-tertiary)',
+                      borderRadius: '2px',
+                      overflow: 'hidden',
+                    }}
+                  >
                     <div
-                      className="progress-bar transition-all duration-300"
                       style={{
+                        height: '100%',
                         width: `${processingProgress}%`,
-                        background: 'var(--accent-primary)'
+                        background: 'var(--accent-primary)',
+                        transition: 'width 0.3s ease',
                       }}
                     />
                   </div>
-                )}
-
-                {/* Status Text */}
-                {!isProcessing && (
-                  <p className="text-caption" style={{ color: 'var(--text-muted)' }}>
+                ) : (
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
                     {isProcessed ? (
                       <span style={{ color: 'var(--success)' }}>Processed</span>
-                    ) : isPending ? (
-                      'Pending'
                     ) : (
                       `${(image.file.size / 1024 / 1024).toFixed(1)} MB`
                     )}
@@ -88,11 +107,21 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
               {/* Remove Button */}
               <button
                 onClick={() => onRemove(image.id)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-tertiary)]"
-                style={{ color: 'var(--text-muted)' }}
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'transparent',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  color: 'var(--text-muted)',
+                }}
                 aria-label="Remove file"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>

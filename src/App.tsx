@@ -417,20 +417,17 @@ const MainApp: React.FC = () => {
               {/* Upload Section - Two Column Layout */}
               <section className="card">
                 <div className="card-body">
-                  <div className="flex gap-8">
-                    {/* Left: Dropzone */}
-                    <div className="w-72 flex-shrink-0">
+                  <div style={{ display: 'flex', gap: '32px', alignItems: 'stretch' }}>
+                    {/* Left: Dropzone - Fixed width */}
+                    <div style={{ width: '240px', flexShrink: 0 }}>
                       <ImageDropzone onImagesUploaded={handleImagesUploaded} />
                     </div>
 
                     {/* Right: File List */}
-                    {images.length > 0 && (
+                    {images.length > 0 ? (
                       <ImagePreview images={images} onRemove={handleRemoveImage} />
-                    )}
-
-                    {/* Empty state for right side */}
-                    {images.length === 0 && (
-                      <div className="flex-1 flex items-center justify-center">
+                    ) : (
+                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <p className="text-caption" style={{ color: 'var(--text-muted)' }}>
                           No files uploaded yet
                         </p>

@@ -15,27 +15,12 @@ interface CardProcessorProps {
 
 type CardStatus = 'pending' | 'processing' | 'success' | 'error' | 'empty';
 
-interface ProcessingProgress {
-  currentCard: number;
-  totalCards: number;
-  currentPhase: 'OCR' | 'Card Validation' | 'Complete';
-  currentCardName: string;
-  currentPosition: { x: number; y: number };
-  batchNumber: number;
-  totalBatches: number;
-  currentPage?: number;
-  totalPages?: number;
-  overallCardsProcessed?: number;
-  overallTotalCards?: number;
-}
-
 export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessingComplete, onProgressUpdate }) => {
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [debugMode, setDebugMode] = useState(false);
   const [debugCanvas, setDebugCanvas] = useState<string | null>(null);
   const [processingCanvas, setProcessingCanvas] = useState<string | null>(null);
-  const [processingProgress, setProcessingProgress] = useState<ProcessingProgress | null>(null);
 
   const loadCalibration = (key: string, defaultValue: any) => {
     const saved = localStorage.getItem(key);
@@ -85,7 +70,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [previewImage, setPreviewImage] = useState<HTMLImageElement | null>(null);
-  const progressIndicatorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadFromDatabase = async () => {
@@ -192,12 +176,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     }
   }, [images, previewImage]);
 
-  useEffect(() => {
-    if (processingProgress && progressIndicatorRef.current) {
-      progressIndicatorRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, [processingProgress]);
-
   const drawCardStatusOverlay = (
     img: HTMLImageElement,
     grid: any[],
@@ -252,26 +230,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
     setProgress(0);
     setProcessingCanvas(null);
 
-    const estimatedCardsPerPage = 36;
-    const estimatedTotalCards = images.length * estimatedCardsPerPage;
-
-    const calculateTotalCards = (results: ProcessingResult[], currentGridLength: number, remainingImages: number) => {
-      return results.reduce((sum, r) => sum + r.totalCards, 0) + currentGridLength + remainingImages * estimatedCardsPerPage;
-    };
-
-    setProcessingProgress({
-      currentCard: 0,
-      totalCards: 36,
-      currentPhase: 'OCR',
-      currentCardName: 'Initializing...',
-      currentPosition: { x: 0, y: 0 },
-      batchNumber: 0,
-      totalBatches: 9,
-      currentPage: 1,
-      totalPages: images.length,
-      overallCardsProcessed: 0,
-      overallTotalCards: estimatedTotalCards,
-    });
     const startTime = Date.now();
 
     try {
@@ -293,20 +251,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
         const canvas = preprocessImage(img);
         const grid = detectCardGrid(img, gridParams);
-
-        setProcessingProgress({
-          currentCard: 0,
-          totalCards: grid.length,
-          currentPhase: 'OCR',
-          currentCardName: 'Starting OCR...',
-          currentPosition: { x: 0, y: 0 },
-          batchNumber: 0,
-          totalBatches: Math.ceil(grid.length / 4),
-          currentPage: pageNumber,
-          totalPages: images.length,
-          overallCardsProcessed,
-          overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
-        });
 
         const originalCanvas = document.createElement('canvas');
         const originalCtx = originalCanvas.getContext('2d', { willReadFrequently: true });
@@ -337,22 +281,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
             const cardIndex = batchIdx * BATCH_SIZE + cellIdx;
             cardStatuses.set(cardIndex, 'processing');
           }
-
-          const firstCardIndex = batchIdx * BATCH_SIZE;
-          const firstCell = batch[0];
-          setProcessingProgress({
-            currentCard: firstCardIndex + 1,
-            totalCards: grid.length,
-            currentPhase: 'OCR',
-            currentCardName: 'Reading...',
-            currentPosition: { x: firstCell.x, y: firstCell.y },
-            batchNumber: batchIdx + 1,
-            totalBatches: batches.length,
-            currentPage: pageNumber,
-            totalPages: images.length,
-            overallCardsProcessed: overallCardsProcessed + firstCardIndex + 1,
-            overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
-          });
 
           if (debugMode) {
             const overlayCanvas = drawCardStatusOverlay(img, grid, cardStatuses);
@@ -422,38 +350,17 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
           const batchResults = await Promise.all(batchPromises);
 
-          let lastSuccessCard: any = null;
           batchResults.forEach((result: any, idx) => {
             const cardIndex = batchIdx * BATCH_SIZE + idx;
             if (result && !result.empty && !result.error) {
               cards.push(result);
               cardStatuses.set(cardIndex, 'success');
-              lastSuccessCard = result;
             } else if (result && result.empty) {
               cardStatuses.set(cardIndex, 'empty');
             } else if (result && result.error) {
               cardStatuses.set(cardIndex, 'error');
             }
           });
-
-          if (lastSuccessCard) {
-            const currentCardInPage = batchIdx * BATCH_SIZE + batchResults.length;
-            setProcessingProgress({
-              currentCard: currentCardInPage,
-              totalCards: grid.length,
-              currentPhase: 'OCR',
-              currentCardName: lastSuccessCard.kartenname.length > 25
-                ? lastSuccessCard.kartenname.substring(0, 25) + '...'
-                : lastSuccessCard.kartenname,
-              currentPosition: { x: lastSuccessCard.positionX, y: lastSuccessCard.positionY },
-              batchNumber: batchIdx + 1,
-              totalBatches: batches.length,
-              currentPage: pageNumber,
-              totalPages: images.length,
-              overallCardsProcessed: overallCardsProcessed + currentCardInPage,
-              overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
-            });
-          }
 
           if (debugMode) {
             const overlayCanvas = drawCardStatusOverlay(img, grid, cardStatuses);
@@ -473,21 +380,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         onProgressUpdate?.(imgIndex, 75);
 
         const scryfallStartTime = Date.now();
-
-        setProcessingProgress({
-          currentCard: cards.length,
-          totalCards: grid.length,
-          currentPhase: 'Card Validation',
-          currentCardName: `Validating ${cards.length} cards...`,
-          currentPosition: { x: 0, y: 0 },
-          batchNumber: batches.length,
-          totalBatches: batches.length,
-          currentPage: pageNumber,
-          totalPages: images.length,
-          overallCardsProcessed: overallCardsProcessed + grid.length,
-          overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
-        });
-
         const cardNames = cards.map(c => c.kartenname);
         const scryfallResults = await searchCardsBatch(cardNames);
 
@@ -520,20 +412,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
 
         overallCardsProcessed += grid.length;
 
-        setProcessingProgress({
-          currentCard: cards.length,
-          totalCards: grid.length,
-          currentPhase: 'Complete',
-          currentCardName: `${cards.length} cards processed`,
-          currentPosition: { x: 0, y: 0 },
-          batchNumber: batches.length,
-          totalBatches: batches.length,
-          currentPage: pageNumber,
-          totalPages: images.length,
-          overallCardsProcessed,
-          overallTotalCards: calculateTotalCards(results, grid.length, images.length - imgIndex - 1),
-        });
-
         if (debugMode) {
           setDebugCanvas(canvas.toDataURL());
         }
@@ -554,16 +432,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       await terminateOCR();
       setProcessing(false);
       setProgress(0);
-      setTimeout(() => setProcessingProgress(null), 2000);
-    }
-  };
-
-  const getPhaseColor = (phase: string) => {
-    switch (phase) {
-      case 'OCR': return 'var(--accent-primary)';
-      case 'Card Validation': return 'var(--accent-secondary)';
-      case 'Complete': return 'var(--success)';
-      default: return 'var(--text-muted)';
     }
   };
 
@@ -665,83 +533,6 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
       >
         {processing ? `Processing... ${progress}%` : `Process ${images.length} Image(s)`}
       </button>
-
-      {/* Progress Indicator */}
-      {processingProgress && (
-        <div ref={progressIndicatorRef} className="animate-fade-in py-8">
-          {/* Centered Circular Progress */}
-          <div className="flex flex-col items-center justify-center">
-            {/* Circular Progress Ring */}
-            <div className="relative mb-6" style={{ width: '120px', height: '120px' }}>
-              <svg width="120" height="120" className="transform -rotate-90 absolute inset-0">
-                {/* Background circle */}
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="52"
-                  fill="none"
-                  stroke="var(--bg-tertiary)"
-                  strokeWidth="8"
-                />
-                {/* Progress circle */}
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="52"
-                  fill="none"
-                  stroke={getPhaseColor(processingProgress.currentPhase)}
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  strokeDasharray={`${2 * Math.PI * 52}`}
-                  strokeDashoffset={`${2 * Math.PI * 52 * (1 - (
-                    processingProgress.overallTotalCards && processingProgress.totalPages && processingProgress.totalPages > 1
-                      ? processingProgress.overallCardsProcessed! / processingProgress.overallTotalCards
-                      : processingProgress.currentCard / processingProgress.totalCards
-                  ))}`}
-                  style={{
-                    transition: 'stroke-dashoffset 0.3s ease',
-                    filter: `drop-shadow(0 0 6px ${getPhaseColor(processingProgress.currentPhase)})`
-                  }}
-                />
-              </svg>
-              {/* Center content */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold" style={{ color: getPhaseColor(processingProgress.currentPhase) }}>
-                  {processingProgress.overallTotalCards && processingProgress.totalPages && processingProgress.totalPages > 1
-                    ? Math.round((processingProgress.overallCardsProcessed! / processingProgress.overallTotalCards) * 100)
-                    : Math.round((processingProgress.currentCard / processingProgress.totalCards) * 100)}%
-                </span>
-              </div>
-            </div>
-
-            {/* Phase Label */}
-            <div className="text-center mb-4">
-              <span className="text-body font-medium" style={{ color: getPhaseColor(processingProgress.currentPhase) }}>
-                {processingProgress.currentPhase}
-              </span>
-              {processingProgress.totalPages && processingProgress.totalPages > 1 && (
-                <span className="text-caption ml-2" style={{ color: 'var(--text-muted)' }}>
-                  · Page {processingProgress.currentPage}/{processingProgress.totalPages}
-                </span>
-              )}
-            </div>
-
-            {/* Minimal Stats */}
-            <div className="flex items-center gap-4 text-caption" style={{ color: 'var(--text-muted)' }}>
-              <span>{processingProgress.currentCard}/{processingProgress.totalCards} cards</span>
-              <span>·</span>
-              <span>Batch {processingProgress.batchNumber}/{processingProgress.totalBatches}</span>
-            </div>
-
-            {/* Current Card Name (subtle) */}
-            {processingProgress.currentCardName && processingProgress.currentPhase !== 'Complete' && (
-              <p className="mt-3 text-caption font-mono truncate max-w-xs" style={{ color: 'var(--text-muted)' }}>
-                {processingProgress.currentCardName}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Debug Visualization */}
       {processingCanvas && debugMode && (

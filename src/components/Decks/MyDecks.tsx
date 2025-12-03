@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { CardData, DeckSummary } from '../../types';
 import { loadDeckSummaries, deleteDeck } from '../../services/deckDatabase';
+import { exportDeck } from '../../utils/deckExporter';
 
 interface MyDecksProps {
   collection: CardData[];
@@ -12,6 +13,7 @@ export const MyDecks: React.FC<MyDecksProps> = ({ collection, onCreateDeck, onEd
   const [decks, setDecks] = useState<DeckSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exportingDeckId, setExportingDeckId] = useState<string | null>(null);
 
   useEffect(() => {
     loadDecks();
@@ -42,6 +44,16 @@ export const MyDecks: React.FC<MyDecksProps> = ({ collection, onCreateDeck, onEd
     } catch (err) {
       console.error('Failed to delete deck:', err);
       alert('Failed to delete deck');
+    }
+  };
+
+  const handleExport = async (deckId: string, format: 'arena' | 'plaintext' | 'json') => {
+    try {
+      await exportDeck(deckId, format);
+      setExportingDeckId(null);
+    } catch (err) {
+      console.error('Failed to export deck:', err);
+      alert('Failed to export deck');
     }
   };
 
@@ -214,17 +226,60 @@ export const MyDecks: React.FC<MyDecksProps> = ({ collection, onCreateDeck, onEd
                 >
                   Edit
                 </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // TODO: Export functionality
-                    alert('Export feature coming soon!');
-                  }}
-                  className="button ghost text-sm flex-1"
-                  title="Export deck"
-                >
-                  Export
-                </button>
+                <div className="relative flex-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExportingDeckId(exportingDeckId === deck.id ? null : deck.id);
+                    }}
+                    className="button ghost text-sm w-full"
+                    title="Export deck"
+                  >
+                    Export ▾
+                  </button>
+                  {exportingDeckId === deck.id && (
+                    <>
+                      {/* Backdrop to close menu */}
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExportingDeckId(null);
+                        }}
+                      />
+                      {/* Export menu */}
+                      <div className="absolute bottom-full mb-1 left-0 right-0 bg-bg-panel border border-border rounded shadow-lg overflow-hidden z-20">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleExport(deck.id, 'arena');
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-bg-muted transition-colors text-fg-primary"
+                        >
+                          MTG Arena Format
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleExport(deck.id, 'plaintext');
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-bg-muted transition-colors text-fg-primary border-t border-border"
+                        >
+                          Plain Text
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleExport(deck.id, 'json');
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-bg-muted transition-colors text-fg-primary border-t border-border"
+                        >
+                          JSON
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

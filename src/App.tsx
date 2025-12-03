@@ -104,6 +104,27 @@ const MainApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'mydecks' | 'build' | 'collection'>('mydecks');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedDeckId, setSelectedDeckId] = useState<string | undefined>(undefined);
+  const [processingImageIndex, setProcessingImageIndex] = useState<number>(-1);
+  const [processingImageProgress, setProcessingImageProgress] = useState<number>(0);
+
+  // Handle progress updates from CardProcessor
+  const handleProgressUpdate = (imageIndex: number, progress: number) => {
+    setProcessingImageIndex(imageIndex);
+    setProcessingImageProgress(progress);
+    // Mark previous images as processed when we move to next
+    if (progress === 100) {
+      setImages(prev => prev.map((img, idx) =>
+        idx === imageIndex ? { ...img, processed: true } : img
+      ));
+    }
+  };
+
+  // Reset processing state when images change
+  const handleImagesUploadedWithReset = (newImages: UploadedImage[]) => {
+    handleImagesUploaded(newImages);
+    setProcessingImageIndex(-1);
+    setProcessingImageProgress(0);
+  };
 
   // Load collection on mount
   useEffect(() => {
@@ -420,12 +441,17 @@ const MainApp: React.FC = () => {
                   <div style={{ display: 'flex', gap: '32px', alignItems: 'stretch' }}>
                     {/* Left: Dropzone - Fixed width */}
                     <div style={{ width: '240px', flexShrink: 0 }}>
-                      <ImageDropzone onImagesUploaded={handleImagesUploaded} />
+                      <ImageDropzone onImagesUploaded={handleImagesUploadedWithReset} />
                     </div>
 
                     {/* Right: File List */}
                     {images.length > 0 ? (
-                      <ImagePreview images={images} onRemove={handleRemoveImage} />
+                      <ImagePreview
+                        images={images}
+                        onRemove={handleRemoveImage}
+                        processingIndex={processingImageIndex}
+                        processingProgress={processingImageProgress}
+                      />
                     ) : (
                       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <p className="text-caption" style={{ color: 'var(--text-muted)' }}>
@@ -440,7 +466,11 @@ const MainApp: React.FC = () => {
               {/* Process Button - Only show when images uploaded */}
               {images.length > 0 && (
                 <section>
-                  <CardProcessor images={images} onProcessingComplete={handleProcessingComplete} />
+                  <CardProcessor
+                    images={images}
+                    onProcessingComplete={handleProcessingComplete}
+                    onProgressUpdate={handleProgressUpdate}
+                  />
                 </section>
               )}
 

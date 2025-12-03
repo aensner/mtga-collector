@@ -10,6 +10,7 @@ import { QuantityCalibrator } from './QuantityCalibrator';
 interface CardProcessorProps {
   images: UploadedImage[];
   onProcessingComplete: (results: ProcessingResult[]) => void;
+  onProgressUpdate?: (imageIndex: number, progress: number) => void;
 }
 
 type CardStatus = 'pending' | 'processing' | 'success' | 'error' | 'empty';
@@ -28,7 +29,7 @@ interface ProcessingProgress {
   overallTotalCards?: number;
 }
 
-export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessingComplete }) => {
+export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessingComplete, onProgressUpdate }) => {
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [debugMode, setDebugMode] = useState(false);
@@ -460,13 +461,16 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
           }
 
           const processed = Math.min((batchIdx + 1) * BATCH_SIZE, grid.length);
-          setProgress(Math.round((processed / grid.length) * 50));
+          const imageProgress = Math.round((processed / grid.length) * 50);
+          setProgress(imageProgress);
+          onProgressUpdate?.(imgIndex, imageProgress);
         }
 
         const ocrTotalTime = ((Date.now() - ocrStartTime) / 1000).toFixed(1);
         console.log(`Parallel OCR completed in ${ocrTotalTime}s - Extracted ${cards.length} cards`);
 
         setProgress(75);
+        onProgressUpdate?.(imgIndex, 75);
 
         const scryfallStartTime = Date.now();
 
@@ -509,6 +513,7 @@ export const CardProcessor: React.FC<CardProcessorProps> = ({ images, onProcessi
         }
 
         setProgress(100);
+        onProgressUpdate?.(imgIndex, 100);
 
         const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
         console.log(`Processing complete in ${totalTime}s - ${cards.length} cards extracted`);

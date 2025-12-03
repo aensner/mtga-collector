@@ -1,10 +1,14 @@
-import { supabase } from './supabase';
+import { supabase, isSupabaseConfigured } from './supabase';
 import type { Deck, DeckSummary, CardData, DeckFormat, DeckArchetype } from '../types';
 
 /**
  * Load all user's decks from Supabase
  */
 export const loadAllDecks = async (): Promise<Deck[]> => {
+  if (!supabase || !isSupabaseConfigured) {
+    console.warn('Supabase not configured, cannot load decks');
+    return [];
+  }
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -96,6 +100,10 @@ export const loadDeckSummaries = async (collection: CardData[]): Promise<DeckSum
  * Load single deck by ID
  */
 export const loadDeck = async (deckId: string): Promise<Deck | null> => {
+  if (!supabase || !isSupabaseConfigured) {
+    console.warn('Supabase not configured, cannot load deck');
+    return null;
+  }
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -135,6 +143,9 @@ export const createDeck = async (
   archetype?: DeckArchetype,
   description?: string
 ): Promise<Deck> => {
+  if (!supabase || !isSupabaseConfigured) {
+    throw new Error('Database not configured');
+  }
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -194,6 +205,9 @@ export const updateDeckMetadata = async (
     description?: string;
   }
 ): Promise<void> => {
+  if (!supabase || !isSupabaseConfigured) {
+    throw new Error('Database not configured');
+  }
   try {
     const { error } = await supabase
       .from('decks')
@@ -216,6 +230,9 @@ export const updateDeckMetadata = async (
  * Delete a deck
  */
 export const deleteDeck = async (deckId: string): Promise<void> => {
+  if (!supabase || !isSupabaseConfigured) {
+    throw new Error('Database not configured');
+  }
   try {
     const { error } = await supabase
       .from('decks')
@@ -251,6 +268,9 @@ export const addCardToDeck = async (
     setCode?: string;
   }
 ): Promise<void> => {
+  if (!supabase || !isSupabaseConfigured) {
+    throw new Error('Database not configured');
+  }
   try {
     const { error } = await supabase
       .from('deck_cards')
@@ -288,6 +308,9 @@ export const removeCardFromDeck = async (
   deckId: string,
   scryfallId: string
 ): Promise<void> => {
+  if (!supabase || !isSupabaseConfigured) {
+    throw new Error('Database not configured');
+  }
   try {
     const { error } = await supabase
       .from('deck_cards')
@@ -319,6 +342,9 @@ export const updateCardQuantity = async (
     return removeCardFromDeck(deckId, scryfallId);
   }
 
+  if (!supabase || !isSupabaseConfigured) {
+    throw new Error('Database not configured');
+  }
   try {
     const { error } = await supabase
       .from('deck_cards')
@@ -355,6 +381,9 @@ export const saveDeckCards = async (
     setCode?: string;
   }>
 ): Promise<void> => {
+  if (!supabase || !isSupabaseConfigured) {
+    throw new Error('Database not configured');
+  }
   try {
     // First, get existing cards to know which to delete
     const { data: existingCards } = await supabase

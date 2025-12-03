@@ -59,66 +59,60 @@ export const MyDecks: React.FC<MyDecksProps> = ({ collection, onCreateDeck, onEd
 
   const getColorSymbols = (colors: string[]) => {
     const colorMap: Record<string, string> = {
-      W: '⚪', // White
-      U: '🔵', // Blue
-      B: '⚫', // Black
-      R: '🔴', // Red
-      G: '🟢', // Green
+      W: '⚪',
+      U: '🔵',
+      B: '⚫',
+      R: '🔴',
+      G: '🟢',
     };
 
-    if (colors.length === 0) return '◯'; // Colorless
-
+    if (colors.length === 0) return '◯';
     return colors.map(c => colorMap[c] || c).join('');
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-fg-muted">Loading decks...</div>
+      <div className="flex items-center justify-center py-16">
+        <p className="text-small">Loading decks...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-error">{error}</div>
+      <div className="flex items-center justify-center py-16">
+        <p className="text-small" style={{ color: 'var(--error)' }}>{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="mt-8">
+    <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="section-header mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-fg-primary">My Decks</h2>
-          <p className="text-sm text-fg-muted mt-1">
+          <h2 className="section-title">My Decks</h2>
+          <p className="section-description">
             {decks.length} {decks.length === 1 ? 'deck' : 'decks'}
             {collection.length > 0 && ` • ${collection.length} cards in collection`}
           </p>
         </div>
-        <button
-          onClick={onCreateDeck}
-          className="button ok flex items-center gap-2"
-        >
-          <span>+</span>
-          <span>New Deck</span>
-        </button>
       </div>
 
       {/* Empty State */}
       {decks.length === 0 && (
-        <div className="card text-center py-16">
-          <div className="text-6xl mb-4">🎴</div>
-          <h3 className="text-xl font-semibold text-fg-primary mb-2">
-            No decks yet
-          </h3>
-          <p className="text-fg-muted mb-6 max-w-md mx-auto">
-            Create your first deck to start building competitive strategies with your collection.
-          </p>
-          <div className="flex gap-3 justify-center">
-            <button onClick={onCreateDeck} className="button ok">
+        <div className="card">
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <h3 className="empty-state-title">No decks yet</h3>
+            <p className="empty-state-description">
+              Create your first deck to start building competitive strategies with your collection.
+            </p>
+            <button onClick={onCreateDeck} className="btn btn-primary">
               Create Deck
             </button>
           </div>
@@ -131,17 +125,15 @@ export const MyDecks: React.FC<MyDecksProps> = ({ collection, onCreateDeck, onEd
           {decks.map(deck => (
             <div
               key={deck.id}
-              className="card hover:shadow-lg transition-all duration-200 cursor-pointer group"
+              className="card card-interactive"
               onClick={() => onEditDeck(deck.id)}
             >
               {/* Deck Header */}
               <div className="card-header">
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-fg-primary truncate group-hover:text-accent transition-colors">
-                      {deck.name}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-fg-muted">
+                    <h3 className="heading-sm truncate">{deck.name}</h3>
+                    <div className="flex items-center gap-2 mt-1 text-caption">
                       <span className="capitalize">{deck.format}</span>
                       {deck.archetype && (
                         <>
@@ -151,42 +143,41 @@ export const MyDecks: React.FC<MyDecksProps> = ({ collection, onCreateDeck, onEd
                       )}
                     </div>
                   </div>
-                  <div className="text-2xl flex-shrink-0">
+                  <div className="text-xl flex-shrink-0">
                     {getColorSymbols(deck.colors)}
                   </div>
                 </div>
               </div>
 
               {/* Deck Body */}
-              <div className="card-body space-y-3">
+              <div className="card-body space-y-4">
                 {/* Card Count */}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-fg-muted">Cards:</span>
-                  <span className={`font-semibold ${deck.isValid ? 'text-ok' : 'text-warn'}`}>
+                  <span className="text-small">Cards:</span>
+                  <span className={`heading-sm ${deck.isValid ? '' : ''}`} style={{ color: deck.isValid ? 'var(--success)' : 'var(--warning)' }}>
                     {deck.totalCards} / 60
                   </span>
                 </div>
 
                 {/* Ownership Percentage */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-fg-muted">Owned:</span>
-                    <span className="text-sm font-semibold text-fg-primary">
-                      {deck.ownedPercentage}%
-                    </span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-small">Owned:</span>
+                    <span className="heading-sm">{deck.ownedPercentage}%</span>
                   </div>
                   <div className="progress">
                     <div
-                      className={`bar ${
-                        deck.ownedPercentage === 100
-                          ? '!bg-ok'
+                      className="progress-bar"
+                      style={{
+                        width: `${deck.ownedPercentage}%`,
+                        background: deck.ownedPercentage === 100
+                          ? 'var(--success)'
                           : deck.ownedPercentage >= 75
-                          ? '!bg-info'
-                          : deck.ownedPercentage >= 50
-                          ? '!bg-warn'
-                          : '!bg-error'
-                      }`}
-                      style={{ width: `${deck.ownedPercentage}%` }}
+                            ? 'var(--accent-primary)'
+                            : deck.ownedPercentage >= 50
+                              ? 'var(--warning)'
+                              : 'var(--error)'
+                      }}
                     />
                   </div>
                 </div>
@@ -194,21 +185,21 @@ export const MyDecks: React.FC<MyDecksProps> = ({ collection, onCreateDeck, onEd
                 {/* Primary Type */}
                 {deck.primaryType && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-fg-muted">Type:</span>
-                    <span className="text-sm text-fg-secondary">{deck.primaryType}</span>
+                    <span className="text-small">Type:</span>
+                    <span className="text-small">{deck.primaryType}</span>
                   </div>
                 )}
 
                 {/* Badges */}
                 <div className="flex gap-2 flex-wrap">
                   {deck.isValid && (
-                    <span className="badge ok text-xs">Valid</span>
+                    <span className="badge badge-success">Valid</span>
                   )}
                   {deck.ownedPercentage === 100 && (
-                    <span className="badge info text-xs">Complete</span>
+                    <span className="badge badge-primary">Complete</span>
                   )}
                   {deck.ownedPercentage < 100 && deck.ownedPercentage > 0 && (
-                    <span className="badge warn text-xs">
+                    <span className="badge badge-warning">
                       {60 - Math.ceil((deck.totalCards * deck.ownedPercentage) / 100)} missing
                     </span>
                   )}
@@ -297,6 +288,9 @@ export const MyDecks: React.FC<MyDecksProps> = ({ collection, onCreateDeck, onEd
                 <div className="text-xs text-fg-muted">
                   Updated {new Date(deck.updatedAt).toLocaleDateString()}
                 </div>
+                <p className="text-caption mt-3">
+                  Updated {new Date(deck.updatedAt).toLocaleDateString()}
+                </p>
               </div>
             </div>
           ))}
@@ -307,33 +301,25 @@ export const MyDecks: React.FC<MyDecksProps> = ({ collection, onCreateDeck, onEd
       {decks.length > 0 && (
         <div className="card mt-6">
           <div className="card-header">
-            <h3 className="font-semibold text-fg-primary">Quick Stats</h3>
+            <h3 className="heading-md">Quick Stats</h3>
           </div>
           <div className="card-body">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <div className="text-2xl font-bold text-accent">
-                  {decks.length}
-                </div>
-                <div className="text-sm text-fg-muted">Total Decks</div>
+            <div className="stats-grid">
+              <div className="stat-card">
+                <p className="stat-label">Total Decks</p>
+                <p className="stat-value" style={{ color: 'var(--accent-primary)' }}>{decks.length}</p>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-ok">
-                  {decks.filter(d => d.isValid).length}
-                </div>
-                <div className="text-sm text-fg-muted">Valid Decks</div>
+              <div className="stat-card">
+                <p className="stat-label">Valid Decks</p>
+                <p className="stat-value" style={{ color: 'var(--success)' }}>{decks.filter(d => d.isValid).length}</p>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-info">
-                  {decks.filter(d => d.ownedPercentage === 100).length}
-                </div>
-                <div className="text-sm text-fg-muted">Complete</div>
+              <div className="stat-card">
+                <p className="stat-label">Complete</p>
+                <p className="stat-value" style={{ color: 'var(--accent-secondary)' }}>{decks.filter(d => d.ownedPercentage === 100).length}</p>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-fg-primary">
-                  {collection.length}
-                </div>
-                <div className="text-sm text-fg-muted">Collection Cards</div>
+              <div className="stat-card">
+                <p className="stat-label">Collection Cards</p>
+                <p className="stat-value">{collection.length}</p>
               </div>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider } from './components/Auth/AuthContext';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ImageDropzone } from './components/Upload/ImageDropzone';
 import { ImagePreview } from './components/Upload/ImagePreview';
 import { CardProcessor } from './components/Processing/CardProcessor';
@@ -19,8 +20,80 @@ import { parseCSV } from './utils/csvParser';
 import { calculateAccuracy } from './utils/accuracyTester';
 import { useAuth } from './components/Auth/AuthContext';
 
+// Icon Components
+const IconHome = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+  </svg>
+);
+
+const IconDeck = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+  </svg>
+);
+
+const IconScan = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+  </svg>
+);
+
+const IconSettings = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+);
+
+const IconLogout = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+  </svg>
+);
+
+const IconSun = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+  </svg>
+);
+
+const IconMoon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+  </svg>
+);
+
+const IconUpload = () => (
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+  </svg>
+);
+
+// Theme Hook
+const useTheme = () => {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
+
+  return { theme, toggleTheme };
+};
+
 const MainApp: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isDemoMode } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [cards, setCards] = useState<CardData[]>([]);
   const [unmatchedCards, setUnmatchedCards] = useState<CardData[]>([]);
@@ -46,7 +119,7 @@ const MainApp: React.FC = () => {
         const loadedCards = await loadCollection();
         setCards(loadedCards);
         setLoadStatus('loaded');
-        console.log(`📦 Loaded ${loadedCards.length} cards from collection`);
+        console.log(`Loaded ${loadedCards.length} cards from collection`);
       } catch (error) {
         console.error('Failed to load collection:', error);
         setLoadStatus('error');
@@ -69,17 +142,17 @@ const MainApp: React.FC = () => {
     const validatedCards = allCards.filter(card => card.scryfallMatch !== undefined && card.scryfallMatch !== null);
     const unmatchedCardsFound = allCards.filter(card => card.scryfallMatch === undefined || card.scryfallMatch === null);
 
-    console.log(`Processing complete: ${validatedCards.length} validated, ${unmatchedCardsFound.length} unmatched (total: ${allCards.length})`);
+    console.log(`Processing complete: ${validatedCards.length} validated, ${unmatchedCardsFound.length} unmatched`);
 
     if (unmatchedCardsFound.length > 0) {
-      console.warn('⚠️ Unmatched cards (these may need AI correction):', unmatchedCardsFound.map(c => c.kartenname));
+      console.warn('Unmatched cards:', unmatchedCardsFound.map(c => c.kartenname));
     }
 
     setCards(validatedCards);
     setUnmatchedCards(unmatchedCardsFound);
     setImages(images.map((img) => ({ ...img, processed: true })));
 
-    if (validatedCards.length > 0 && user) {
+    if (validatedCards.length > 0 && user && !isDemoMode) {
       setSaveStatus('saving');
       try {
         await saveCards(validatedCards);
@@ -102,9 +175,7 @@ const MainApp: React.FC = () => {
     );
     setUnmatchedCards(remainingUnmatched);
 
-    console.log(`Added ${correctedCards.length} corrected cards to collection`);
-
-    if (correctedCards.length > 0 && user) {
+    if (correctedCards.length > 0 && user && !isDemoMode) {
       setSaveStatus('saving');
       try {
         await saveCards(correctedCards);
@@ -117,7 +188,7 @@ const MainApp: React.FC = () => {
     }
   };
 
-  const handleCardUpdate = (index: number, field: keyof CardData, value: any) => {
+  const handleCardUpdate = (index: number, field: keyof CardData, value: unknown) => {
     const updatedCards = [...cards];
     updatedCards[index] = { ...updatedCards[index], [field]: value };
     setCards(updatedCards);
@@ -128,7 +199,6 @@ const MainApp: React.FC = () => {
       const response = await fetch('/example/MTG Arena Collection Page 10 - Test data - Tabellenblatt1.csv');
       const csvText = await response.text();
       const parsed = parseCSV(csvText);
-      console.log('Loaded test data:', parsed);
       setGroundTruth(parsed);
       setTestMode(true);
       alert(`Loaded ${parsed.length} cards from test data for comparison`);
@@ -140,7 +210,7 @@ const MainApp: React.FC = () => {
 
   const handleResetCollection = async () => {
     const confirmed = window.confirm(
-      '⚠️ Are you sure you want to reset your entire collection?\n\nThis will permanently delete all cards from your collection. This action cannot be undone.'
+      'Are you sure you want to reset your entire collection?\n\nThis will permanently delete all cards. This action cannot be undone.'
     );
 
     if (!confirmed) return;
@@ -151,12 +221,12 @@ const MainApp: React.FC = () => {
       setCards([]);
       setUnmatchedCards([]);
       setSaveStatus('saved');
-      alert('✅ Collection has been reset successfully');
+      alert('Collection has been reset successfully');
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (error) {
       console.error('Failed to reset collection:', error);
       setSaveStatus('error');
-      alert('❌ Failed to reset collection. Please try again.');
+      alert('Failed to reset collection. Please try again.');
     }
   };
 
@@ -168,139 +238,158 @@ const MainApp: React.FC = () => {
     ? calculateAccuracy(cards, groundTruth)
     : null;
 
+  const getStatusInfo = () => {
+    if (loadStatus === 'loading') return { text: 'Loading...', type: 'loading' };
+    if (saveStatus === 'saving') return { text: 'Saving...', type: 'loading' };
+    if (saveStatus === 'saved') return { text: 'Saved', type: 'success' };
+    if (isDemoMode) return { text: 'Demo Mode', type: 'demo' };
+    return { text: 'Online', type: 'online' };
+  };
+
+  const status = getStatusInfo();
+
   return (
-    <div className="flex h-screen bg-bg-base text-fg-primary overflow-hidden">
+    <div className="app-layout">
       {/* Sidebar */}
-      <aside className="w-64 bg-bg-sidebar flex flex-col border-r border-border">
-        {/* Logo/Brand */}
-        <div className="p-6 border-b border-border">
-          <h1 className="text-xl font-bold">MTG Collector</h1>
+      <aside className="sidebar">
+        {/* Logo */}
+        <div className="sidebar-header">
+          <div className="logo">
+            <div className="logo-icon">M</div>
+            <div className="logo-text">
+              <span className="logo-title">MTG Collector</span>
+              <span className="logo-subtitle">Arena Scanner</span>
+            </div>
+          </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 custom-scrollbar overflow-y-auto">
-          <div className="space-y-1 px-3">
-            <button
-              onClick={() => setActiveTab('mydecks')}
-              className={`sidebar-item w-full ${activeTab === 'mydecks' ? 'active bg-bg-highlight' : ''}`}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              <span className="font-medium">My Decks</span>
-            </button>
+        <nav className="sidebar-nav custom-scrollbar">
+          <button
+            onClick={() => setActiveTab('mydecks')}
+            className={`nav-item ${activeTab === 'mydecks' ? 'active' : ''}`}
+          >
+            <IconHome />
+            <span>My Decks</span>
+          </button>
 
-            <button
-              onClick={() => {
-                setActiveTab('build');
-                setSelectedDeckId(undefined);
-              }}
-              className={`sidebar-item w-full ${activeTab === 'build' ? 'active bg-bg-highlight' : ''}`}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              <span className="font-medium">Build Deck</span>
-            </button>
+          <button
+            onClick={() => {
+              setActiveTab('build');
+              setSelectedDeckId(undefined);
+            }}
+            className={`nav-item ${activeTab === 'build' ? 'active' : ''}`}
+          >
+            <IconDeck />
+            <span>Build Deck</span>
+          </button>
 
-            <button
-              onClick={() => setActiveTab('collection')}
-              className={`sidebar-item w-full ${activeTab === 'collection' ? 'active bg-bg-highlight' : ''}`}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-              </svg>
-              <span className="font-medium">Collection Scanner</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setActiveTab('collection')}
+            className={`nav-item ${activeTab === 'collection' ? 'active' : ''}`}
+          >
+            <IconScan />
+            <span>Collection Scanner</span>
+          </button>
 
-          {/* Divider */}
-          <div className="my-4 mx-3 border-t border-border"></div>
+          <div className="nav-divider" />
 
-          {/* Utility Links */}
-          <div className="space-y-1 px-3">
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="sidebar-item w-full"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="font-medium">Settings</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="nav-item"
+          >
+            <IconSettings />
+            <span>Settings</span>
+          </button>
         </nav>
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-black font-bold">
+        {/* Footer */}
+        <div className="sidebar-footer">
+          <div className="user-card">
+            <div className="user-avatar">
               {user?.email?.[0].toUpperCase() || 'U'}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.email || 'User'}</p>
-              <p className="text-xs text-fg-muted">
-                {loadStatus === 'loading' && '📦 Loading...'}
-                {saveStatus === 'saving' && '💾 Saving...'}
-                {saveStatus === 'saved' && '✅ Saved'}
+            <div className="user-info">
+              <p className="user-name">{user?.email || 'User'}</p>
+              <p className="user-status">
+                <span className={`status-dot ${status.type === 'demo' ? 'demo' : ''}`} />
+                {status.text}
               </p>
             </div>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="w-full btn-secondary text-sm py-2"
-          >
-            Sign Out
+          <button onClick={handleSignOut} className="btn btn-ghost w-full mt-3">
+            <IconLogout />
+            <span>Sign Out</span>
           </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <header className="bg-bg-sidebar border-b border-border px-8 py-4">
-          <div className="flex items-center gap-4">
-            {/* Search Bar */}
-            <div className="flex-1 max-w-md relative">
-              <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-fg-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search cards..."
-                className="search-input"
-              />
+      {/* Main Content */}
+      <main className="main-content">
+        {/* Header */}
+        <header className="main-header">
+          <div className="page-header">
+            <div className="page-header-content">
+              <h1 className="page-title">
+                {activeTab === 'mydecks' && 'My Decks'}
+                {activeTab === 'build' && 'Deck Builder'}
+                {activeTab === 'collection' && 'Collection Scanner'}
+              </h1>
+              <p className="page-description">
+                {activeTab === 'mydecks' && 'Manage your deck collection'}
+                {activeTab === 'build' && 'Create and optimize your decks'}
+                {activeTab === 'collection' && 'Scan MTG Arena screenshots to build your collection'}
+              </p>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2">
+            <div className="page-actions">
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="theme-toggle"
+                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              >
+                <div className="theme-toggle-thumb">
+                  {theme === 'light' ? <IconSun /> : <IconMoon />}
+                </div>
+              </button>
+
+              {/* Action Buttons */}
               {activeTab === 'collection' && (
                 <>
-                  <button
-                    onClick={handleLoadTestData}
-                    className="btn-ghost text-xs"
-                  >
+                  <button onClick={handleLoadTestData} className="btn btn-secondary btn-sm">
                     Load Test Data
                   </button>
                   <button
                     onClick={handleResetCollection}
-                    className="btn-ghost text-xs text-error"
+                    className="btn btn-danger btn-sm"
                     disabled={saveStatus === 'saving'}
                   >
                     Reset Collection
                   </button>
                 </>
               )}
+
+              {activeTab === 'mydecks' && (
+                <button
+                  onClick={() => {
+                    setSelectedDeckId(undefined);
+                    setActiveTab('build');
+                  }}
+                  className="btn btn-primary btn-sm"
+                >
+                  + New Deck
+                </button>
+              )}
             </div>
           </div>
         </header>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar bg-gradient-to-b from-bg-base to-bg-elevated">
-          <div className="px-8 py-6">
-            {/* My Decks Tab */}
-            {activeTab === 'mydecks' && (
+        <div className="main-body custom-scrollbar">
+          {/* My Decks Tab */}
+          {activeTab === 'mydecks' && (
+            <div className="animate-fade-in">
               <MyDecks
                 collection={cards}
                 onCreateDeck={() => {
@@ -312,71 +401,99 @@ const MainApp: React.FC = () => {
                   setActiveTab('build');
                 }}
               />
-            )}
+            </div>
+          )}
 
-            {/* Build Deck Tab */}
-            {activeTab === 'build' && (
+          {/* Build Deck Tab */}
+          {activeTab === 'build' && (
+            <div className="animate-fade-in">
               <DeckBuilder collection={cards} deckId={selectedDeckId} />
-            )}
+            </div>
+          )}
 
-            {/* Collection Scanner Tab */}
-            {activeTab === 'collection' && (
-              <div className="space-y-8">
-                {/* Upload Section */}
-                <section>
-                  <h2 className="text-2xl font-bold mb-4">Upload Screenshots</h2>
-                  <ImageDropzone onImagesUploaded={handleImagesUploaded} />
-                  <ImagePreview images={images} onRemove={handleRemoveImage} />
-                </section>
+          {/* Collection Scanner Tab */}
+          {activeTab === 'collection' && (
+            <div className="animate-fade-in space-y-8">
+              {/* Upload & Process Section - Combined */}
+              <section className="card">
+                <div className="card-body space-y-6">
+                  {/* Dropzone - compact when images already uploaded */}
+                  <ImageDropzone onImagesUploaded={handleImagesUploaded} compact={images.length > 0} />
 
-                {/* Processing Section */}
-                {images.length > 0 && (
-                  <section>
-                    <h2 className="text-2xl font-bold mb-4">Process Images</h2>
-                    <CardProcessor images={images} onProcessingComplete={handleProcessingComplete} />
-                  </section>
-                )}
+                  {/* Uploaded Images Preview - compact horizontal strip */}
+                  {images.length > 0 && (
+                    <ImagePreview images={images} onRemove={handleRemoveImage} />
+                  )}
 
-                {/* Unmatched Cards Section */}
+                  {/* Process Controls - directly after images */}
+                  {images.length > 0 && (
+                    <div className="pt-2">
+                      <CardProcessor images={images} onProcessingComplete={handleProcessingComplete} />
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Unmatched Cards Section */}
+              {unmatchedCards.length > 0 && (
                 <UnmatchedCards unmatchedCards={unmatchedCards} onCardsMatched={handleCardsMatched} />
+              )}
 
-                {/* Results Section */}
-                {cards.length > 0 && (
-                  <section>
-                    <CollectionSummary cards={cards} />
-                    <ResultsTable cards={cards} onCardUpdate={handleCardUpdate} />
-                    <ExportButtons cards={cards} />
-                  </section>
-                )}
-
-                {/* Accuracy Section */}
-                {accuracy && (
-                  <section>
-                    <AccuracyMetrics metrics={accuracy} />
-                  </section>
-                )}
-
-                {/* Empty State */}
-                {cards.length === 0 && images.length === 0 && (
-                  <section className="mt-12 text-center">
-                    <div className="spotify-card max-w-2xl mx-auto p-8">
-                      <h3 className="text-2xl font-bold mb-4">How It Works</h3>
-                      <ol className="text-left text-fg-secondary space-y-2">
-                        <li>1. Upload one or more MTG Arena collection screenshots</li>
-                        <li>2. Click "Process" to extract card names and quantities using OCR + AI</li>
-                        <li>3. Review and edit the results in the interactive table</li>
-                        <li>4. Export to CSV or JSON format</li>
-                        <li>5. (Optional) Load test data to check accuracy against known results</li>
-                      </ol>
-                      <div className="mt-6 text-sm text-fg-muted">
-                        <p>Powered by Tesseract.js, Anthropic Claude, and Scryfall API</p>
-                      </div>
+              {/* Results Section */}
+              {cards.length > 0 && (
+                <>
+                  <CollectionSummary cards={cards} />
+                  <section className="card">
+                    <div className="card-body">
+                      <ResultsTable cards={cards} onCardUpdate={handleCardUpdate} />
                     </div>
                   </section>
-                )}
-              </div>
-            )}
-          </div>
+                  <section className="card">
+                    <div className="card-body">
+                      <ExportButtons cards={cards} />
+                    </div>
+                  </section>
+                </>
+              )}
+
+              {/* Accuracy Section */}
+              {accuracy && (
+                <section className="card">
+                  <div className="card-body">
+                    <AccuracyMetrics metrics={accuracy} />
+                  </div>
+                </section>
+              )}
+
+              {/* Empty State */}
+              {cards.length === 0 && images.length === 0 && (
+                <section className="card">
+                  <div className="empty-state">
+                    <div className="empty-state-icon">
+                      <IconUpload />
+                    </div>
+                    <h3 className="empty-state-title">Start Scanning</h3>
+                    <p className="empty-state-description">
+                      Upload MTG Arena collection screenshots to extract card data automatically using OCR and AI.
+                    </p>
+                    <div className="space-y-3 text-left max-w-xs mx-auto">
+                      {[
+                        'Upload collection screenshots',
+                        'Process with OCR + AI',
+                        'Review and edit results',
+                        'Export to CSV or JSON'
+                      ].map((step, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <span className="badge badge-primary text-xs">{i + 1}</span>
+                          <span className="text-small">{step}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
@@ -388,11 +505,13 @@ const MainApp: React.FC = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <ProtectedRoute>
-        <MainApp />
-      </ProtectedRoute>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ProtectedRoute>
+          <MainApp />
+        </ProtectedRoute>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

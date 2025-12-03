@@ -1,6 +1,6 @@
 import type { ScryfallCard } from '../types';
-
-const SCRYFALL_API_BASE = 'https://api.scryfall.com';
+import { SCRYFALL, OCR } from '../constants/processing';
+import { scryfallLogger } from './logger';
 
 // Scryfall requests rate limiting: max 10 requests per second
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -9,15 +9,15 @@ export const searchCardByName = async (name: string): Promise<ScryfallCard | nul
   try {
     // Validate card name before searching
     const trimmedName = name.trim();
-    if (trimmedName.length < 2) {
-      console.log(`Skipping Scryfall search for invalid name: "${name}" (too short)`);
+    if (trimmedName.length < OCR.MIN_CARD_NAME_LENGTH) {
+      scryfallLogger.debug(`Skipping search for invalid name: "${name}" (too short)`);
       return null;
     }
 
-    await delay(100); // Rate limiting
+    await delay(SCRYFALL.RATE_LIMIT_DELAY); // Rate limiting
 
     const response = await fetch(
-      `${SCRYFALL_API_BASE}/cards/named?fuzzy=${encodeURIComponent(trimmedName)}`
+      `${SCRYFALL.BASE_URL}/cards/named?fuzzy=${encodeURIComponent(trimmedName)}`
     );
 
     if (!response.ok) {
@@ -56,7 +56,7 @@ export const searchCardByName = async (name: string): Promise<ScryfallCard | nul
       image_uris: cardFace.image_uris || data.image_uris,
     };
   } catch (error) {
-    console.error(`Error searching for card "${name}":`, error);
+    scryfallLogger.error(`Error searching for card "${name}"`, error);
     return null;
   }
 };
@@ -74,10 +74,10 @@ export const searchCardsBatch = async (names: string[]): Promise<(ScryfallCard |
 
 export const autocompleteCardName = async (partial: string): Promise<string[]> => {
   try {
-    await delay(100);
+    await delay(SCRYFALL.RATE_LIMIT_DELAY);
 
     const response = await fetch(
-      `${SCRYFALL_API_BASE}/cards/autocomplete?q=${encodeURIComponent(partial)}`
+      `${SCRYFALL.BASE_URL}/cards/autocomplete?q=${encodeURIComponent(partial)}`
     );
 
     if (!response.ok) {
@@ -87,7 +87,7 @@ export const autocompleteCardName = async (partial: string): Promise<string[]> =
     const data = await response.json();
     return data.data || [];
   } catch (error) {
-    console.error(`Error autocompleting card name "${partial}":`, error);
+    scryfallLogger.error(`Error autocompleting card name "${partial}"`, error);
     return [];
   }
 };

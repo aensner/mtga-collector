@@ -1,4 +1,14 @@
 import type { GridCell } from '../types';
+import { GRID, DEFAULT_CALIBRATION } from '../constants/processing';
+import { processingLogger } from './logger';
+
+/** Counter for empty slot detection logging */
+let emptyCheckCounter = 0;
+
+/** Reset the empty check counter (call when starting new processing) */
+export const resetEmptyCheckCounter = (): void => {
+  emptyCheckCounter = 0;
+};
 
 /**
  * Detects the card grid in an MTG Arena collection screenshot
@@ -26,16 +36,16 @@ export const detectCardGrid = (
   canvas.height = image.height;
   ctx.drawImage(image, 0, 0);
 
-  // MTG Arena UI constants (these may need adjustment)
-  const COLUMNS = 12;
-  const ROWS = 3;
+  // MTG Arena UI constants
+  const COLUMNS = GRID.COLUMNS;
+  const ROWS = GRID.ROWS;
   const params = gridParams || {
-    startX: 0.027,
-    startY: 0.193,
-    gridWidth: 0.945,
-    gridHeight: 0.788,
-    cardGapX: 0.008,
-    cardGapY: 0.036,
+    startX: DEFAULT_CALIBRATION.START_X,
+    startY: DEFAULT_CALIBRATION.START_Y,
+    gridWidth: DEFAULT_CALIBRATION.GRID_WIDTH,
+    gridHeight: DEFAULT_CALIBRATION.GRID_HEIGHT,
+    cardGapX: DEFAULT_CALIBRATION.CARD_GAP_X,
+    cardGapY: DEFAULT_CALIBRATION.CARD_GAP_Y,
   };
 
   const GRID_START_X = image.width * params.startX;
@@ -137,7 +147,6 @@ export const detectCardQuantity = (
   const zoneWidth = regionWidth / 4;
 
   let filledCount = 0;
-  const zoneStats = [];
 
   // Analyze each zone
   for (let zone = 0; zone < 4; zone++) {
@@ -264,32 +273,13 @@ export const isCardSlotEmpty = (
   );
 
   const data = imageData.data;
-  const pixelCount = sampleRegion.width * sampleRegion.height;
-
-  // Calculate color variance (standard deviation)
-  let sumR = 0, sumG = 0, sumB = 0;
-  for (let i = 0; i < data.length; i += 4) {
-    sumR += data[i];
-    sumG += data[i + 1];
-    sumB += data[i + 2];
-  }
-  const avgR = sumR / pixelCount;
-  const avgG = sumG / pixelCount;
-  const avgB = sumB / pixelCount;
-
-  let varianceSum = 0;
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    varianceSum += Math.pow(r - avgR, 2) + Math.pow(g - avgG, 2) + Math.pow(b - avgB, 2);
-  }
-  const variance = varianceSum / pixelCount;
-
-  // Calculate edge density using simple Sobel-like edge detection
-  let edgePixels = 0;
   const width = sampleRegion.width;
   const height = sampleRegion.height;
+  const pixelCount = width * height;
+
+  // Calculate edge density using simple Sobel-like edge detection
+  // Edge detection alone provides sufficient accuracy for empty slot detection
+  let edgePixels = 0;
 
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {
@@ -315,11 +305,7 @@ export const isCardSlotEmpty = (
   const edgeDensity = edgePixels / pixelCount;
 
   // Increment counter for tracking
-  if (!(window as any)._emptyCheckCounter) {
-    (window as any)._emptyCheckCounter = 0;
-  }
-  (window as any)._emptyCheckCounter++;
-  const checkNum = (window as any)._emptyCheckCounter;
+  emptyCheckCounter++;
 
   // Empty slot detection criteria:
   // Low edge density = no card borders, text, or art details
@@ -328,7 +314,9 @@ export const isCardSlotEmpty = (
   // Threshold: < 2% = empty
   const isEmpty = edgeDensity < opts.edgeThreshold;
 
-  console.log(`${isEmpty ? '⬜' : '🟢'} Card ${checkNum}: Edge=${(edgeDensity * 100).toFixed(2)}%, Empty=${isEmpty}`);
+  processingLogger.debug(
+    `${isEmpty ? '⬜' : '🟢'} Card ${emptyCheckCounter}: Edge=${(edgeDensity * 100).toFixed(2)}%, Empty=${isEmpty}`
+  );
 
   return isEmpty;
 };

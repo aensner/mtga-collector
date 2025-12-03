@@ -37,24 +37,17 @@ export const UnmatchedCards: React.FC<UnmatchedCardsProps> = ({ unmatchedCards, 
   const handleCorrectAll = async () => {
     setCorrecting(true);
     try {
-      // Extract card names
       const cardNames = unmatchedCards.map(c => c.kartenname);
-
       console.log('Sending to AI for correction:', cardNames);
 
-      // Send to AI for correction
       const aiCorrections = await correctCardNamesBatch(cardNames);
-
-      // Validate corrected names with Scryfall
       const correctedNames = aiCorrections.map(c => c.correctedName);
       const scryfallResults = await searchCardsBatch(correctedNames);
 
-      // Build correction results
       const results: CorrectionResult[] = unmatchedCards.map((card, i) => {
         const corrected = aiCorrections[i].correctedName;
         const scryfallMatch = scryfallResults[i];
 
-        // Update card with correction if Scryfall found it
         if (scryfallMatch) {
           card.correctedName = scryfallMatch.name;
           card.scryfallMatch = scryfallMatch;
@@ -71,20 +64,15 @@ export const UnmatchedCards: React.FC<UnmatchedCardsProps> = ({ unmatchedCards, 
 
       setCorrections(results);
       setShowResults(true);
-
       console.log('AI correction results:', results);
     } catch (error: any) {
       console.error('Error during AI correction:', error);
-
-      // Show user-friendly error message
       let errorMessage = 'Error during AI correction.';
 
       if (error?.message?.includes('credit balance is too low') || error?.message?.includes('quota')) {
-        errorMessage = '⚠️ API Credits Low\n\nYour AI API credit balance is too low.\n\nTo continue:\n• For OpenAI: Visit platform.openai.com/account/billing\n• For Anthropic: Visit console.anthropic.com → Plans & Billing\n\nNote: You can still use the collection scanner - AI correction is optional.';
+        errorMessage = 'API Credits Low\n\nYour AI API credit balance is too low.';
       } else if (error?.message?.includes('No AI Provider')) {
-        errorMessage = '⚠️ No AI Provider Configured\n\nTo enable AI correction:\n1. Get an API key from:\n   • OpenAI: platform.openai.com/api-keys\n   • Anthropic: console.anthropic.com\n2. Add to .env file:\n   VITE_OPENAI_API_KEY=your_key\n   OR\n   VITE_ANTHROPIC_API_KEY=your_key\n3. Restart the development server';
-      } else if (error?.message?.includes('API key') || error?.message?.includes('API Key')) {
-        errorMessage = error.message;
+        errorMessage = 'No AI Provider Configured\n\nAdd VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY to .env';
       } else if (error?.message) {
         errorMessage = `Error: ${error.message}`;
       }
@@ -98,23 +86,15 @@ export const UnmatchedCards: React.FC<UnmatchedCardsProps> = ({ unmatchedCards, 
   const handleManualCorrection = async (cardIndex: number, correctedName: string) => {
     if (!correctedName.trim()) return;
 
-    // Update state to show loading
     setManualCorrections(prev => ({
       ...prev,
-      [cardIndex]: {
-        value: correctedName,
-        loading: true,
-        result: null,
-        error: null,
-      },
+      [cardIndex]: { value: correctedName, loading: true, result: null, error: null },
     }));
 
     try {
-      // Search Scryfall for the corrected name
       const scryfallCard = await searchCardByName(correctedName);
 
       if (scryfallCard) {
-        // Create updated card with Scryfall match
         const originalCard = unmatchedCards[cardIndex];
         const updatedCard: CardData = {
           ...originalCard,
@@ -124,40 +104,24 @@ export const UnmatchedCards: React.FC<UnmatchedCardsProps> = ({ unmatchedCards, 
 
         setManualCorrections(prev => ({
           ...prev,
-          [cardIndex]: {
-            value: correctedName,
-            loading: false,
-            result: updatedCard,
-            error: null,
-          },
+          [cardIndex]: { value: correctedName, loading: false, result: updatedCard, error: null },
         }));
       } else {
         setManualCorrections(prev => ({
           ...prev,
-          [cardIndex]: {
-            value: correctedName,
-            loading: false,
-            result: null,
-            error: 'Card not found in Scryfall',
-          },
+          [cardIndex]: { value: correctedName, loading: false, result: null, error: 'Card not found in Scryfall' },
         }));
       }
     } catch (error) {
       console.error('Error searching Scryfall:', error);
       setManualCorrections(prev => ({
         ...prev,
-        [cardIndex]: {
-          value: correctedName,
-          loading: false,
-          result: null,
-          error: 'Error searching Scryfall',
-        },
+        [cardIndex]: { value: correctedName, loading: false, result: null, error: 'Error searching Scryfall' },
       }));
     }
   };
 
   const handleAddManualCorrections = () => {
-    // Get all successfully manually corrected cards
     const manuallyMatchedCards = Object.values(manualCorrections)
       .filter(mc => mc.result !== null)
       .map(mc => mc.result!);
@@ -165,314 +129,273 @@ export const UnmatchedCards: React.FC<UnmatchedCardsProps> = ({ unmatchedCards, 
     if (manuallyMatchedCards.length > 0) {
       console.log(`Adding ${manuallyMatchedCards.length} manually corrected cards to collection`);
       onCardsMatched(manuallyMatchedCards);
-
-      // Reset manual corrections
       setManualCorrections({});
     }
   };
 
   const handleAddToCollection = () => {
-    // Get successfully matched cards
     const matchedCards = corrections
       .filter(c => c.scryfallMatch)
       .map(c => c.card);
 
     console.log(`Adding ${matchedCards.length} corrected cards to collection`);
     onCardsMatched(matchedCards);
-
-    // Reset
     setShowResults(false);
     setCorrections([]);
   };
 
+  // AI Results View
   if (showResults) {
     const successCount = corrections.filter(c => c.scryfallMatch).length;
     const failCount = corrections.length - successCount;
 
     return (
-      <div className="mt-8 bg-gray-800 rounded-lg border border-gray-700 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            {successCount > 0 ? '✅' : '⚠️'} AI Correction Results
-          </h3>
-          <div className="text-sm text-gray-400">
-            {successCount} matched, {failCount} failed
+      <div className="card">
+        <div className="card-header">
+          <div className="flex items-center justify-between w-full">
+            <h3 className="heading-md flex items-center gap-3">
+              <span className={`badge ${successCount > 0 ? 'badge-success' : 'badge-warning'}`}>
+                {successCount > 0 ? 'Success' : 'Warning'}
+              </span>
+              AI Correction Results
+            </h3>
+            <span className="text-small" style={{ color: 'var(--text-muted)' }}>
+              {successCount} matched, {failCount} failed
+            </span>
           </div>
         </div>
 
-        <div className="space-y-3 mb-4">
-          {corrections.map((result, index) => {
-            const manualCorrection = manualCorrections[index];
-            const isManuallyFixed = manualCorrection !== undefined && manualCorrection.result !== null;
+        <div className="card-body space-y-4">
+          <div className="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
+            {corrections.map((result, index) => {
+              const manualCorrection = manualCorrections[index];
+              const isManuallyFixed = manualCorrection !== undefined && manualCorrection.result !== null;
+              const isSuccess = isManuallyFixed || result.scryfallMatch;
 
-            // Debug logging
-            console.log(`Card ${index}:`, {
-              original: result.original,
-              corrected: result.corrected,
-              scryfallMatch: result.scryfallMatch,
-              cardName: result.card.scryfallMatch?.name,
-              isManuallyFixed
-            });
-
-            return (
-              <div
-                key={index}
-                className={`p-3 rounded border ${
-                  isManuallyFixed
-                    ? 'bg-green-900/20 border-green-700'
-                    : result.scryfallMatch
-                    ? 'bg-green-900/20 border-green-700'
-                    : 'bg-red-900/20 border-red-700'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex-1 flex items-center gap-2">
-                    <span className="text-sm text-gray-400">{index + 1}.</span>
-                    <span className="text-sm text-gray-300 line-through">{result.original}</span>
-                    <span className="text-sm text-gray-500">→</span>
-                    <span className={`text-sm font-medium ${
-                      isManuallyFixed
-                        ? 'text-green-400'
-                        : result.scryfallMatch
-                        ? 'text-green-400'
-                        : 'text-red-400'
-                    }`}>
-                      {isManuallyFixed
-                        ? manualCorrection?.result?.scryfallMatch?.name
-                        : result.scryfallMatch
-                          ? result.card.scryfallMatch?.name
-                          : result.corrected
-                      }
+              return (
+                <div
+                  key={index}
+                  className="stat-card"
+                  style={{
+                    borderLeft: `4px solid ${isSuccess ? 'var(--success)' : 'var(--error)'}`,
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <span className="text-caption flex-shrink-0">{index + 1}.</span>
+                      <span className="text-small truncate" style={{ textDecoration: 'line-through', color: 'var(--text-muted)' }}>
+                        {result.original}
+                      </span>
+                      <span style={{ color: 'var(--text-muted)' }}>→</span>
+                      <span className="text-small font-medium truncate" style={{ color: isSuccess ? 'var(--success)' : 'var(--error)' }}>
+                        {isManuallyFixed
+                          ? manualCorrection?.result?.scryfallMatch?.name
+                          : result.scryfallMatch
+                            ? result.card.scryfallMatch?.name
+                            : result.corrected}
+                      </span>
+                    </div>
+                    <span className={`badge flex-shrink-0 ${isManuallyFixed ? 'badge-success' : isSuccess ? 'badge-success' : 'badge-error'}`}>
+                      {isManuallyFixed ? 'Fixed' : isSuccess ? 'Found' : 'Not Found'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {isManuallyFixed ? (
-                      <span className="text-green-500 text-sm">✓ Manually Fixed</span>
-                    ) : result.scryfallMatch ? (
-                      <span className="text-green-500 text-sm">✓ Found</span>
-                    ) : (
-                      <span className="text-red-500 text-sm">✗ Not Found</span>
-                    )}
-                  </div>
-                </div>
 
-                {/* Manual Correction for Failed AI Results */}
-                {!result.scryfallMatch && !isManuallyFixed && (
-                  <div className="mt-2 pl-8">
-                    <label className="text-xs text-gray-400 mb-1 block">Manual Correction:</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Enter correct card name..."
-                        defaultValue={manualCorrection?.value || result.corrected}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleManualCorrection(index, e.currentTarget.value);
-                          }
-                        }}
-                        className="flex-1 px-3 py-1.5 text-sm bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-                        disabled={manualCorrection?.loading}
-                      />
-                      <button
-                        onClick={(e) => {
-                          const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                          handleManualCorrection(index, input.value);
-                        }}
-                        disabled={manualCorrection?.loading}
-                        className="px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded transition"
-                      >
-                        {manualCorrection?.loading ? '...' : 'Check'}
-                      </button>
-                    </div>
-
-                    {/* Status Messages */}
-                    {manualCorrection?.error && (
-                      <div className="mt-1 text-xs text-red-400 flex items-center gap-1">
-                        <span>✗</span>
-                        <span>{manualCorrection.error}</span>
+                  {!result.scryfallMatch && !isManuallyFixed && (
+                    <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border-primary)' }}>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Enter correct card name..."
+                          defaultValue={manualCorrection?.value || result.corrected}
+                          onKeyDown={(e) => e.key === 'Enter' && handleManualCorrection(index, e.currentTarget.value)}
+                          className="input flex-1"
+                          disabled={manualCorrection?.loading}
+                        />
+                        <button
+                          onClick={(e) => {
+                            const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                            handleManualCorrection(index, input.value);
+                          }}
+                          disabled={manualCorrection?.loading}
+                          className="btn btn-primary btn-sm"
+                        >
+                          {manualCorrection?.loading ? '...' : 'Check'}
+                        </button>
                       </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                      {manualCorrection?.error && (
+                        <p className="text-caption mt-2" style={{ color: 'var(--error)' }}>✗ {manualCorrection.error}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
-        <div className="flex gap-3">
-          {/* Add Manual Corrections from AI Results */}
-          {Object.keys(manualCorrections).some(key => manualCorrections[Number(key)]?.result !== null) && (
+          <div className="flex gap-3 pt-2">
+            {Object.values(manualCorrections).some(mc => mc.result !== null) && (
+              <button onClick={handleAddManualCorrections} className="btn flex-1" style={{ background: 'var(--success)', color: 'white' }}>
+                Add {Object.values(manualCorrections).filter(mc => mc.result !== null).length} Manual Fix(es)
+              </button>
+            )}
+            {successCount > 0 && (
+              <button onClick={handleAddToCollection} className="btn flex-1" style={{ background: 'var(--success)', color: 'white' }}>
+                Add {successCount} AI Match(es)
+              </button>
+            )}
             <button
-              onClick={handleAddManualCorrections}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+              onClick={() => { setShowResults(false); setCorrections([]); setManualCorrections({}); }}
+              className="btn btn-secondary"
             >
-              ✓ Add {Object.values(manualCorrections).filter(mc => mc.result !== null).length} Manual Fix{Object.values(manualCorrections).filter(mc => mc.result !== null).length !== 1 ? 'es' : ''}
+              Close
             </button>
-          )}
-
-          {successCount > 0 && (
-            <button
-              onClick={handleAddToCollection}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-            >
-              Add {successCount} AI Match{successCount !== 1 ? 'es' : ''}
-            </button>
-          )}
-          <button
-            onClick={() => {
-              setShowResults(false);
-              setCorrections([]);
-              setManualCorrections({});
-            }}
-            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-          >
-            Revert & Close
-          </button>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Main Unmatched Cards View
   return (
-    <div className="mt-8 bg-yellow-900/20 rounded-lg border border-yellow-700 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-bold text-white flex items-center gap-2">
-          ⚠️ Unmatched Cards ({unmatchedCards.length})
-        </h3>
+    <div className="card" style={{ borderLeft: '4px solid var(--warning)' }}>
+      <div className="card-header">
+        <div className="flex items-center justify-between w-full">
+          <h3 className="heading-md flex items-center gap-3">
+            <span className="badge badge-warning">Attention</span>
+            Unmatched Cards ({unmatchedCards.length})
+          </h3>
+        </div>
       </div>
 
-      <p className="text-sm text-gray-300 mb-4">
-        These cards weren't found in Scryfall. They may have OCR errors. You can use AI to correct them.
-      </p>
+      <div className="card-body space-y-6">
+        <p className="text-body">
+          These cards weren't found in Scryfall. Use AI to correct them or manually enter the correct names.
+        </p>
 
-      <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
-        {unmatchedCards.map((card, index) => {
-          const manualCorrection = manualCorrections[index];
-          const isManuallyMatched = manualCorrection?.result !== null;
+        {/* Cards List */}
+        <div className="space-y-5 max-h-96 overflow-y-auto custom-scrollbar pr-2">
+          {unmatchedCards.map((card, index) => {
+            const manualCorrection = manualCorrections[index];
+            const isManuallyMatched = manualCorrection?.result !== null;
 
-          return (
-            <div key={index} className={`flex gap-3 p-3 rounded border ${
-              isManuallyMatched
-                ? 'bg-green-900/20 border-green-700'
-                : 'bg-gray-900/50 border-gray-700'
-            }`}>
-              {/* OCR Region Image Preview */}
-              {card.ocrRegionImage && (
-                <div className="flex-shrink-0">
-                  <img
-                    src={card.ocrRegionImage}
-                    alt="OCR Region"
-                    className="border-2 border-yellow-600 rounded"
-                    style={{
-                      imageRendering: 'pixelated',
-                      minWidth: '150px',
-                      height: 'auto'
-                    }}
-                  />
-                </div>
-              )}
-
-              {/* Card Details */}
-              <div className="flex-1 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500 font-semibold">{index + 1}.</span>
-                  <span className="text-sm text-gray-300 font-mono flex-1">"{card.kartenname}"</span>
-                </div>
-                <div className="text-xs text-gray-500 space-y-0.5">
-                  <div>
-                    <span className="text-gray-600">File:</span> {card.screenshotFilename || 'Unknown'}
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Position:</span> Page {card.pageNumber || '?'}, Row {card.positionY}, Col {card.positionX}
-                  </div>
-                  {card.ocrRegion && (
-                    <div>
-                      <span className="text-gray-600">Size:</span> {card.ocrRegion.width}×{card.ocrRegion.height}px
+            return (
+              <div
+                key={index}
+                className="stat-card"
+                style={{
+                  borderLeft: `4px solid ${isManuallyMatched ? 'var(--success)' : 'var(--warning)'}`,
+                }}
+              >
+                <div className="flex gap-5">
+                  {/* OCR Region Image */}
+                  {card.ocrRegionImage && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={card.ocrRegionImage}
+                        alt="OCR Region"
+                        className="rounded-lg"
+                        style={{
+                          imageRendering: 'pixelated',
+                          width: '160px',
+                          height: 'auto',
+                          border: '2px solid var(--border-secondary)',
+                        }}
+                      />
                     </div>
                   )}
-                </div>
 
-                {/* Manual Correction Input */}
-                <div className="mt-2">
-                  <label className="text-xs text-gray-400 mb-1 block">Manual Correction:</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Enter correct card name..."
-                      defaultValue={manualCorrection?.value || ''}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleManualCorrection(index, e.currentTarget.value);
-                        }
-                      }}
-                      className="flex-1 px-3 py-1.5 text-sm bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-                      disabled={manualCorrection?.loading}
-                    />
-                    <button
-                      onClick={(e) => {
-                        const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                        handleManualCorrection(index, input.value);
-                      }}
-                      disabled={manualCorrection?.loading}
-                      className="px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded transition"
-                    >
-                      {manualCorrection?.loading ? '...' : 'Check'}
-                    </button>
+                  {/* Card Details */}
+                  <div className="flex-1 space-y-4">
+                    {/* Card Name */}
+                    <div className="flex items-center gap-3">
+                      <span className="badge badge-neutral">{index + 1}</span>
+                      <code
+                        className="text-small px-4 py-2 rounded-md flex-1"
+                        style={{ background: 'var(--bg-tertiary)', fontFamily: 'monospace' }}
+                      >
+                        "{card.kartenname}"
+                      </code>
+                    </div>
+
+                    {/* Metadata */}
+                    <div className="text-caption" style={{ color: 'var(--text-muted)' }}>
+                      <span>File: {card.screenshotFilename || 'Unknown'}</span>
+                      <span className="mx-3">|</span>
+                      <span>Page {card.pageNumber || '?'}, Row {card.positionY}, Col {card.positionX}</span>
+                      {card.ocrRegion && (
+                        <>
+                          <span className="mx-3">|</span>
+                          <span>{card.ocrRegion.width}×{card.ocrRegion.height}px</span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Manual Correction Input */}
+                    <div className="pt-3">
+                      <label className="form-label mb-2 block">Manual Correction:</label>
+                      <div className="flex gap-3">
+                        <input
+                          type="text"
+                          placeholder="Enter correct card name..."
+                          defaultValue={manualCorrection?.value || ''}
+                          onKeyDown={(e) => e.key === 'Enter' && handleManualCorrection(index, e.currentTarget.value)}
+                          className="input flex-1"
+                          disabled={manualCorrection?.loading}
+                        />
+                        <button
+                          onClick={(e) => {
+                            const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                            handleManualCorrection(index, input.value);
+                          }}
+                          disabled={manualCorrection?.loading}
+                          className="btn btn-primary btn-sm"
+                        >
+                          {manualCorrection?.loading ? '...' : 'Check'}
+                        </button>
+                      </div>
+
+                      {manualCorrection?.result && (
+                        <p className="text-caption mt-2" style={{ color: 'var(--success)' }}>
+                          ✓ Found: <strong>{manualCorrection.result.scryfallMatch?.name}</strong>
+                        </p>
+                      )}
+                      {manualCorrection?.error && (
+                        <p className="text-caption mt-2" style={{ color: 'var(--error)' }}>
+                          ✗ {manualCorrection.error}
+                        </p>
+                      )}
+                    </div>
                   </div>
-
-                  {/* Status Messages */}
-                  {manualCorrection?.result && (
-                    <div className="mt-1 text-xs text-green-400 flex items-center gap-1">
-                      <span>✓</span>
-                      <span>Found: <strong>{manualCorrection.result.scryfallMatch?.name}</strong></span>
-                    </div>
-                  )}
-                  {manualCorrection?.error && (
-                    <div className="mt-1 text-xs text-red-400 flex items-center gap-1">
-                      <span>✗</span>
-                      <span>{manualCorrection.error}</span>
-                    </div>
-                  )}
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
 
-      <div className="flex gap-3">
-        {/* Add Manual Corrections Button */}
-        {Object.keys(manualCorrections).some(key => manualCorrections[Number(key)]?.result !== null) && (
-          <button
-            onClick={handleAddManualCorrections}
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200"
-          >
-            ✓ Add {Object.values(manualCorrections).filter(mc => mc.result !== null).length} Manual Correction(s)
-          </button>
-        )}
-
-        {/* AI Correction Button */}
-        <button
-          onClick={handleCorrectAll}
-          disabled={correcting}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center gap-2"
-        >
-          {correcting ? (
-            <>
-              <span className="animate-spin">⏳</span>
-              Correcting with AI...
-            </>
-          ) : (
-            <>
-              ✨ Correct All with AI
-            </>
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-2">
+          {Object.values(manualCorrections).some(mc => mc.result !== null) && (
+            <button onClick={handleAddManualCorrections} className="btn btn-lg flex-1" style={{ background: 'var(--success)', color: 'white' }}>
+              Add {Object.values(manualCorrections).filter(mc => mc.result !== null).length} Manual Correction(s)
+            </button>
           )}
-        </button>
-      </div>
+          <button
+            onClick={handleCorrectAll}
+            disabled={correcting}
+            className="btn btn-primary btn-lg flex-1"
+          >
+            {correcting ? (
+              <><span className="animate-spin inline-block mr-2">⏳</span>Correcting...</>
+            ) : (
+              <>✨ Correct All with AI</>
+            )}
+          </button>
+        </div>
 
-      <p className="text-xs text-gray-500 mt-2 text-center">
-        Manually correct individual cards or use AI to correct all. Only successfully matched cards will be added.
-      </p>
+        <p className="text-caption text-center" style={{ color: 'var(--text-muted)' }}>
+          Only successfully matched cards will be added to your collection.
+        </p>
+      </div>
     </div>
   );
 };

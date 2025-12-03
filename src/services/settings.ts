@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 export interface UserSettings {
   // API Keys
@@ -25,6 +25,10 @@ const DEFAULT_SETTINGS: UserSettings = {
  * Load user settings from Supabase
  */
 export async function loadSettings(): Promise<UserSettings> {
+  if (!supabase || !isSupabaseConfigured) {
+    console.warn('Supabase not configured, using default settings');
+    return DEFAULT_SETTINGS;
+  }
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -58,6 +62,9 @@ export async function loadSettings(): Promise<UserSettings> {
  * Save user settings to Supabase
  */
 export async function saveSettings(settings: Partial<UserSettings>): Promise<void> {
+  if (!supabase || !isSupabaseConfigured) {
+    throw new Error('Database not configured');
+  }
   try {
     const { data: { user } } = await supabase.auth.getUser();
 

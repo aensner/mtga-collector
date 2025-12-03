@@ -1,4 +1,3 @@
-import type { Deck } from '../types';
 import { downloadFile } from './csvParser';
 import { loadDeck } from '../services/deckDatabase';
 

@@ -28,7 +28,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
           return (
             <div
               key={image.id}
-              className="flex items-center gap-3"
+              className="flex items-center gap-4"
               style={{
                 padding: '8px',
                 borderRadius: '8px',

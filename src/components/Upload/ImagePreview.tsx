@@ -4,83 +4,101 @@ import type { UploadedImage } from '../../types';
 interface ImagePreviewProps {
   images: UploadedImage[];
   onRemove: (id: string) => void;
+  processingIndex?: number; // Which image is currently being processed (-1 = none)
+  processingProgress?: number; // 0-100 progress for current image
 }
 
-export const ImagePreview: React.FC<ImagePreviewProps> = ({ images, onRemove }) => {
+export const ImagePreview: React.FC<ImagePreviewProps> = ({
+  images,
+  onRemove,
+  processingIndex = -1,
+  processingProgress = 0
+}) => {
   if (images.length === 0) return null;
 
   return (
-    <div className="section">
-      <div className="section-header">
-        <h3 className="heading-sm">
-          Uploaded Images ({images.length})
-        </h3>
-        <span className="text-caption">
-          {images.filter(i => i.processed).length} processed
-        </span>
+    <div className="flex-1">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="heading-sm">Uploaded files</h3>
       </div>
 
-      {/* Horizontal scrollable container */}
-      <div
-        className="flex gap-4 overflow-x-auto pb-3 custom-scrollbar"
-        style={{ scrollSnapType: 'x mandatory' }}
-      >
-        {images.map((image) => (
-          <div
-            key={image.id}
-            className="relative flex-shrink-0 group"
-            style={{ scrollSnapAlign: 'start' }}
-          >
+      <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar pr-2">
+        {images.map((image, index) => {
+          const isProcessing = index === processingIndex;
+          const isProcessed = image.processed;
+          const isPending = !isProcessed && index > processingIndex;
+
+          return (
             <div
-              className="card overflow-hidden"
-              style={{ width: '220px' }}
+              key={image.id}
+              className="flex items-center gap-3 p-2 rounded-lg transition-colors"
+              style={{
+                background: isProcessing ? 'var(--bg-tertiary)' : 'transparent',
+              }}
             >
-              {/* Image */}
-              <div className="relative">
+              {/* Thumbnail */}
+              <div
+                className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0"
+                style={{ border: '1px solid var(--border-primary)' }}
+              >
                 <img
                   src={image.preview}
                   alt={image.file.name}
-                  className="w-full h-32 object-cover"
+                  className="w-full h-full object-cover"
                 />
-                {/* Remove button */}
-                <button
-                  onClick={() => onRemove(image.id)}
-                  className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                  style={{
-                    background: 'var(--error)',
-                    color: 'white',
-                  }}
-                  aria-label="Remove image"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
               </div>
 
-              {/* Info */}
-              <div className="p-3">
+              {/* File Info & Progress */}
+              <div className="flex-1 min-w-0">
                 <p
-                  className="text-small truncate mb-2"
-                  title={image.file.name}
+                  className="text-small truncate mb-1"
                   style={{ color: 'var(--text-primary)' }}
+                  title={image.file.name}
                 >
                   {image.file.name}
                 </p>
-                <div className="flex items-center justify-between">
-                  {image.processed ? (
-                    <span className="badge badge-success">Processed</span>
-                  ) : (
-                    <span className="badge badge-warning">Pending</span>
-                  )}
-                  <span className="text-caption">
-                    {(image.file.size / 1024 / 1024).toFixed(1)} MB
-                  </span>
-                </div>
+
+                {/* Progress Bar */}
+                {isProcessing && (
+                  <div className="progress" style={{ height: '4px' }}>
+                    <div
+                      className="progress-bar transition-all duration-300"
+                      style={{
+                        width: `${processingProgress}%`,
+                        background: 'var(--accent-primary)'
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Status Text */}
+                {!isProcessing && (
+                  <p className="text-caption" style={{ color: 'var(--text-muted)' }}>
+                    {isProcessed ? (
+                      <span style={{ color: 'var(--success)' }}>Processed</span>
+                    ) : isPending ? (
+                      'Pending'
+                    ) : (
+                      `${(image.file.size / 1024 / 1024).toFixed(1)} MB`
+                    )}
+                  </p>
+                )}
               </div>
+
+              {/* Remove Button */}
+              <button
+                onClick={() => onRemove(image.id)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-tertiary)]"
+                style={{ color: 'var(--text-muted)' }}
+                aria-label="Remove file"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -4,10 +4,9 @@ import type { UploadedImage } from '../../types';
 
 interface ImageDropzoneProps {
   onImagesUploaded: (images: UploadedImage[]) => void;
-  compact?: boolean;
 }
 
-export const ImageDropzone: React.FC<ImageDropzoneProps> = ({ onImagesUploaded, compact = false }) => {
+export const ImageDropzone: React.FC<ImageDropzoneProps> = ({ onImagesUploaded }) => {
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newImages: UploadedImage[] = acceptedFiles.map((file) => ({
       id: `${file.name}-${Date.now()}`,
@@ -30,24 +29,20 @@ export const ImageDropzone: React.FC<ImageDropzoneProps> = ({ onImagesUploaded, 
   return (
     <div
       {...getRootProps()}
-      className={`dropzone ${isDragActive ? 'active' : ''}`}
-      style={compact ? { padding: '24px 16px' } : {}}
+      className={`dropzone h-full min-h-64 ${isDragActive ? 'active' : ''}`}
     >
       <input {...getInputProps()} />
-      <div className={`flex items-center gap-4 ${compact ? 'flex-row' : 'flex-col'}`}>
+      <div className="flex flex-col items-center justify-center h-full text-center">
         {/* Upload Icon */}
         <div
-          className={`
-            rounded-xl flex items-center justify-center transition-all duration-300
-            ${compact ? 'w-12 h-12' : 'w-16 h-16'}
-          `}
+          className="w-12 h-12 mb-4 rounded-xl flex items-center justify-center transition-all duration-300"
           style={{
             background: isDragActive ? 'var(--accent-primary-light)' : 'var(--bg-tertiary)',
             transform: isDragActive ? 'scale(1.1)' : 'scale(1)',
           }}
         >
           <svg
-            className={`transition-colors duration-300 ${compact ? 'w-6 h-6' : 'w-8 h-8'}`}
+            className="w-6 h-6 transition-colors duration-300"
             style={{ color: isDragActive ? 'var(--accent-primary)' : 'var(--text-muted)' }}
             fill="none"
             stroke="currentColor"
@@ -57,54 +52,44 @@ export const ImageDropzone: React.FC<ImageDropzoneProps> = ({ onImagesUploaded, 
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
             />
           </svg>
         </div>
 
         {/* Text Content */}
-        <div className={compact ? 'text-left flex-1' : 'text-center'}>
-          {isDragActive ? (
+        {isDragActive ? (
+          <p
+            className="font-medium text-sm"
+            style={{ color: 'var(--accent-primary)' }}
+          >
+            Drop files here
+          </p>
+        ) : (
+          <>
             <p
-              className={`font-semibold ${compact ? 'text-sm' : 'text-lg'}`}
-              style={{ color: 'var(--accent-primary)' }}
+              className="font-medium text-sm mb-1"
+              style={{ color: 'var(--text-primary)' }}
             >
-              Drop your screenshots here
+              Drag and Drop files to upload
             </p>
-          ) : (
-            <>
-              <p
-                className={`font-semibold ${compact ? 'text-sm' : 'text-lg'}`}
-                style={{ color: 'var(--text-primary)' }}
-              >
-                Drag & drop MTG Arena screenshots
-              </p>
-              <p
-                className={`${compact ? 'text-xs mt-0.5' : 'text-sm mt-1'}`}
-                style={{ color: 'var(--text-secondary)' }}
-              >
-                or <span style={{ color: 'var(--accent-primary)' }} className="cursor-pointer hover:underline">browse files</span>
-              </p>
-            </>
-          )}
-        </div>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+              or
+            </p>
+            <button
+              type="button"
+              className="btn btn-primary px-6 py-2 text-sm"
+            >
+              Browse
+            </button>
+          </>
+        )}
 
-        {/* Supported Formats - only show when not compact */}
-        {!isDragActive && !compact && (
-          <div className="flex items-center gap-2 mt-2">
-            {['PNG', 'JPG', 'JPEG', 'WEBP'].map((format) => (
-              <span
-                key={format}
-                className="px-2 py-1 text-xs font-medium rounded"
-                style={{
-                  background: 'var(--bg-tertiary)',
-                  color: 'var(--text-muted)',
-                }}
-              >
-                {format}
-              </span>
-            ))}
-          </div>
+        {/* Supported Formats */}
+        {!isDragActive && (
+          <p className="text-caption mt-4" style={{ color: 'var(--text-muted)' }}>
+            Supported files: PNG, JPG, WEBP
+          </p>
         )}
       </div>
     </div>

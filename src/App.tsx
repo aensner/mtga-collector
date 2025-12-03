@@ -414,25 +414,38 @@ const MainApp: React.FC = () => {
           {/* Collection Scanner Tab */}
           {activeTab === 'collection' && (
             <div className="animate-fade-in space-y-8">
-              {/* Upload & Process Section - Combined */}
+              {/* Upload Section - Two Column Layout */}
               <section className="card">
-                <div className="card-body space-y-6">
-                  {/* Dropzone - compact when images already uploaded */}
-                  <ImageDropzone onImagesUploaded={handleImagesUploaded} compact={images.length > 0} />
-
-                  {/* Uploaded Images Preview - compact horizontal strip */}
-                  {images.length > 0 && (
-                    <ImagePreview images={images} onRemove={handleRemoveImage} />
-                  )}
-
-                  {/* Process Controls - directly after images */}
-                  {images.length > 0 && (
-                    <div className="pt-2">
-                      <CardProcessor images={images} onProcessingComplete={handleProcessingComplete} />
+                <div className="card-body">
+                  <div className="flex gap-8">
+                    {/* Left: Dropzone */}
+                    <div className="w-72 flex-shrink-0">
+                      <ImageDropzone onImagesUploaded={handleImagesUploaded} />
                     </div>
-                  )}
+
+                    {/* Right: File List */}
+                    {images.length > 0 && (
+                      <ImagePreview images={images} onRemove={handleRemoveImage} />
+                    )}
+
+                    {/* Empty state for right side */}
+                    {images.length === 0 && (
+                      <div className="flex-1 flex items-center justify-center">
+                        <p className="text-caption" style={{ color: 'var(--text-muted)' }}>
+                          No files uploaded yet
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </section>
+
+              {/* Process Button - Only show when images uploaded */}
+              {images.length > 0 && (
+                <section>
+                  <CardProcessor images={images} onProcessingComplete={handleProcessingComplete} />
+                </section>
+              )}
 
               {/* Unmatched Cards Section */}
               {unmatchedCards.length > 0 && (
